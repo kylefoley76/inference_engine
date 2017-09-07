@@ -1,0 +1,7 @@
+.idea/*
+*.pyc
+media/*
+db.sqlite3
+my_env/*
+mySIte/logs
+mysite/logs/*

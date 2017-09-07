@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load extra_tags %}
+
+{% block base_head %}
+    <script type="text/javascript">
+$(document).ready(function(){
+
+});
+</script>
+{% endblock base_head %}
+
+{% block content %}
+    <h1>Test Machine</h1>
+    <div class="row" style="margin-left: 10px">
+
+    <form action="/try_input" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="comment">Input:</label>
+          <input id="try_input" type="text" name="try_input" size="100">
+            <button type="submit" class="btn btn-info" id="btn_try">Calculate</button>
+        </div>
+
+    </form>
+    </div>
+    <div class="row">
+    <table style="text-align: center;background-color:#DCDCDC; border: 1px">
+      {% for i in output%}
+      <tr class="output_row">
+      <td id="table_output_{{i}}_1 text-align: center;"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_1" id="table_output_{{i}}_1">{{i.col1}}</div></td>
+      <td id="table_output_{{i}}_2"><div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text" name="table_output_{{i}}_2" id="table_output_{{i}}_2">{{i.col2}}</div></td>
+      <td id="table_output_{{i}}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_3" id="table_output_{{i.col3}}_3">{{i.col3}}</div></td>
+      </tr>
+  {% endfor %}
+  </table>
+
+    </div>
+
+    <div class="container" style="font-family: 'Times New Roman'">
+    <p>Each sentence must begin with either 'It is|a consistent that' or 'It is|a contradictory that'.&nbsp; To write a superscript place a | before the superscripted letter.&nbsp; So mental|a is written as mental|a.&nbsp; Although we do not have written down in precise detail what grammatical constructions are allowed they are roughly as follows:</p>
+<p>&nbsp;</p>
+<ol>
+<li>Nouns can be preceded by one adjective.</li>
+<li>Two nouns can appear in apposition to each other in such sentences as: 'the actress Barbara Stanwyck has a new film out' or 'I spoke with the philosopher Russell'.</li>
+<li>The system can process sentences with one relative clause such as 'I saw the man who drank beer'.</li>
+<li>If the word does not appear in our dictionary then the system cannot compute the sentence and if the word does not appear in the tested dictionary then it is very unlikely to work.</li>
+<li>The system currently cannot process adverbs, or sentences which begin with 'it is true that', 'it is obvious that'.&nbsp; It also cannot handle any connective other than 'and', so 'if ... then', 'because' and 'since' have not been coded for.&nbsp; Infinitival constructions such as 'I want to prove claims' have not been coded for and just about every other advanced construction other than simple subject verb object sentences.</li>
+</ol>
+<p>&nbsp;</p>
+<p>Currently, when I input a sentence into the system I get the anticipated result about 50% of the time.</p>
+<p>&nbsp;</p>
+<p>Without a strong knowledge of how this system disambiguates the various meanings of each word then it is unlikely that more than 10% of the inputs will result in the anticipated output.&nbsp;</p>
+    </div>
+{% endblock content %}
