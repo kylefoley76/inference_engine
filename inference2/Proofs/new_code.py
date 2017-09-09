@@ -50,9 +50,10 @@ import os
 
 total_time = time.time()
 
-######### himanshu begin
+######### tahir begin
 
-
+#tahir - the code for the website should always be mysql == 1 for the prove site
+# for the test machine site, it needs to be mysql == 2 and input = True
 mysql = 0
 excel = 0
 if mysql == 0:
@@ -81,7 +82,7 @@ if mysql == 1:
     from inference2 import views
     from inference2.models import Define3, Archives, Input
 
-########### himanshu end
+########### tahir end
 
 total_sent = []
 all_sent = []
@@ -206,7 +207,7 @@ delta = chr(948)
 # @ 8855
 # if^ 8660
 
-# himanshu
+# tahir
 def tran_str(str1, has_sentence_connectives=False):
     if str1 == "":
         return str1
@@ -2708,7 +2709,7 @@ def obtain_truth_value(sent):
     elif sentence[7:12] == 'contr':
         return False, sentence[len("It isa contradictory that "):]
     else:
-        # himanshu system exit
+        # tahir system exit
         print ("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
 
 
@@ -4176,7 +4177,7 @@ def categorize_words(list1):
 
             if has_comma: sentence_slots[39] = k
             if mysql == 2 and k == 0:
-                # himanshu system exit
+                # tahir system exit
                 print ("our system does not have this grammatical syntax yet")
 
             if k == 0 and proof_type != 3:
@@ -4301,7 +4302,7 @@ def get_part_of_speech(word, str5):
             if posp == None:
                 print("you misspelled " + word)
                 if proof_type != 3 or mysql == 2:
-                    # himanshu system exit
+                    # tahir system exit
                     g = 4 / 0
                 else:
                     posp = "n"
@@ -4458,7 +4459,7 @@ def space_sentences(str1, str2):
     return [first, second, third]
 
 
-###### himanshu
+###### tahir
 def print_sent_full(test_sent, tot_prop_name, row_number):
     global result_data
     if proof_type == 0 and mysql == 0:
@@ -4593,7 +4594,7 @@ def progress(count, total, suffix=''):
 
 def build_dict():
     global dictionary
-    # himanshu dictionary is built here
+    # tahir dictionary is built here
     ex_dict = large_dict() if get_words_used == 0 else ""
 
     parts_of_speech = {}
@@ -7246,7 +7247,7 @@ def add_outer_paren(str1):
     return "(" + str1 + ")"
 
 
-##### himanshu begin
+##### tahir begin
 def populate_sentences():
     global result_data
 
@@ -7267,7 +7268,7 @@ def populate_sentences():
             elif row[1] == "" and last_row_blank:
                 break
 
-                # himanshu I'm not really sure what this does:
+                # tahir I'm not really sure what this does:
 
                 # if not first_sent:
                 #     result_data['text_' + str(row_number - 2) + '_1'] = len(test_sent)
@@ -7321,7 +7322,7 @@ def get_result(post_data, archive_id=None, request=None, input=None):
     global all_sent, attach_sent, detach_sent, definite_assignments
     global prop_var, variables, stop, abbreviations, dictionary
 
-    ########## himanshu begin
+    ########## tahir begin
     if mysql == 1 and not input:
         archive = Archives.objects.latest('archives_date')
         test_sent, row_number = pop_sent()
