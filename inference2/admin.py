@@ -44,8 +44,7 @@ class MyDefineImporter(ModelForm):
     class Meta:
         model = Define3
         fields = ('id', 'extra', 'type', 'word',
-                  'rel', 'definition', 'superscript',
-                  'subject','object_col','archives')
+                  'rel', 'definition', 'archives')
 
 
 class MyDefineForm(ModelForm):

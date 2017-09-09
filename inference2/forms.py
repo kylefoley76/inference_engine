@@ -65,6 +65,8 @@ class ImportCSVForm(forms.Form):
         try:
             # print(self.cleaned_data['csv_file'])
             data = str(self.cleaned_data['csv_file'].read())
+            import pdb
+            pdb.set_trace()
             lines = data.split('\\n')
             if len(lines) < 3:
                 lines = data.split('\\r')
@@ -111,9 +113,9 @@ class ImportCSVForm(forms.Form):
     def process_csv(self, reader, archives_id=-1):
         list_obj = []
         for i, row in reader:
-            # if not row.get('definition') and 'definition' in self.importer_class.Meta.fields:
-            #     # SKIP empty rows
-            #     continue
+            if not row.get('definition') and 'definition' in self.importer_class.Meta.fields:
+                # SKIP empty rows
+                continue
             if archives_id != -1:
                 row['archives'] = archives_id
             row_result = self.process_row(i, row)
@@ -121,7 +123,7 @@ class ImportCSVForm(forms.Form):
                 list_obj.append(row_result)
         if list_obj:
             list_obj[0].__class__.objects.bulk_create(
-                list_obj, batch_size=50)
+                list_obj, batch_size=500)
 
     def append_import_error(self, error, rownumber=None, column_name=None):
         if rownumber is not None:
