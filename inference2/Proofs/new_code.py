@@ -7355,7 +7355,7 @@ def get_result(post_data, archive_id=None, request=None, input=None):
     for j, k in enumerate(order):
         if mysql == 1:
             views.progressbar_send(request, start, stop, k, 1)
-        if k == 17:
+        if k == 18:
             bb = 7
         st1 = time.time()
         prop_name = []
