@@ -4,35 +4,34 @@
 {% block content %}
     <h1>Dictionary</h1>
 
-<table border="1">
-    <tr>
-        <th>Number</th>
-        <th>Part of speech</th>
-        <th>Words</th>
-        <th>Relation</th>
-        <th>Definition</th>
-        <th>Superscripts</th>
-        <th>Subject</th>
-        <th>Object</th>
+    <table data-toggle="table">
+        <thead>
+        <tr>
+            <th>Number</th>
+            <th>Part of speech</th>
+            <th>Words</th>
+            <th>Relation</th>
+            <th>Definition</th>
+            <th>Superscripts</th>
+            <th>Subject</th>
+            <th>Object</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in result %}
+            <tr>
+                <td>{{ row.id }}</td>
+                <td>{{ row.type }}</td>
+                <td>{{ row.extra }}</td>
+                <td>{{ row.rel }}</td>
+                <td>{{ row.definition }}</td>
+                <td>{{ row.superscript }}</td>
+                <td>{{ row.subject }}</td>
+                <td>{{ row.object_col }}</td>
+            </tr>
+        {% endfor %}
 
+        </tbody>
+    </table>
 
-    </tr>
-{% for row in result %}
-    <tr>
-        <td>{{ row.id }}</td>
-
-    <td>{{ row.type }}</td>
-        <td>{{ row.extra }}</td>
-    <td>{{ row.rel }}</td>
-    <td>{{ row.definition }}</td>
-    <td>{{ row.superscript }}</td>
-    <td>{{ row.subject }}</td>
-    <td>{{ row.object_col }}</td>
-
-
-
-    </tr>
-{% endfor %}
-
-</table>
 {% endblock content %}
