@@ -6,6 +6,8 @@ import copy
 import time
 import operator
 import sys
+import cProfile
+import re
 from pprint import pprint
 import collections
 from start_and_stop import info
@@ -7339,7 +7341,7 @@ def get_result(post_data, archive_id=None, request=None, input=None):
     # aa = time.time() - aa
     not_oft_def = copy.deepcopy(dictionary[6])
     # if not order:
-    #     _, _, order = info()
+    _, _, order = info()
     nonlinear = order[2]
     if mysql == 2:
         order = [0]
@@ -7385,6 +7387,8 @@ def get_result(post_data, archive_id=None, request=None, input=None):
     calculate_time_statistics(time_used_proving_sent, nonlinear)
 
     determine_words_used()
+
+    # cProfile.run("get_result('hey')")
 
     print_sent_full(test_sent, tot_prop_name, row_number)
 
