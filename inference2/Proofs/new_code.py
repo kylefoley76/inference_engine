@@ -1074,8 +1074,9 @@ def eliminate_universals(list1, i):
     for sent in antecedent:
         s = findposinmd(sent[42], all_sent, 42)
         if s == -1:
+            sent[54] = 'do not define'
             all_sent.append(sent)
-
+    consequent[54] = 'do not define'
     s = findposinmd(consequent[42], all_sent, 42)
     if s == -1:
         all_sent.append(consequent)
@@ -1294,7 +1295,9 @@ def eliminate_no_w_indef_obj(class_sent, list1):
     list1[3] = None
     consequent = build_sent1(class_sent[5], "~", list1[9], variables[0])
     sec_antecedent = build_sent1(variables[0], "", "I", list1[14], list1[15], list1[18])
-    if variables[0] not in variable_type[0]: variable_type[0].append(variables[0])
+    if variables[0] not in variable_type[0]:
+        variable_type[0].append(variables[0])
+        variable_type[3].append(variables[0])
     del variables[0]
 
     return [sec_antecedent], consequent
@@ -1574,6 +1577,8 @@ def get_relevant_variables(list1):
                     else:
                         if lst[i] not in variable_type[0]:
                             variable_type[0].append(lst[i])
+                            if lst[i] not in variable_type[3]:
+                                variable_type[3].append(lst[i])
 
     for i in put_in_definite:
         if i in variable_type[1]:
@@ -5043,8 +5048,6 @@ def use_axiom_of_definition2(consistent, negated_conjunction):
 
     consistent = step_three(negated_conjunction, consistent)
 
-
-
     return consistent
 
 
@@ -5394,6 +5397,10 @@ def rearrange_all_sent(all_sent2):
 
 def determine_relevance():
     irrelevant = []
+    for var in variable_type[0]:
+        if var not in variable_type[3]:
+            variable_type[3].append(var)
+
     for lst in all_sent:
         if not is_relevant(lst):
             lst[71] = "irrelevant"
@@ -6167,14 +6174,20 @@ def print_object_properties():
             for lst in v[1]:
                 properties.append(lst[0])
             properties2 = " ".join(properties)
+            if len(properties2) > 5 and len(str1) > 50:
+                add_to_total_sent("", str1)
+                str1 = k
             str1 += " | " + properties2
         if v[2] != []:
             properties = []
             for lst in v[2]:
-                properties.append(lst[2] + lst[0])
-            str1 += "[" + " ".join(properties) + "]"
+                if lst[69] != 'detached':
+                    properties.append(lst[2] + lst[0])
+            if properties != []:
+                str1 += " [" + " ".join(properties) + "]"
 
         add_to_total_sent("", str1)
+
 
 
 def get_class(relat, sent, p):
