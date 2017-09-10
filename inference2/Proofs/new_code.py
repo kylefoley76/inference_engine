@@ -5496,6 +5496,8 @@ def get_object_properties(consistent = True, second_time = False):
                 break
             elif lst[i] != None and isvariable(lst[i], "i") and lst[i] in variable_type[3] \
                     and lst[71] != 'irrelevant':
+                if lst[i] == 'j':
+                    bb = 8
                 obj_class = get_class(lst[9], lst, i)
                 if obj_class == 'whole' and lst[53] == 'b':
                     groups.update({lst[i]: lst[14]})
@@ -6165,28 +6167,46 @@ def print_object_properties():
     add_to_total_sent("", "OBJECT PROPERTIES")
 
     for k, v in object_properties.items():
-        classes = " ".join(v[0])
-        if classes == "":
-            classes = "thing"
-        str1 = k + " | " + classes
-        properties = []
-        if v[1] != []:
-            for lst in v[1]:
-                properties.append(lst[0])
-            properties2 = " ".join(properties)
-            if len(properties2) > 5 and len(str1) > 50:
-                add_to_total_sent("", str1)
-                str1 = k
-            str1 += " | " + properties2
-        if v[2] != []:
-            properties = []
-            for lst in v[2]:
-                if lst[69] != 'detached':
-                    properties.append(lst[2] + lst[0])
-            if properties != []:
-                str1 += " [" + " ".join(properties) + "]"
+        if len(v) > 3 and v[0] == [] and v[1] == [] and v[2] == []:
+            e = 1
+            f = 2
+        elif len(v) > 3:
+            e = 0
+            f = 2
+        else:
+            e = 0
+            f = 1
 
-        add_to_total_sent("", str1)
+        for m in range(e, f):
+            if m == 0:
+                b, c, d = 0, 1, 2
+            elif m == 1:
+                b, c, d = 3, 4, 5
+
+            classes = " ".join(v[b])
+            if k == "j":
+                bb = 8
+            if classes == "":
+                classes = "thing"
+            str1 = k + " | " + classes
+            properties = []
+            if v[c] != []:
+                for lst in v[c]:
+                    properties.append(lst[0])
+                properties2 = " ".join(properties)
+                if len(properties2) > 5 and len(str1) > 40:
+                    add_to_total_sent("", str1)
+                    str1 = k
+                str1 += " | " + properties2
+            if v[d] != []:
+                properties = []
+                for lst in v[d]:
+                    if lst[69] != 'detached':
+                        properties.append(lst[2] + lst[0])
+                if properties != []:
+                    str1 += " [" + " ".join(properties) + "]"
+
+            add_to_total_sent("", str1)
 
 
 
