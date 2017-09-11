@@ -5071,7 +5071,8 @@ def rename_rules():
 def make_attached_detached(consistent, to_be_defined):
     global sn
     if not consistent or to_be_defined != []:
-        return to_be_defined, True
+        proof_done = True if not consistent else False
+        return to_be_defined, proof_done
     used_sent = []
     dict1 = {}
     for lst in attach_sent:
@@ -5120,6 +5121,7 @@ def eliminate_attached_conjuncts(loop_number):
     global sn
     for sent in attach_sent:
         if sent[46] == 'eliminate as conjunct':
+            sent[46] = ""
             anc1 = sent[2]
             sn += 1
             sent[2] = sn
@@ -5772,7 +5774,7 @@ def step_three(negated_conjunction, consistent):
 
         consistent, to_be_defined = detach1("use modus tollens", consistent, negated_conjunction)
 
-        proof_done = True if consistent == False else False
+        to_be_defined, proof_done = make_attached_detached(consistent, to_be_defined)
 
         return consistent, proof_done, to_be_defined
 
@@ -6066,7 +6068,10 @@ def substitute_in_attach_sent(instantiations):
 
     for cond_sent in attach_sent2:
         cond_sent = make_new_attach_sent(cond_sent)
-        attach_sent.append(cond_sent)
+        if not isinmdlist(cond_sent[4], attach_sent, 4):
+            attach_sent.append(cond_sent)
+        else:
+            print ('hey you')
 
 
 def make_new_attach_sent(cond_sent):
@@ -6397,7 +6402,7 @@ def detach1(str1, consistent, negated_conjunction):
         g = -1
         while consistent and g < len(attach_sent) - 1:
             g += 1
-            if attach_sent[g][26] != 'not new':
+            if attach_sent[g][26] != 'not neww':
                 k = -1
                 while consistent and k < 1:
                     k += 1
@@ -6408,7 +6413,7 @@ def detach1(str1, consistent, negated_conjunction):
                         temp_attach_sent = attach_sent[g][k][0][0]
                         att_tvalue = attach_sent[g][k][0][1]
 
-                        if temp_detach_sent == 'l':
+                        if temp_detach_sent == 'i':
                             bb = 8
                         if temp_detach_sent == temp_attach_sent:
                             if det_tvalue == att_tvalue and (k == 0 or (k == 1 and sent_type == "e")):
@@ -6543,8 +6548,10 @@ def add_sent(consistent, g, h, n, negated_conjunction, r, rule, s, sn):
                 else:
                     for lst in attach_sent[g][39]:
                         lst[2] = sn
-                        attach_sent.append(lst)
-                        r = reset_r(lst[38], r)
+                        if not isinmdlist(lst[4], attach_sent, 4):
+                            attach_sent.append(lst)
+                            r = reset_r(lst[38], r)
+
         else:
             consistent, r = eliminate_conjuncts(g, r, h, negated_conjunction)
     return consistent, r
@@ -6613,8 +6620,9 @@ def eliminate_conjuncts(g, r, h, negated_conjunction):
                 d = findposinmd_alert_error(conjunct_list[i][0], attach_sent[g][39], 4)
                 list2 = attach_sent[g][39][d]
                 list2[2] = sn
-                attach_sent.append(list2)
-                r = reset_r(list2[38], r)
+                if not isinmdlist(list2[4], attach_sent, 4):
+                    attach_sent.append(list2)
+                    r = reset_r(list2[38], r)
         else:
             break
 
@@ -6626,7 +6634,8 @@ def get_new_detach_sent(begin_num_of_detach_sent):
         return []
     new_sent = []
     for i in range(begin_num_of_detach_sent - 1, len(detach_sent)):
-        new_sent.append(detach_sent[i])
+        if not isinmdlist(detach_sent[i][1], all_sent, 1):
+            new_sent.append(detach_sent[i])
     return new_sent
 
 
