@@ -17,6 +17,10 @@ import os
 
 
 
+bb = 8
+
+
+
 # what's up
 
 
@@ -1642,7 +1646,7 @@ def change_variables(sentence, def_loc, type=""):
     if definiendum == None or definiendum in dictionary[6]:
         return
 
-    if definiendum == 'time':
+    if definiendum == 'a':
         bb = 8
 
     definition = dictionary[1].get(definiendum)
@@ -5023,6 +5027,7 @@ def rename_rules():
         lst[4] = lst[4].replace('DE', 'DF')
         lst[4] = lst[4].replace('NE', 'NC')
         lst[4] = lst[4].replace('LY', 'LE')
+        lst[4] = lst[4].replace('DFF', 'DEF')
         if lst[2].startswith("INFER"):
             return
 
