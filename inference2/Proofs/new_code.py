@@ -17,7 +17,7 @@ import os
 
 
 
-bb = 8
+
 
 
 
@@ -104,6 +104,7 @@ object_classes = {}
 definite_assignments = {}
 propositional_constants = {}
 object_properties = {}
+do_not_instantiate = {}
 already_defined = []
 variable_type = []
 
@@ -771,8 +772,6 @@ def sort_decisions(list1):
 def define_irregular_terms(list1, type=""):
     # the code for avoiding the circularity of defining 'i' is found in the add to all sent function
 
-
-
     do_not_define_again = []
     sort_decisions(list1)
     i_defined = 0 if type == "" else 2
@@ -793,7 +792,7 @@ def define_irregular_terms(list1, type=""):
                     (i_defined < 2 or list1[m][i] != 'i'):
                 antecedent = copy.deepcopy(list1[m])
                 consequent = copy.deepcopy(list1[m])
-                consequent, rule = determine_which_function_to_use(consequent, i, category, type)
+                consequent, rule = determine_which_function_to_use(consequent, i, category, list1, type)
                 prepare_irregular_att_sent(antecedent, consequent, rule, list1, type)
                 del list1[m]
                 m -= 1
@@ -822,9 +821,9 @@ def prepare_irregular_att_sent(antecedent, consequent, rule, list1, type=""):
         prepare_att_sent_4_sent(antecedent, consequent, iff, rule)
 
 
-def determine_which_function_to_use(list1, i, j, type=""):
+def determine_which_function_to_use(list1, i, j, list3, type=""):
     if j == 1:
-        consequent, rule = change_variables(list1, i, type)
+        consequent, rule = change_variables(list1, i, list3, type)
     elif j == 3:
         consequent, rule = eliminate_common_name_possessives(list1, i)
     elif j == 4:
@@ -848,7 +847,7 @@ def determine_which_function_to_use(list1, i, j, type=""):
     elif j == 15:
         consequent, rule = eliminate_universals(list1, i)
     elif j == 16:
-        consequent, rule = change_variables(list1, i)
+        consequent, rule = change_variables(list1, i, list3)
 
     return consequent, rule
 
@@ -1530,6 +1529,8 @@ def get_more_variable_types(consistent = True):
         if i in variable_type[1]:
             variable_type[1].remove(i)
 
+    uninstantiable = []
+    instantiable = []
     for lst in attach_sent:
         for j in [34,35]:
             for sent in lst[j]:
@@ -1538,14 +1539,22 @@ def get_more_variable_types(consistent = True):
                         if not ex(sent, i):
                             break
                         elif isvariable(sent[i], "i"):
+                            if sent[i] not in uninstantiable:
+                                uninstantiable.append(sent[i])
                             if sent[i] == 'i' and "i" not in variable_type[2]:
                                 variable_type[2].append("i")
                             elif sent[i] not in variable_type[2] and sent[i] not in variable_type[1]\
                                     and sent[i] not in variable_type[0]:
                                 if lst[3] == 'e' or (lst[3] == 'c' and j == 34):
                                     variable_type[0].append(sent[i])
+                                    instantiable.append(sent[i])
                                 elif lst[3] == 'c' and j == 35:
                                     variable_type[1].append(sent[i])
+                    for var in instantiable:
+                        for var2 in uninstantiable:
+                            do_not_instantiate.setdefault(var, []).append(var2)
+                    instantiable = []
+                    uninstantiable = []
 
     variable_type[3] = variable_type[0] + variable_type[1] + variable_type[2]
 
@@ -1612,7 +1621,7 @@ def define_regular_terms(list1):
         if isdefineable(list1[m]) and list1[m][42] not in do_not_define_again \
                 and not list1[m][54] == 'do not define' and not is_irrel_var(list1[m]):
             do_not_define_again.append(list1[m][42])
-            change_variables(list1[m], 0)
+            change_variables(list1[m], 0, list1)
 
 
 def get_definiendum(list1, i):
@@ -1637,7 +1646,7 @@ def get_definiendum(list1, i):
     return definiendum, defining_abbreviation
 
 
-def change_variables(sentence, def_loc, type=""):
+def change_variables(sentence, def_loc, list1, type=""):
     global time_spent_defining
     aa = time.time()
 
@@ -1705,7 +1714,7 @@ def change_variables(sentence, def_loc, type=""):
 
     new_sentences = do_not_define(new_sentences, definiendum)
 
-    add_def_sent_to_all_sent(definiendum, new_sentences)
+    add_def_sent_to_all_sent(definiendum, list1, new_sentences)
 
     time_spent_defining += (time.time() - aa)
 
@@ -1845,7 +1854,7 @@ def build_rename_sent2(constant_map, def_abbrev_dict, old_prop_to_new_prop,
     return rename_sent
 
 
-def add_def_sent_to_all_sent(definiendum, new_sentences):
+def add_def_sent_to_all_sent(definiendum, list1, new_sentences):
     if definiendum == 'i':
         b = 0
         new_sentences[1][46].remove(1)
@@ -1868,7 +1877,16 @@ def add_def_sent_to_all_sent(definiendum, new_sentences):
 
         if not isinmdlist(new_sentences[i][1], all_sent, 1) or definiendum == "i":
             if new_sentences[i][74] == 'add to all_sent':
+                list1.append(new_sentences[i])
+
+
+    for i in range(b, len(new_sentences)):
+        if not isinmdlist(new_sentences[i][1], all_sent, 1) or definiendum == "i":
+            if new_sentences[i][74] == 'add to all_sent':
                 all_sent.append(new_sentences[i])
+
+
+
 
 
 
@@ -2296,9 +2314,11 @@ def get_propositional_constants(list3, temp_propositional_constants):
     return temp_propositional_constants
 
 
-def add_necessary_conditions_for_concept():
+def add_necessary_conditions_for_concept(loop_number):
     # if we're talking about concepts in our proof then we need to add their necesssary
     # conditiona to our proof
+    if loop_number != 1:
+        return
     global sn
     list2 = []
     con_sent_parts = [None] * 80
@@ -2347,6 +2367,7 @@ def add_necessary_conditions_for_concept():
                         prepare_att_sent_1_sent(ant_sent_parts, "SUB", conditional,
                                                 [build_sent2(con_sent_parts)], sn, sn - 1)
                         break
+
 
 
 def build_sent1(subj, tvalue, relat, obj, relat2="", obj2=""):
@@ -2729,6 +2750,7 @@ def eliminate_logical_connectives(sentence):
 
 
 def step_one(sent):
+    global time_spent_reducing, all_sent
     truth_value, sentence = obtain_truth_value(sent)
 
     set_of_sentences = eliminate_logical_connectives(sentence)
@@ -2748,6 +2770,14 @@ def step_one(sent):
     eliminate_negative_determiners()
 
     transfer_negation_signs()
+
+    aa = time.time()
+
+    all_sent = remove_duplicates(all_sent, 0)
+
+    all_sent = define_irregular_terms(all_sent)
+
+    time_spent_reducing += (time.time() - aa)
 
     return truth_value
 
@@ -4814,7 +4844,7 @@ def use_identity(negated_conjunction, consistent):
                             if not consistent:
                                 return consistent
 
-        consistent = detach1("do not use modus tollens", consistent, negated_conjunction)
+        consistent, _ = detach1("do not use modus tollens", consistent, negated_conjunction)
 
     return consistent
 
@@ -4863,7 +4893,7 @@ def get_position_of_identities():
     g = 4 / 0
 
 
-def build_list_of_abbreviations():
+def build_list_of_abbreviations(loop_number):
     # this turns the abbreviations into a conjunction
     global sn
     position_of_identities = get_position_of_identities()
@@ -4918,61 +4948,68 @@ def build_list_of_abbreviations():
     total_sent.insert(position_of_identities, list2)
     list2 = [""] * 9
     total_sent.insert(position_of_identities, list2)
+    abbreviations[3] = len([abbreviations[0].keys()])
 
 
 def step_two(truth_value):
-    global instan_time, sn, all_sent, time_spent_reducing
-
-    aa = time.time()
-
-    all_sent = remove_duplicates(all_sent, 0)
-
-    all_sent = define_irregular_terms(all_sent)
-
-    time_spent_reducing += (time.time() - aa)
+    global instan_time, sn
 
     negated_conjunction = []
     nonstandard_sentences = []
+    loop_number = 1
 
-    consistent = detach1("do not use modus tollens", True, negated_conjunction)
+    consistent, _ = detach1("do not use modus tollens", True, negated_conjunction)
 
     get_relevant_variables(all_sent)
 
-    define_regular_terms(all_sent)
+    to_be_defined = copy.deepcopy(all_sent)
 
-    add_necessary_conditions_for_concept()
+    while True:
 
-    build_list_of_abbreviations()
+        if loop_number > 4: break
 
-    eliminate_attached_conjuncts()
+        define_regular_terms(to_be_defined)
 
-    consistent = detach1("do not use modus tollens", consistent, negated_conjunction)
+        add_necessary_conditions_for_concept(loop_number)
 
-    get_nonstandard_sent(nonstandard_sentences)
+        build_list_of_abbreviations(loop_number)
 
-    consistent = use_identity(negated_conjunction, consistent)
+        eliminate_attached_conjuncts(loop_number)
 
-    consistent = check_reflexivity(consistent)
+        consistent, _ = detach1("do not use modus tollens", consistent, negated_conjunction)
 
-    determine_relevance()
+        get_nonstandard_sent(nonstandard_sentences, loop_number)
 
-    aa = time.time()
+        consistent = use_identity(negated_conjunction, consistent)
 
-    get_more_variable_types()
+        consistent = check_reflexivity(consistent)
 
-    get_object_properties()
+        determine_relevance(to_be_defined)
 
-    consistent = use_basic_lemmas(consistent)
+        get_more_variable_types()
 
-    false_by_def = True if not consistent else False
+        get_object_properties(consistent, to_be_defined, loop_number)
 
-    rearrange(nonstandard_sentences, false_by_def)
+        consistent = use_basic_lemmas(consistent)
 
-    consistent = step_three(negated_conjunction, consistent)
+        false_by_def = True if not consistent else False
 
-    instan_time += (time.time() - aa)
+        rearrange(nonstandard_sentences, false_by_def)
 
-    consistent = use_axiom_of_definition2(consistent, negated_conjunction)
+        consistent, proof_done, to_be_defined = step_three(negated_conjunction, consistent)
+
+        if proof_done: break
+
+        loop_number += 1
+
+        if loop_number > 2:
+            to_be_defined, proof_done = make_attached_detached(consistent, [])
+            if to_be_defined == []:
+                break
+            else:
+
+                print ("two loops")
+
 
     rearrange(nonstandard_sentences, false_by_def, "final")
 
@@ -5031,39 +5068,15 @@ def rename_rules():
         if lst[2].startswith("INFER"):
             return
 
-
-def use_axiom_of_definition2(consistent, negated_conjunction):
-    if not consistent:
-        return False
-
-    make_attached_detached()
-
-    if all_sent == []:
-        return consistent
-
-    define_regular_terms(all_sent)
-
-    consistent = detach1("do not use modus tollens", consistent, negated_conjunction)
-
-    get_more_variable_types(consistent)
-
-    get_object_properties(consistent, True)
-
-    consistent = use_basic_lemmas(consistent)
-
-    consistent = step_three(negated_conjunction, consistent)
-
-    return consistent
-
-
-def make_attached_detached():
+def make_attached_detached(consistent, to_be_defined):
     global sn
-    global all_sent
-    all_sent = []
+    if not consistent or to_be_defined != []:
+        return to_be_defined, True
     used_sent = []
     dict1 = {}
     for lst in attach_sent:
         if lst[46] != "instantiated" and lst[50] == 'axiom of definition':
+            lst[50] = ""
             for j in [34, 35]:
                 for sent in lst[j]:
                     if sent[42] not in used_sent:
@@ -5074,14 +5087,13 @@ def make_attached_detached():
                                     if general_variable_found == 0:
                                         general_variable_found += 1
                                         new_sent = copy.deepcopy(sent)
-                                        new_sent[75] = []
                                         used_sent.append(sent[42])
 
                                     var = dict1.get(sent[i])
                                     if var == None:
                                         dict1.update({sent[i]: variables[0]})
                                         new_sent[i] = variables[0]
-                                        new_sent[75].append([sent[i], variables[0]])
+                                        do_not_instantiate.setdefault(sent[i], []).append(variables[0])
                                         variable_type[1].append(variables[0])
                                         variable_type[3].append(variables[0])
                                         del variables[0]
@@ -5094,14 +5106,17 @@ def make_attached_detached():
                                     sn += 1
                                     new_sent[58] = sn
                                     new_sent[54] = None
-                                    all_sent.append(new_sent)
+                                    to_be_defined.append(new_sent)
                                     detach_sent.append(new_sent)
                                     add_to_total_sent(sn, new_sent[72], new_sent[1], new_sent[2], "AY DEF")
                                 break
 
+    proof_done = True if to_be_defined == [] else False
+
+    return to_be_defined, proof_done
 
 
-def eliminate_attached_conjuncts():
+def eliminate_attached_conjuncts(loop_number):
     global sn
     for sent in attach_sent:
         if sent[46] == 'eliminate as conjunct':
@@ -5400,13 +5415,13 @@ def rearrange_all_sent(all_sent2):
     return all_sent2
 
 
-def determine_relevance():
+def determine_relevance(to_be_defined):
     irrelevant = []
     for var in variable_type[0]:
         if var not in variable_type[3]:
             variable_type[3].append(var)
 
-    for lst in all_sent:
+    for lst in to_be_defined:
         if not is_relevant(lst):
             lst[71] = "irrelevant"
             irrelevant.append(lst)
@@ -5475,14 +5490,14 @@ def is_biconditional(lst, var, object_properties, obj_class, exception):
         return True
 
 
-def get_object_properties(consistent = True, second_time = False):
+def get_object_properties(consistent, to_be_defined, loop_number):
     if not consistent:
         return
     global object_properties
     groups = {}
-    all_sent2 = copy.deepcopy(all_sent)
-    all_sent2 = rearrange_all_sent(all_sent2)
-    if not second_time:
+    to_be_defined2 = copy.deepcopy(to_be_defined)
+    to_be_defined2 = rearrange_all_sent(to_be_defined2)
+    if loop_number == 1:
         for var in variable_type[3]:
             object_properties.update({var: [[], [], []]})
     else:
@@ -5490,7 +5505,7 @@ def get_object_properties(consistent = True, second_time = False):
             if var not in object_properties.keys():
                 object_properties.update({var: [[], [], []]})
 
-    for lst in all_sent2:
+    for lst in to_be_defined2:
         if lst[1] == 'y':
             bb = 8
         if isinmdlist(lst[42], detach_sent, 42):
@@ -5536,12 +5551,12 @@ def get_object_properties(consistent = True, second_time = False):
                             object_values[2].append(lst2)
                         object_properties[lst[i]] = object_values
 
-    object_properties = categorize_groups(groups, object_properties, all_sent2)
+    object_properties = categorize_groups(groups, object_properties, to_be_defined2)
 
     return object_properties
 
 
-def categorize_groups(groups, object_properties, all_sent2):
+def categorize_groups(groups, object_properties, to_be_defined2):
     for key in groups.keys():
         lst = object_properties.get(key)
         if 'whole' not in lst[0]:
@@ -5549,7 +5564,7 @@ def categorize_groups(groups, object_properties, all_sent2):
         object_properties[key] = lst
 
     for group, member in groups.items():
-        for lst in all_sent2:
+        for lst in to_be_defined2:
             for i in noun_slots():
                 if not ex(lst, i):
                     break
@@ -5632,6 +5647,7 @@ def have_same_properties(particular_properties, general_properties, gen_var, det
     if gen_properties == []:
         if potential_instantiations != []:
             instantiations.append(potential_instantiations)
+            do_not_instantiate.setdefault(potential_instantiations[0], []).append(potential_instantiations[1])
         return True
     else:
         return False
@@ -5646,29 +5662,18 @@ def has_opp_con_prop(particular_properties, general_con_prop):
     return False
 
 
-def get_prohibited_instantiations():
-    prohibitions = {}
-    for sent in detach_sent:
-        if isinstance(sent[75], list):
-            for pair in sent[75]:
-                if pair[0] not in prohibitions.keys():
-                    prohibitions.update({pair[0]: pair[1]})
-
-    return prohibitions
-
 
 def instantiate():
     instantiations = []
     dict1 = {0:1, 1:4, 2:7} # the key is g and the value is index of the property in lst
-    do_not_instantiate = get_prohibited_instantiations()
     for var in variable_type[0]:
         lst = object_properties.get(var)
         no_of_sets = len(lst) // 3
         for g in range(no_of_sets):
             general_classes = set(lst[g * 3])
             for k, v in object_properties.items():
-                forbidden = do_not_instantiate.get(var)
-                if k not in variable_type[0] and k != forbidden:
+                forbidden = do_not_instantiate.get(var, [])
+                if k not in variable_type[0] and k not in forbidden:
                     if var == 'u' and k == 't':
                         bb = 8
                     gen_prop_no = dict1.get(g) # this is the index of the properties
@@ -5692,8 +5697,10 @@ def instantiate():
                                     # the T means we have to add on to the detach sent list
                                     # that the aforesaid object is a thing
                                     instantiations.append([var, k, [], "T"])
+                                    do_not_instantiate.setdefault(var, []).append(k)
                                 else:
                                     instantiations.append([var, k, [], ""])
+                                    do_not_instantiate.setdefault(var, []).append(k)
 
         employ_lemma_of_entity(instantiations)
 
@@ -5744,12 +5751,16 @@ def link_gen_var_to_sent(instantiations):
 
 
 def step_three(negated_conjunction, consistent):
-    global instan_used
+    global instan_used, all_sent
 
     if consistent and attach_sent != []:
         instan_used += 1
 
         instantiations = instantiate()
+
+        if instantiations == []:
+            to_be_defined, proof_done = make_attached_detached(consistent, [])
+            return consistent, proof_done, to_be_defined
 
         use_axiom_of_definition(instantiations)
 
@@ -5759,17 +5770,19 @@ def step_three(negated_conjunction, consistent):
 
         print_instantiations(instantiations)
 
-        consistent = detach1("use modus tollens", consistent, negated_conjunction)
+        consistent, to_be_defined = detach1("use modus tollens", consistent, negated_conjunction)
 
-        clean_up_printing()
+        proof_done = True if consistent == False else False
 
-    return consistent
+        return consistent, proof_done, to_be_defined
+
+    else:
+
+        to_be_defined, proof_done = make_attached_detached(consistent, [])
+
+    return consistent, proof_done, to_be_defined
 
 
-def clean_up_printing():
-    if total_sent[-1][1] == 'INFERENCES FROM INSTANTIATION':
-        del total_sent[-1]
-        del total_sent[-1]
 
 def add_consistency_sign(consistent):
     if not consistent:
@@ -6291,7 +6304,9 @@ def get_quick_variable_type(variable, variable_type):
         return 'indefinite'
 
 
-def get_nonstandard_sent(nonstandard_sentences):
+def get_nonstandard_sent(nonstandard_sentences, loop_number):
+    if loop_number != 1:
+        return
     i = 0
     while i < len(detach_sent):
         if detach_sent[i][42] == 'k':
@@ -6369,10 +6384,11 @@ def detach1(str1, consistent, negated_conjunction):
     else:
         kind = 'MT'
     if not consistent:
-        return False
+        return False, []
     if attach_sent == []:
-        return True
+        return True, []
     set_of_det_sent = []
+    begin_num_of_detach_sent = len(detach_sent)
     r = -1
     while consistent and r < len(detach_sent) - 1:
         r += 1
@@ -6442,11 +6458,12 @@ def detach1(str1, consistent, negated_conjunction):
                                     if g > len(attach_sent) - 1 or g == -1:
                                         break
 
+    new_sent = get_new_detach_sent(begin_num_of_detach_sent)
     c = time.time()
     c = c - b
     st_log_time += c
 
-    return consistent
+    return consistent, new_sent
 
 
 def detach2(k, r, g, rule, set_of_det_sent, negated_conjunction):
@@ -6602,6 +6619,15 @@ def eliminate_conjuncts(g, r, h, negated_conjunction):
             break
 
     return consistent, r
+
+
+def get_new_detach_sent(begin_num_of_detach_sent):
+    if detach_sent == []:
+        return []
+    new_sent = []
+    for i in range(begin_num_of_detach_sent - 1, len(detach_sent)):
+        new_sent.append(detach_sent[i])
+    return new_sent
 
 
 def add_to_total_sent_consist(num, str1, str2, tvalue, rule, anc1, anc2, negated_conjunction):
@@ -7360,7 +7386,7 @@ def get_result(post_data, archive_id=None, request=None, input=None):
     global ws, w4, result_data, order, propositional_constants
     global sn, total_sent, prop_name, variable_type, object_properties
     global all_sent, attach_sent, detach_sent, definite_assignments
-    global prop_var, variables, stop, abbreviations, dictionary
+    global prop_var, variables, stop, abbreviations, dictionary, do_not_instantiate
 
     ########## tahir begin
     if mysql == 1 and not input:
@@ -7373,12 +7399,9 @@ def get_result(post_data, archive_id=None, request=None, input=None):
 
     else:
         test_sent, row_number = pop_sent()
-    # aa = time.time()
-    # build_dict() #.04 second
     dictionary = large_dict()
-    # aa = time.time() - aa
     not_oft_def = copy.deepcopy(dictionary[6])
-    # if not order:
+
     _, _, order = info()
     nonlinear = order[2]
     if mysql == 2:
@@ -7402,10 +7425,11 @@ def get_result(post_data, archive_id=None, request=None, input=None):
         attach_sent = []
         detach_sent = []
         definite_assignments = {}
+        do_not_instantiate = {}
         object_properties = {}
         dictionary[6] = not_oft_def
         variable_type = [[], [], [], []]
-        abbreviations = [{}, {}, {}]
+        abbreviations = [{}, {}, {}, ""]
         propositional_constants = {}
         prop_var = copy.deepcopy(prop_var4)
         variables = copy.deepcopy(variables2)
