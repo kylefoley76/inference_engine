@@ -37,3 +37,9 @@ def info():
 #working on 11,21
 
 # in 3 j I g and z I g are irrelevant
+
+#23 major printing errors
+
+#20:11-21:27 new code, 75 lines
+
+# 36 instantiates the subject with the object
