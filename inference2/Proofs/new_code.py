@@ -5212,6 +5212,8 @@ def rearrange(nonstandard_sentences, false_by_def, type = ""):
 
     for lst in reduce_to_standard_form:
         num += 1
+        if num == 23:
+            bb = 8
         new_numbers.update({lst[0]: num})
         lst[0] = num
         total_sent.append(lst)
@@ -5275,6 +5277,10 @@ def renumber_sentences(new_numbers):
             assert lst[58] != None
 
         for lst in total_sent:
+            if lst[0] == 26:
+
+                bb = new_numbers.get(lst[5],"")
+
             lst[5] = new_numbers.get(lst[5],"")
             lst[6] = new_numbers.get(lst[6],"")
             lst[7] = new_numbers.get(lst[7],"")
@@ -5588,6 +5594,7 @@ def categorize_groups(groups, object_properties, to_be_defined2):
 
 
 def have_same_properties(particular_properties, general_properties, gen_var, det_var, instantiations, indef=False):
+    global sn
     gen_properties = copy.deepcopy(general_properties)
     part_prop = copy.deepcopy(particular_properties)
     potential_instantiations = []
@@ -5628,7 +5635,7 @@ def have_same_properties(particular_properties, general_properties, gen_var, det
                             temp_str = temp_prop[:pos - 1] + attached_indef_var + temp_prop[pos:]
                             if temp_str == gen_properties[i][0]:
                                 if [attached_indef_var, detached_ind_var, [], ""] not in instantiations:
-                                    potential_instantiations = [attached_indef_var, detached_ind_var, [], ""]
+                                    potential_instantiations = [attached_indef_var, detached_ind_var, [], "", ""]
                                 del gen_properties[i]
                                 i -= 1
                                 break
@@ -5648,6 +5655,8 @@ def have_same_properties(particular_properties, general_properties, gen_var, det
 
     if gen_properties == []:
         if potential_instantiations != []:
+            sn += 1
+            potential_instantiations[4] = sn
             instantiations.append(potential_instantiations)
             do_not_instantiate.setdefault(potential_instantiations[0], []).append(potential_instantiations[1])
         return True
@@ -5666,6 +5675,7 @@ def has_opp_con_prop(particular_properties, general_con_prop):
 
 
 def instantiate():
+    global sn
     instantiations = []
     dict1 = {0:1, 1:4, 2:7} # the key is g and the value is index of the property in lst
     for var in variable_type[0]:
@@ -5695,13 +5705,14 @@ def instantiate():
 
                         if match:
                             if [var, k, [], ""] not in instantiations:
+                                sn += 1
                                 if use_lemma_of_entity:
                                     # the T means we have to add on to the detach sent list
                                     # that the aforesaid object is a thing
-                                    instantiations.append([var, k, [], "T"])
+                                    instantiations.append([var, k, [], "T", sn])
                                     do_not_instantiate.setdefault(var, []).append(k)
                                 else:
-                                    instantiations.append([var, k, [], ""])
+                                    instantiations.append([var, k, [], "", sn])
                                     do_not_instantiate.setdefault(var, []).append(k)
 
         employ_lemma_of_entity(instantiations)
@@ -6036,16 +6047,16 @@ def substitute_in_attach_sent(instantiations):
                     sent[26] = 'new conditional from instantiation'
                     if instantiation[0] in sent[25].keys():
                         new_attach_sent = copy.deepcopy(sent)
-                        # new_attach_sent[48] = instantiation[5]
+                        new_attach_sent[48] = instantiation[4]
                         new_attach_sent[25][instantiation[0]] = instantiation[1]
                         attach_sent2.append(new_attach_sent)
                         break
                     else:
                         sent[25].update({instantiation[0]: instantiation[1]})
-                        # if sent[48] == "":
-                        #     sent[48] = instantiation[5]
-                        # else:
-                        #     sent[49] = instantiation[5]
+                        if sent[48] == "":
+                             sent[48] = instantiation[4]
+                        else:
+                             sent[49] = instantiation[4]
 
     i = -1
     while i < len(attach_sent2) - 1:
@@ -6070,8 +6081,7 @@ def substitute_in_attach_sent(instantiations):
         cond_sent = make_new_attach_sent(cond_sent)
         if not isinmdlist(cond_sent[4], attach_sent, 4):
             attach_sent.append(cond_sent)
-        else:
-            print ('hey you')
+
 
 
 def make_new_attach_sent(cond_sent):
@@ -6146,10 +6156,8 @@ def build_conjunction(list1, q):
 def print_instantiations(instantiations):
     # this adds the instantiations to the total_sent list
     global sn
-    rearrange = False
     if instantiations != []:
         if total_sent[-1][4] == 'AX ENT':
-            rearrange = True
             list2 = [""] * 9
             total_sent.insert(-1, list2)
             list2 = [""] * 9
@@ -6160,13 +6168,9 @@ def print_instantiations(instantiations):
             add_to_total_sent("", "INSTANTIATIONS")
 
         for instantiation in instantiations:
+
             str1 = "(" + instantiation[0] + mini_c + instantiation[1] + ")"
-            #
-            #     if rearrange:
-            #         total_sent.insert(-1, [instantiation[5], str1, "", "", "IN", "", "", "", ""])
-            #         rearrange = False
-            #     else:
-            add_to_total_sent("", str1, "", "", "IN")
+            add_to_total_sent(instantiation[4], str1, "", "", "IN")
 
         for cond in attach_sent:
             g = findposinmd(cond[4], total_sent, 2)
@@ -6402,7 +6406,7 @@ def detach1(str1, consistent, negated_conjunction):
         g = -1
         while consistent and g < len(attach_sent) - 1:
             g += 1
-            if attach_sent[g][26] != 'not neww':
+            if attach_sent[g][26] != 'not neww': # problem here
                 k = -1
                 while consistent and k < 1:
                     k += 1
