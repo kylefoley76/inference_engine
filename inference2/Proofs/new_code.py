@@ -5581,36 +5581,43 @@ def get_irrelevant_objects(consistent, irrelevant_objects):
     if object_properties == {} or not consistent:
         return
 
-
     non_gen_var = variable_type[1] + variable_type[2]
     for var in non_gen_var:
-        if var == 's':
+        done = False
+        if var == 'w':
             bb = 8
         object_values = object_properties.get(var)
         is_irrelevant = False
-        if object_values == None:
-            bb = 98
         if object_values[1] == []:
             is_irrelevant = True
 
         elif len(object_values[1]) == 1:
             for gen_var in variable_type[0]:
+                if done: break
                 gen_properties = object_properties.get(gen_var)
+                c = 3 if len(gen_properties) > 3 else 0
                 if set(object_values[0]).intersection(set(gen_properties[0])) != () \
-                    and 'thing' not in gen_properties[0]:
+                    and gen_properties[0] != [] \
+                    and set(object_values[0]).intersection(set(gen_properties[c])) != ():
+                    done = True
+                    is_irrelevant = False
                     break
-                elif 'thing' in gen_properties[0]:
+                elif gen_properties[0] == []:
                     for property in gen_properties[2]:
                         if property[2] != object_values[1][0][2]:
                             if "*" not in property[0]:
                                 if property[0] != object_values[1][0][0]:
                                     is_irrelevant = True
                                 else:
+                                    done = True
+                                    is_irrelevant = False
                                     break
                             else:
                                 if property[9] != object_values[1][0][9]:
                                     is_irrelevant = True
                                 else:
+                                    done = True
+                                    is_irrelevant = False
                                     break
 
 
