@@ -1,9 +1,9 @@
 
 def info():
 
-    order = [0, 0, 0, 50, 56, 58, 73, 69, 196] # 149
+    order = [0, 10, 0, 50, 56, 58, 73, 69, 196] # 149
     get_words_used = 0
-    proof_type = 0
+    proof_type = 1
     # 0 is for testing the whole code without printing
     #get_more_variable_types2
     # 1 is for printing all sentences to excel,
@@ -34,12 +34,11 @@ def info():
 
 # 2 has an instance of a gen variable in a consequent (x J u) and then again in a bicon ante
 
-#working on 11,21
+
 
 # in 3 j I g and z I g are irrelevant
 
-#23 major printing errors
 
-#20:11-21:27 new code, 75 lines
+# 17:21 new code - 17:37 plan
 
-# 36 instantiates the subject with the object
+#20:51-21:06 plan
