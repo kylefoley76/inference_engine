@@ -1510,20 +1510,19 @@ def get_more_variable_types(consistent = True):
                 variable_type[2].append(k)
 
     for lst in detach_sent:
-        if lst[71] != 'irrelevant':
-            if lst[9] == "J" and lst[14] == abbrev_4_definite:
-                if lst[5] not in variable_type[2]:
-                    variable_type[2].append(lst[5])
-                    put_in_definite.append(lst[5])
-            else:
-                for i in noun_slots():
-                    if not ex(lst, i):
-                        break
-                    elif isvariable(lst[i], "i"):
-                        if lst[i] == 'i' and "i" not in variable_type[2]:
-                            variable_type[2].append("i")
-                        elif lst[i] not in variable_type[2] and lst[i] not in variable_type[1]:
-                            variable_type[1].append(lst[i])
+        if lst[9] == "J" and lst[14] == abbrev_4_definite:
+            if lst[5] not in variable_type[2]:
+                variable_type[2].append(lst[5])
+                put_in_definite.append(lst[5])
+        else:
+            for i in noun_slots():
+                if not ex(lst, i):
+                    break
+                elif isvariable(lst[i], "i"):
+                    if lst[i] == 'i' and "i" not in variable_type[2]:
+                        variable_type[2].append("i")
+                    elif lst[i] not in variable_type[2] and lst[i] not in variable_type[1]:
+                        variable_type[1].append(lst[i])
 
     for i in put_in_definite:
         if i in variable_type[1]:
@@ -1534,27 +1533,26 @@ def get_more_variable_types(consistent = True):
     for lst in attach_sent:
         for j in [34,35]:
             for sent in lst[j]:
-                if sent[71] != 'irrelevant':
-                    for i in noun_slots():
-                        if not ex(sent, i):
-                            break
-                        elif isvariable(sent[i], "i"):
-                            if sent[i] not in uninstantiable:
-                                uninstantiable.append(sent[i])
-                            if sent[i] == 'i' and "i" not in variable_type[2]:
-                                variable_type[2].append("i")
-                            elif sent[i] not in variable_type[2] and sent[i] not in variable_type[1]\
-                                    and sent[i] not in variable_type[0]:
-                                if lst[3] == 'e' or (lst[3] == 'c' and j == 34):
-                                    variable_type[0].append(sent[i])
-                                    instantiable.append(sent[i])
-                                elif lst[3] == 'c' and j == 35:
-                                    variable_type[1].append(sent[i])
-                    for var in instantiable:
-                        for var2 in uninstantiable:
-                            do_not_instantiate.setdefault(var, []).append(var2)
-                    instantiable = []
-                    uninstantiable = []
+                for i in noun_slots():
+                    if not ex(sent, i):
+                        break
+                    elif isvariable(sent[i], "i"):
+                        if sent[i] not in uninstantiable:
+                            uninstantiable.append(sent[i])
+                        if sent[i] == 'i' and "i" not in variable_type[2]:
+                            variable_type[2].append("i")
+                        elif sent[i] not in variable_type[2] and sent[i] not in variable_type[1]\
+                                and sent[i] not in variable_type[0]:
+                            if lst[3] == 'e' or (lst[3] == 'c' and j == 34):
+                                variable_type[0].append(sent[i])
+                                instantiable.append(sent[i])
+                            elif lst[3] == 'c' and j == 35:
+                                variable_type[1].append(sent[i])
+                for var in instantiable:
+                    for var2 in uninstantiable:
+                        do_not_instantiate.setdefault(var, []).append(var2)
+                instantiable = []
+                uninstantiable = []
 
     variable_type[3] = variable_type[0] + variable_type[1] + variable_type[2]
 
@@ -1681,7 +1679,8 @@ def change_variables(sentence, def_loc, list1, type=""):
 
     new_sentences, unfill_positions, prop_unfill = _
 
-    _ = replace_indefinite_variables(new_sentences, unfill_positions, defining_abbreviations, total_dict, sentence[1])
+    _ = replace_indefinite_variables(new_sentences, unfill_positions, defining_abbreviations, total_dict, definiendum,
+                                     sentence[1])
 
     new_sentences, indefinite_dict, rn_type = _
 
@@ -1704,7 +1703,7 @@ def change_variables(sentence, def_loc, list1, type=""):
         del new_sentences[0]
         return new_sentences, "x"
 
-    new_sentences = add_first_sent_to_def_sent(new_sentences, sentence, r_sent_loc)
+    new_sentences = add_first_sent_to_def_sent(new_sentences, sentence, definiendum, r_sent_loc)
 
     rename = build_rename_sent2(constant_map, def_abbrev_dict, old_prop_new_prop, indefinite_dict, definiendum, rn_type)
 
@@ -1890,10 +1889,12 @@ def add_def_sent_to_all_sent(definiendum, list1, new_sentences):
 
 
 
-def add_first_sent_to_def_sent(defin_sent, first_sent, r_sent_loc):
+def add_first_sent_to_def_sent(defin_sent, first_sent, definiendum, r_sent_loc):
     new_sent = copy.deepcopy(first_sent)
     if r_sent_loc == []:
-        if new_sent[8] == "~": #negate definiendum
+        if new_sent[8] == "~":
+            # print (definiendum + ' negated definiendum')
+            #negated definiendum
             new_sent[8] = None
             new_sent = build_sent2(new_sent)
 
@@ -1954,8 +1955,8 @@ def replace_r_sent(total_dict, r_sent_location, new_sentences, list1, definiendu
     return new_sentences
 
 
-def replace_indefinite_variables(new_sentences, unfill_positions, defining_abbreviations,
-                                 total_dict, current_sent):
+def replace_indefinite_variables(new_sentences, unfill_positions, defining_abbreviations, total_dict, definiendum,
+                                 current_sent):
     # modify this if we allow for possessive pronouns with relations other than 'own'
 
     dict1 = {14: 5, 5: 14}
@@ -1982,7 +1983,7 @@ def replace_indefinite_variables(new_sentences, unfill_positions, defining_abbre
                         if sent[n] not in indefinite_dict.values():
                             indefinite_dict.update({new_sentences[i][j]: sent[n]})
                             rn_type.update({sent[n]: l1})
-                            # print ("indefinite used")
+                            # print (definiendum + " indefinite used")
                             new_sentences[i][j] = sent[n]
                             del unfill_positions[k]
                             k -= 1
@@ -2003,9 +2004,10 @@ def meets_cond_4_indef_replace(new_sentence, m, j, defining_abbreviations, total
     elif (sent[m] == new_sentence[m] and sent[j] in defining_abbreviations):
         # the only sentence that uses this is 'the concept cat is itself a cat' and it makes
         # the new sentence y I y
-        # print ("type 1")
+
         return True
     elif defining_abbreviations[0] == sent[m] and not general_thing:
+
         return True
     else:
         return False
@@ -2695,20 +2697,6 @@ def new_relevant_variables(list1):
         else:
             if list1[i] not in variable_type[3]:
                 variable_type[3].append(list1[i])
-
-
-def is_relevant(list1):
-    abbrev_definite = abbreviations[1].get("definite")
-    if list1[71] == 'relevant':
-        new_relevant_variables(list1)
-        return True
-    if list1[9] == 'J' and list1[14] == abbrev_definite:
-        return False
-    for i in standard_slots():
-        if list1[i] in variable_type[3]:
-            return True
-    return False
-
 
 def check_mispellings(test_sent):
     if proof_type != 3:
@@ -4956,6 +4944,7 @@ def step_two(truth_value):
 
     negated_conjunction = []
     nonstandard_sentences = []
+    irrelevant_objects = {}
     loop_number = 1
 
     consistent, _ = detach1("do not use modus tollens", True, negated_conjunction)
@@ -4984,17 +4973,19 @@ def step_two(truth_value):
 
         consistent = check_reflexivity(consistent)
 
-        determine_relevance(to_be_defined)
-
         get_more_variable_types()
 
         get_object_properties(consistent, to_be_defined, loop_number)
+
+        get_irrelevant_objects(consistent, irrelevant_objects)
+
+        determine_relevance(to_be_defined)
 
         consistent = use_basic_lemmas(consistent)
 
         false_by_def = True if not consistent else False
 
-        rearrange(nonstandard_sentences, false_by_def)
+        rearrange(nonstandard_sentences, irrelevant_objects, false_by_def)
 
         consistent, proof_done, to_be_defined = step_three(negated_conjunction, consistent)
 
@@ -5009,8 +5000,7 @@ def step_two(truth_value):
             else:
                 print ("two loops")
 
-
-    rearrange(nonstandard_sentences, false_by_def, "final")
+    rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, "final")
 
     rename_rules()
 
@@ -5144,7 +5134,7 @@ def match_rn_sent_to_definition2(rn_sent):
             j += 1
             total_sent.insert(i + 1 + j, substitution)
 
-def rearrange(nonstandard_sentences, false_by_def, type = ""):
+def rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, type=""):
     # if proof_type = 0 never rearrange
     #
     # if proof_type = 1 only rearrange at second point
@@ -5208,7 +5198,7 @@ def rearrange(nonstandard_sentences, false_by_def, type = ""):
         total_sent.append(id_sent)
 
     add_to_total_sent("", "")
-    add_to_total_sent("", "REDUCE TO STANDARD FORM")
+    add_to_total_sent("", "TRANSLATED PREMISES")
 
     for lst in reduce_to_standard_form:
         num += 1
@@ -5240,6 +5230,7 @@ def rearrange(nonstandard_sentences, false_by_def, type = ""):
         for sent in detach_sent:
             if sent[71] == 'irrelevant':
                 if not irrelevant_sent_found:
+
                     irrelevant_sent_found = True
                     add_to_total_sent("", "")
                     add_to_total_sent("", "IRRELEVANT SENTENCES")
@@ -5261,7 +5252,7 @@ def rearrange(nonstandard_sentences, false_by_def, type = ""):
             add_to_total_sent(sent[2], sent[37])
 
     print_variables()
-    print_object_properties()
+    print_object_properties(irrelevant_objects)
 
 def renumber_sentences(new_numbers):
     # this gives attach_sent their proper number according to the new
@@ -5424,28 +5415,24 @@ def rearrange_all_sent(all_sent2):
 
 
 def determine_relevance(to_be_defined):
-    irrelevant = []
-    for var in variable_type[0]:
-        if var not in variable_type[3]:
-            variable_type[3].append(var)
+    for sent in detach_sent:
+        if is_relevant(sent):
+            sent[71] = 'relevant'
+        else:
+            sent[71] = 'irrelevant'
 
-    for lst in to_be_defined:
-        if not is_relevant(lst):
-            lst[71] = "irrelevant"
-            irrelevant.append(lst)
-            g = findposinmd(lst[42], detach_sent, 42)
-            if g != -1:
-                lst[58] = detach_sent[g][58]
-                del detach_sent[g]
 
-    if irrelevant != []:
-        add_to_total_sent("", "")
-        add_to_total_sent("", "IRRELEVANT SENTENCES")
-        for lst in irrelevant:
-            if lst[58] != None:
-                add_to_total_sent(lst[58], lst[0])
-            else:
-                add_to_total_sent("", lst[0])
+def is_relevant(list1):
+    abbrev_definite = abbreviations[1].get("definite")
+    if list1[71] == 'relevant':
+        new_relevant_variables(list1)
+        return True
+    if list1[9] == 'J' and list1[14] == abbrev_definite:
+        return False
+    for i in standard_slots():
+        if list1[i] in variable_type[3]:
+            return True
+    return False
 
 
 def star_indef_var(list1, i):
@@ -5522,15 +5509,15 @@ def get_object_properties(consistent, to_be_defined, loop_number):
         for i in noun_slots():
             if not ex(lst, i):
                 break
-            elif lst[i] != None and isvariable(lst[i], "i") and lst[i] in variable_type[3] \
-                    and lst[71] != 'irrelevant':
+            elif lst[i] != None and isvariable(lst[i], "i") and lst[i] in variable_type[3]:
+
                 if lst[i] == 'j':
                     bb = 8
                 obj_class = get_class(lst[9], lst, i)
                 if obj_class == 'whole' and lst[53] == 'b':
                     groups.update({lst[i]: lst[14]})
                 else:
-                    if lst[i] == 'o':
+                    if lst[i] == 'x' and lst[1] == 'n':
                         bb = 8
                     lst2 = copy.deepcopy(lst)
                     lst2 = star_indef_var(lst2, i)
@@ -5554,17 +5541,17 @@ def get_object_properties(consistent, to_be_defined, loop_number):
                         elif lst[53][-1] == "q":
                             object_values[2].append(lst2)
                         else:
-                            lst2[69] = 'detached' # this is because to find out if there are category
+                            lst2[69] = 'irrelevant property' # this is because to find out if there are category
                             # errors every sentence must be accounted for
                             object_values[2].append(lst2)
                         object_properties[lst[i]] = object_values
 
-    object_properties = categorize_groups(groups, object_properties, to_be_defined2)
-
-    return object_properties
+    categorize_groups(groups, to_be_defined2)
 
 
-def categorize_groups(groups, object_properties, to_be_defined2):
+
+
+def categorize_groups(groups, to_be_defined2):
     for key in groups.keys():
         lst = object_properties.get(key)
         if 'whole' not in lst[0]:
@@ -5590,7 +5577,52 @@ def categorize_groups(groups, object_properties, to_be_defined2):
                         object_values[0] = 'whole'
                     object_properties[group] = object_values
 
-    return object_properties
+def get_irrelevant_objects(consistent, irrelevant_objects):
+    if object_properties == {} or not consistent:
+        return
+
+
+    non_gen_var = variable_type[1] + variable_type[2]
+    for var in non_gen_var:
+        if var == 's':
+            bb = 8
+        object_values = object_properties.get(var)
+        is_irrelevant = False
+        if object_values == None:
+            bb = 98
+        if object_values[1] == []:
+            is_irrelevant = True
+
+        elif len(object_values[1]) == 1:
+            for gen_var in variable_type[0]:
+                gen_properties = object_properties.get(gen_var)
+                if set(object_values[0]).intersection(set(gen_properties[0])) != () \
+                    and 'thing' not in gen_properties[0]:
+                    break
+                elif 'thing' in gen_properties[0]:
+                    for property in gen_properties[2]:
+                        if property[2] != object_values[1][0][2]:
+                            if "*" not in property[0]:
+                                if property[0] != object_values[1][0][0]:
+                                    is_irrelevant = True
+                                else:
+                                    break
+                            else:
+                                if property[9] != object_values[1][0][9]:
+                                    is_irrelevant = True
+                                else:
+                                    break
+
+
+
+        if is_irrelevant:
+            irrelevant_objects.update({var: object_values})
+            if var in variable_type[3]:
+                variable_type[3].remove(var)
+            _ = object_properties.pop(var)
+
+    return
+
 
 
 def have_same_properties(particular_properties, general_properties, gen_var, det_var, instantiations, indef=False):
@@ -5668,7 +5700,7 @@ def has_opp_con_prop(particular_properties, general_con_prop):
     for gen_prop in general_con_prop:
         for part_prop in particular_properties:
             if gen_prop[0] == part_prop[0] and gen_prop[2] != part_prop[2] \
-                and gen_prop[69] != 'detached' and part_prop[69] != 'detached':
+                and gen_prop[69] != 'irrelevant property' and part_prop[69] != 'irrelevant property':
                 return True
     return False
 
@@ -5676,6 +5708,8 @@ def has_opp_con_prop(particular_properties, general_con_prop):
 
 def instantiate():
     global sn
+    if object_properties == {}:
+        return []
     instantiations = []
     dict1 = {0:1, 1:4, 2:7} # the key is g and the value is index of the property in lst
     for var in variable_type[0]:
@@ -6186,54 +6220,91 @@ def print_instantiations(instantiations):
         add_to_total_sent("", "INFERENCES FROM INSTANTIATION")
 
 
-def print_object_properties():
-    if object_properties == {}:
-        return
+def print_object_properties(irrelevant_objects):
+    if object_properties != {}:
+        add_to_total_sent("", "")
+        add_to_total_sent("", "OBJECT PROPERTIES")
 
-    add_to_total_sent("", "")
-    add_to_total_sent("", "OBJECT PROPERTIES")
+        for k, v in object_properties.items():
+            if len(v) > 3 and v[0] == [] and v[1] == [] and v[2] == []:
+                e = 1
+                f = 2
+            elif len(v) > 3:
+                e = 0
+                f = 2
+            else:
+                e = 0
+                f = 1
 
-    for k, v in object_properties.items():
-        if len(v) > 3 and v[0] == [] and v[1] == [] and v[2] == []:
-            e = 1
-            f = 2
-        elif len(v) > 3:
-            e = 0
-            f = 2
-        else:
-            e = 0
-            f = 1
+            for m in range(e, f):
+                if m == 0:
+                    b, c, d = 0, 1, 2
+                elif m == 1:
+                    b, c, d = 3, 4, 5
 
-        for m in range(e, f):
-            if m == 0:
-                b, c, d = 0, 1, 2
-            elif m == 1:
-                b, c, d = 3, 4, 5
+                classes = " ".join(v[b])
+                if k == "j":
+                    bb = 8
+                if classes == "":
+                    classes = "thing"
+                str1 = k + " | " + classes
+                properties = []
+                if v[c] != []:
+                    for lst in v[c]:
+                        properties.append(lst[2] + lst[0])
+                    properties2 = " ".join(properties)
+                    if len(properties2) > 5 and len(str1) > 40:
+                        add_to_total_sent("", str1)
+                        str1 = k
+                    str1 += " | " + properties2
+                if v[d] != []:
+                    properties = []
+                    for lst in v[d]:
+                        if lst[69] != 'irrelevant property':
+                            properties.append(lst[2] + lst[0])
+                    if properties != []:
+                        str1 += " [" + " ".join(properties) + "]"
 
-            classes = " ".join(v[b])
+                add_to_total_sent("", str1)
+
+        irrel_property_found = False
+        for k, v in object_properties.items():
+            properties = v[2]
+            str1 = ""
+            for property in properties:
+                if property[69] == 'irrelevant property':
+                    str1 = k + " |"
+                    if not irrel_property_found:
+                        irrel_property_found = True
+                        add_to_total_sent("", "")
+                        add_to_total_sent("", "RELEVANT OBJECTS BUT IRRELEVANT PROPERTIES")
+                    str1 += " " + property[2] + property[0]
+            if str1 != "":
+                add_to_total_sent("", str1)
+
+    if irrelevant_objects != {}:
+        add_to_total_sent("", "")
+        add_to_total_sent("", "IRRELEVANT OBJECTS")
+        for k, v in irrelevant_objects.items():
+            classes = " ".join(v[0])
             if k == "j":
                 bb = 8
             if classes == "":
                 classes = "thing"
             str1 = k + " | " + classes
             properties = []
-            if v[c] != []:
-                for lst in v[c]:
-                    properties.append(lst[0])
+
+            for lst in v[1]:
+                properties.append(lst[2] + lst[0])
+            for lst in v[2]:
+                properties.append(lst[2] + lst[0])
+            if properties != []:
                 properties2 = " ".join(properties)
-                if len(properties2) > 5 and len(str1) > 40:
-                    add_to_total_sent("", str1)
-                    str1 = k
                 str1 += " | " + properties2
-            if v[d] != []:
-                properties = []
-                for lst in v[d]:
-                    if lst[69] != 'detached':
-                        properties.append(lst[2] + lst[0])
-                if properties != []:
-                    str1 += " [" + " ".join(properties) + "]"
 
             add_to_total_sent("", str1)
+
+
 
 
 
@@ -6243,6 +6314,8 @@ def get_class(relat, sent, p):
         kind = ''
     elif relat == "A" or (relat == 'T' and p == 14):
         kind = 'moment'
+    elif relat == "T" and p == 5:
+        kind = 'non-moment'
     elif relat == 'AB' or relat == "L" or relat == 'AB' or (relat == 'S' and p == 14):
         kind = 'point'
     elif relat == "G" or (relat == 'N' and p == 14):
@@ -7398,7 +7471,7 @@ def calculate_time_statistics(proof_time, nonlinear):
 def get_result(post_data, archive_id=None, request=None, input=None):
     global ws, w4, result_data, order, propositional_constants
     global sn, total_sent, prop_name, variable_type, object_properties
-    global all_sent, attach_sent, detach_sent, definite_assignments
+    global all_sent, attach_sent, detach_sent, definite_assignments, proof_type
     global prop_var, variables, stop, abbreviations, dictionary, do_not_instantiate
 
     ########## tahir begin
@@ -7426,7 +7499,10 @@ def get_result(post_data, archive_id=None, request=None, input=None):
 
     if mysql == 1:
         views.progressbar_send(request, 0, 100, 0, 1)
-    for j, k in enumerate(order):
+    j = -1
+    while j < len(order) -1:
+        j += 1
+        k = order[j]
         if mysql == 1:
             views.progressbar_send(request, start, stop, k, 1)
         if k == 18:
@@ -7456,6 +7532,11 @@ def get_result(post_data, archive_id=None, request=None, input=None):
         # progress(j+1, len(order))
         if not consistent:
             print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1) + " False"))
+            if proof_type == 0:
+                proof_type = 2
+                test_sent, row_number = pop_sent()
+                order = [k]
+                j = -1
         else:
             print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1)))
 
