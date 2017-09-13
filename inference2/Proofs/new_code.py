@@ -4516,7 +4516,7 @@ def print_sent_full(test_sent, tot_prop_name, row_number):
             if j == 31:
                 bb = 8
             if test_sent[i][j][0] == "" or test_sent[i][j][1] != "":
-                if test_sent[i][j][3] == 'RN':
+                if test_sent[i][j][4] == 'RN':
                     test_sent[i][j][3] = ""
 
                 if test_sent[i][j][6] != "":
@@ -5007,7 +5007,6 @@ def step_two(truth_value):
             if to_be_defined == []:
                 break
             else:
-
                 print ("two loops")
 
 
@@ -5153,7 +5152,8 @@ def rearrange(nonstandard_sentences, false_by_def, type = ""):
     # if proof_type = 2 rearrange at the first point, and do not rearrange at the second point if it was false by definition
     #
     # if proof_type = 2 rearrange at the first point and at the second point if it was consistent by definition at the first point
-    if proof_type == 0 or (proof_type == 1 and type != 'final') or (proof_type == 2 and false_by_def and type == "final"):
+    if proof_type == 0 or (proof_type == 1 and type != 'final') or \
+            (proof_type == 2 and false_by_def and type == "final"):
          return
     global total_sent
     untran_rules = ['DF', 'LE', "AX", "NC", "NS"]
@@ -5182,7 +5182,7 @@ def rearrange(nonstandard_sentences, false_by_def, type = ""):
         elif lst[4] != "":
             reduce_to_standard_form.append(lst)
 
-    match_rn_sent_to_definition(untranslated_sentences, rn_sent)
+    match_rn_sent_to_definition(untranslated_sentences,type, rn_sent)
     num = 0
     new_numbers = {}
     total_sent = []
@@ -5286,7 +5286,7 @@ def renumber_sentences(new_numbers):
             lst[7] = new_numbers.get(lst[7],"")
 
 
-def match_rn_sent_to_definition(definitions, rn_sent):
+def match_rn_sent_to_definition(definitions, type, rn_sent):
     for definiendum, v in rn_sent.items():
         for i, definition in enumerate(definitions):
             if "." in definiendum:
