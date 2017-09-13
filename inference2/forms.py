@@ -65,8 +65,6 @@ class ImportCSVForm(forms.Form):
         try:
             # print(self.cleaned_data['csv_file'])
             data = str(self.cleaned_data['csv_file'].read())
-            import pdb
-            pdb.set_trace()
             lines = data.split('\\n')
             if len(lines) < 3:
                 lines = data.split('\\r')
@@ -121,9 +119,10 @@ class ImportCSVForm(forms.Form):
             row_result = self.process_row(i, row)
             if row_result:
                 list_obj.append(row_result)
-        if list_obj:
-            list_obj[0].__class__.objects.bulk_create(
-                list_obj, batch_size=500)
+
+        # if list_obj:
+        #     list_obj[0].__class__.objects.bulk_create(
+        #         list_obj, batch_size=len(list_obj))
 
     def append_import_error(self, error, rownumber=None, column_name=None):
         if rownumber is not None:
@@ -150,7 +149,7 @@ class ImportCSVForm(forms.Form):
     def process_row(self, i, row):
         importer = self.importer_class(data=row)
         if importer.is_valid():
-            return importer.save(commit=False)
+            return importer.save(commit=True)
         else:
             for error in importer.non_field_errors():
                 self.append_import_error(rownumber=i, error=error)
