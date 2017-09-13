@@ -6,6 +6,8 @@ from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponse
 from django.conf import settings
 import time
+
+from inference2.Proofs.new_code import get_result
 from .models import Output, InstructionFile
 import importlib
 from inference2.models import Input
@@ -49,10 +51,9 @@ def current_archive():
 
 
 def index(request, archive=None):
-
     ins_file = InstructionFile.objects.filter(
         file_type='0').order_by('-id').first()
-    if(ins_file):
+    if (ins_file):
         ins_file = '/' + str(ins_file.data)
     else:
         ins_file = ''
@@ -72,10 +73,11 @@ def index(request, archive=None):
     if request.method == 'POST':
         Output.objects.all().delete()
         post_data = request.POST.copy()
-        prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
+        # prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
         # my_function = getattr(__import__('inference2.Proofs'+archive.algorithm.split('.py')[0]), 'get_result')
-        post_data = prove_algorithm.get_result(
-            request.POST.copy(), archive.id, request)
+        # post_data = prove_algorithm.get_result(
+        #     request.POST.copy(), archive.id, request)
+        post_data = get_result(request.POST.copy(), archive.id, request)
         print(post_data)
         if post_data:
             post_data["type"] = "prove"
@@ -91,8 +93,8 @@ def index(request, archive=None):
                      }
     return render(request, "inference2/index.html", template_args)
 
-def try_input(request,archive=None):
 
+def try_input(request, archive=None):
     output = []
     if not archive:
         archive = current_archive()
@@ -101,10 +103,11 @@ def try_input(request,archive=None):
         # input = "It is|a contradictory that I do not have many|n points"
         input = request.POST.get('try_input')
         Output.objects.all().delete()
-        prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
+        # prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
         # my_function = getattr(__import__('inference2.Proofs'+archive.algorithm.split('.py')[0]), 'get_result')
-        post_data = prove_algorithm.get_result(
-            request.POST.copy(), archive.id, request,input)
+        # post_data = prove_algorithm.get_result(
+        #     request.POST.copy(), archive.id, request, input)
+        post_data=get_result(request.POST.copy(), archive.id, request)
         print(post_data)
         if post_data:
             post_data["type"] = "prove"
@@ -114,10 +117,10 @@ def try_input(request,archive=None):
         output = Output.objects.all()
 
     template_args = {
-                     'url_path': url_path,
-                     'output': output,
-                     'archive': archive,
-                     }
+        'url_path': url_path,
+        'output': output,
+        'archive': archive,
+    }
     return render(request, "inference2/try_input.html", template_args)
 
 
@@ -195,9 +198,9 @@ def prove(request, archive=None):
     result = {}
     if request.method == 'POST':
         post_data = request.POST.copy()
-        prove_algorithm = importlib.import_module(
-            '.' + archive.algorithm, package='inference2.Proofs')
-        post_data = prove_algorithm.get_result(
+        # prove_algorithm = importlib.import_module(
+        #     '.' + archive.algorithm, package='inference2.Proofs')
+        post_data = get_result(
             request.POST.copy(), archive.id, request)
         result = json.dumps(post_data, cls=DjangoJSONEncoder)
 
@@ -215,15 +218,17 @@ def dictionary(request, archive=None):
     from inference2.Proofs.dictionary_new import large_dict
     return render(request, "inference2/dict.html", {'result': large_dict, 'url_path': '/'})
 
-def tested_dictionary(request, archive=None):
 
+def tested_dictionary(request, archive=None):
     from inference2.Proofs.dictionary_tested import large_test_dict
     return render(request, "inference2/tested_dict.html", {'result': large_test_dict, 'url_path': '/'})
+
 
 def download_files(request):
     ins_files = InstructionFile.objects.filter(
         file_type='1').order_by('-id')
     return render(request, "inference2/files.html", {'ins_files': ins_files})
+
 
 # def download_files_in_brief(request):
 #     ins_files = InstructionFile.objects.filter(
@@ -253,7 +258,7 @@ def manual(request):
         wrapper, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     response['Content-Length'] = os.path.getsize(filename)
     response['Content-Disposition'] = 'attachment; filename=' + \
-        os.path.basename(filename)
+                                      os.path.basename(filename)
     return response
 
 
@@ -269,7 +274,7 @@ def getdict(request, archive=None):
         wrapper, content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     response['Content-Length'] = os.path.getsize(filename)
     response['Content-Disposition'] = 'attachment; filename=' + \
-        os.path.basename(filename)
+                                      os.path.basename(filename)
     return response
 
 
@@ -277,6 +282,7 @@ def progress(request):
     contxt = {"K": request.session['idx']}
     if request.session.get('status', 0) == 2:
         progressbar_send(request, 1, 100, 1)
+        print("prog123 %s" % contxt)
     return HttpResponse(json.dumps(contxt), content_type="application/json")
 
 
@@ -289,6 +295,7 @@ def progressbar_send(request, strt, stp, k, status=0):
         request.session['status'] = status
         request.session.modified = True
         request.session.save()
+
 
 def author(request):
     return render(request, "inference2/author.html")
