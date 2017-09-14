@@ -6114,9 +6114,13 @@ def substitute_in_attach_sent(instantiations):
 
     for instantiation in instantiations:
         for sent_num in instantiation[2]:
-            for sent in attach_sent2:
+            for j, sent in enumerate(attach_sent2):
                 if sent[2] == sent_num:
                     sent[46] = 'instantiated'
+
+                    k = findposinmd(sent_num, attach_sent, 2)
+                    if k != None:
+                        attach_sent[k][50] = ""
                     if sent_num == 43:
                         bb = 8
                     sent[26] = 'new conditional from instantiation'
