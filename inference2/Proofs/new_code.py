@@ -71,7 +71,7 @@ if mysql == 0:
         wb5 = load_workbook('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
         ws = wb5.worksheets[0]
 else:
-    proof_type = 0
+    proof_type = 4
     get_words_used = 0
     order = [0, 0, 1]
 
@@ -1038,6 +1038,19 @@ def eliminate_there(i, list1):
 
     return [list1], "DE there"
 
+def eliminate_redundant_sentences(list5):
+    i = -1
+    while i < len(list5) -1:
+        i += 1
+        if list5[i][9] == 'EX':
+            del list5[i]
+            i -= 1
+        elif list5[i][9] == 'J' and abbreviations[0].get(list5[i][14]) == 'extant':
+            del list5[i]
+            i -= 1
+    assert list5 != []
+    return list5
+
 
 # ddd
 
@@ -1047,22 +1060,22 @@ def eliminate_universals(list1, i):
     class_sent = get_class_sent(list1, i)
 
     ppart_type = has_scope_over_past_participle(list1, i)
-
+    define = False
     if has_scope_over_parenthetical_phrase(list1, i):
         antecedent, consequent = extract_words_from_parenthetical_phrase(list1, i, class_sent[5])
-        antecedent = define_irregular_terms([antecedent], "universal")
+        define = True
 
     elif has_scope_over_subclause(list1, i):
         antecedent, consequent = extract_words_from_subclause(list1, i, class_sent[5])
-        antecedent = define_irregular_terms([antecedent], "universal")
+        define = True
 
     elif ppart_type != "":
         antecedent, consequent = eliminate_past_participle_in_universal(list1, i, class_sent[5], ppart_type)
-        antecedent = define_irregular_terms(antecedent, "universal")
+        define = True
 
     elif has_scope_over_prepositional_relation(list1, i):
         antecedent, consequent = eliminate_prepositional_relation_in_universal(list1, i, class_sent[5])
-        antecedent = define_irregular_terms(antecedent, "universal")
+        define = True
 
     elif has_scope_over_adjective(list1, i):
         antecedent = turn_adj_into_sent(i, m)
@@ -1073,6 +1086,10 @@ def eliminate_universals(list1, i):
     else:
         consequent = get_the_simple_consequent(list1, i, class_sent[5])
         antecedent = []
+    if define:
+        antecedent = eliminate_redundant_sentences(antecedent)
+        antecedent = define_irregular_terms(antecedent, "universal")
+
     antecedent.append(class_sent)
     for sent in antecedent:
         s = findposinmd(sent[42], all_sent, 42)
@@ -1111,31 +1128,40 @@ def extract_words_from_parenthetical_phrase(list1, i, new_var):
     list1[concept_pos] = new_var
     list2, _ = eliminate_parenthetical_phrase(list1, i)
 
-    return list2[1], list2[0]
+    return [list2[1]], list2[0]
 
 
 def has_scope_over_prepositional_relation(list1, i):
-    prepositional_relations = ['IN', "INB", "OF", "ATC"]
-    dict1 = {3: 9, 10: 15, 16: 19}
+    prepositional_relations = ['IN', "INB", "OF", "ATC", "INE"]
+    dict1 = {3: [9, 15], 10: [15, 19], 16: [19]}
     j = dict1.get(i)
-    if list1[j] in prepositional_relations:
-        return True
+    for k in j:
+        if list1[k] in prepositional_relations:
+            return True
     else:
         return False
 
 
 def eliminate_prepositional_relation_in_universal(list1, i, new_var):
-    prepositional_relations = ['IN', "INB", "OF", "ATC"]
+    prepositional_relations = ['IN', "INB", "OF", "ATC", "INE"]
     quant = list1[i]
     list1[i] = None
     var_pos = 14 if i == 10 else i + 2
     list1[var_pos] = new_var
-
+    boundary = 0
+    list2 = [15, 19, 23, 27, 31]
     if i == 3:
-        for j in [15, 19, 23, 27, 31]:
+        for k, j in enumerate(list2):
             if list1[j] not in prepositional_relations:
                 boundary = j
                 break
+            elif list1[j] in prepositional_relations and list1[9] == "EX":
+                # so far the only time this happens is when the first relat is exist
+                boundary = j
+                break
+        else:
+            boundary = i
+
     else:
         boundary = i
 
@@ -1468,7 +1494,7 @@ def extract_words_from_subclause(consequent, i, new_var):
     antecedent = categorize_words(antecedent)
     consequent = restore_original_sent(consequent)
 
-    return antecedent, consequent
+    return [antecedent], consequent
 
 
 def restore_original_sent(list1):
@@ -1650,11 +1676,11 @@ def change_variables(sentence, def_loc, list1, type=""):
 
     definiendum, defining_abbreviations = get_definiendum(sentence, def_loc)
 
+    if definiendum == 'IN':
+        bb = 8
+
     if definiendum == None or definiendum in dictionary[6]:
         return
-
-    if definiendum == 'a':
-        bb = 8
 
     definition = dictionary[1].get(definiendum)
 
@@ -2168,30 +2194,31 @@ def map_double_definienda(new_sentences, definiendum, def_abbrev_dict):
     abbrev_set = set(abbreviations[0].keys())
     def_abbrev_set = set(def_abbrev_dict.keys())
     new_var = list(set1 - abbrev_set.union(def_abbrev_set))
-    assert len(new_var) == 1
-    for i in [5, 14, 18, 22]:
-        if new_sentences[double_definienda_loc][i] == new_var[0]:
-            new_var_loc = i
-            break
-    dict1 = {5: 14, 14: 5}
-    other_var_pos = dict1.get(new_var_loc)
-    # right now we simply assume that the variable to be searched is the first value in the def_abbrev_dict
-    other_var = list(def_abbrev_dict.values())[0]
-    double_def_relat = new_sentences[double_definienda_loc][9]
-    for sent in all_sent:
-        if sent[9] == double_def_relat and sent[other_var_pos] == other_var:
-            rn_var = abbreviations[2].get(definiendum)
-            if len(rn_var) == 1:
-                rn_var.append(variables[0])
-                del variables[0]
-                abbreviations[2][definiendum] = rn_var
-            corresponding_new_var = sent[new_var_loc]
-            def_abbrev_dict = insert_into_dict(def_abbrev_dict, {new_var[0]: corresponding_new_var}, 1)
-            break
-    else:
-        # what this means is that if a corresponding variable is not found for this in the
-        # replace_r_sent function then the variable that it is replaced with will be a general variable
-        variable_type[0].append(new_var[0] + "*")
+    if new_var != []:
+        assert len(new_var) == 1
+        for i in [5, 14, 18, 22]:
+            if new_sentences[double_definienda_loc][i] == new_var[0]:
+                new_var_loc = i
+                break
+        dict1 = {5: 14, 14: 5}
+        other_var_pos = dict1.get(new_var_loc)
+        # right now we simply assume that the variable to be searched is the first value in the def_abbrev_dict
+        other_var = list(def_abbrev_dict.values())[0]
+        double_def_relat = new_sentences[double_definienda_loc][9]
+        for sent in all_sent:
+            if sent[9] == double_def_relat and sent[other_var_pos] == other_var:
+                rn_var = abbreviations[2].get(definiendum)
+                if len(rn_var) == 1:
+                    rn_var.append(variables[0])
+                    del variables[0]
+                    abbreviations[2][definiendum] = rn_var
+                corresponding_new_var = sent[new_var_loc]
+                def_abbrev_dict = insert_into_dict(def_abbrev_dict, {new_var[0]: corresponding_new_var}, 1)
+                break
+        else:
+            # what this means is that if a corresponding variable is not found for this in the
+            # replace_r_sent function then the variable that it is replaced with will be a general variable
+            variable_type[0].append(new_var[0] + "*")
 
     return def_abbrev_dict
 
@@ -2670,7 +2697,8 @@ def is_standard(list1):
     must_be_blank = [3, 4, 6, 7, 10, 11, 13, 16, 17, 20, 21, 23, 24, 25, 27, 28, 29, 31, 32, 33,
                      35, 36, 49, 50, 51, 52, 55, 59, 60, 66, 67, 69, 70]
 
-    prepositional_relation = ['INB', "ATC", 'IN']
+    prepositional_relation = ['IN', "INB", "OF", "ATC", "INE"]
+
 
     for i in [15, 19, 23, 27, 31]:
         if list1[i] != None:
@@ -2690,13 +2718,6 @@ def is_standard(list1):
     return True
 
 
-def new_relevant_variables(list1):
-    for i in noun_slots():
-        if not ex(list1, i):
-            break
-        else:
-            if list1[i] not in variable_type[3]:
-                variable_type[3].append(list1[i])
 
 def check_mispellings(test_sent):
     if proof_type != 3:
@@ -2904,6 +2925,8 @@ def replace_synonyms():
         while all_sent[m][45][18] != []:
             ant_sent_parts = copy.deepcopy(all_sent[m])
             i = all_sent[m][45][18][0]
+            if i == 9:
+                bb = 8
             synonym = dictionary[2].get(all_sent[m][i])
             assert synonym != None
             recategorize_word(synonym, m, i)
@@ -2981,10 +3004,12 @@ def word_sub():
                 replace_word_w_variable(m, k, str2)
             elif k in relational_positions:
                 relat = dictionary[3].get(str2)
-                assert relat != None
-                replacement_made = True
-                abbreviations[0].update({str2: relat})
-                all_sent[m][k] = relat
+                if relat == None:
+                    assert str2 in dictionary[3].values()
+                else:
+                    replacement_made = True
+                    abbreviations[0].update({str2: relat})
+                    all_sent[m][k] = relat
             else:
                 replacement_made = True
                 replace_word_w_variable(m, k, str2)
@@ -5137,12 +5162,12 @@ def match_rn_sent_to_definition2(rn_sent):
 def rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, type=""):
     # if proof_type = 0 never rearrange
     #
-    # if proof_type = 1 only rearrange at second point
+    # if proof_type = 1 or 4 only rearrange at second point
     #
     # if proof_type = 2 rearrange at the first point, and do not rearrange at the second point if it was false by definition
     #
     # if proof_type = 2 rearrange at the first point and at the second point if it was consistent by definition at the first point
-    if proof_type == 0 or (proof_type == 1 and type != 'final') or \
+    if proof_type == 0 or (proof_type in [1,4] and type != 'final') or \
             (proof_type == 2 and false_by_def and type == "final"):
          return
     global total_sent
@@ -5435,6 +5460,15 @@ def is_relevant(list1):
     return False
 
 
+def new_relevant_variables(list1):
+    for i in noun_slots():
+        if not ex(list1, i):
+            break
+        else:
+            if list1[i] not in variable_type[3] and isvariable(list1[i],"i"):
+                variable_type[3].append(list1[i])
+
+
 def star_indef_var(list1, i):
     if isinmdlist(list1[42], detach_sent, 42):
         return list1
@@ -5492,6 +5526,8 @@ def get_object_properties(consistent, to_be_defined, loop_number):
     groups = {}
     to_be_defined2 = copy.deepcopy(to_be_defined)
     to_be_defined2 = rearrange_all_sent(to_be_defined2)
+
+
     if loop_number == 1:
         for var in variable_type[3]:
             object_properties.update({var: [[], [], []]})
@@ -5580,7 +5616,7 @@ def categorize_groups(groups, to_be_defined2):
 def get_irrelevant_objects(consistent, irrelevant_objects):
     if object_properties == {} or not consistent:
         return
-
+    global variable_type
     non_gen_var = variable_type[1] + variable_type[2]
     for var in non_gen_var:
         done = False
@@ -5620,15 +5656,13 @@ def get_irrelevant_objects(consistent, irrelevant_objects):
                                     is_irrelevant = False
                                     break
 
+    if is_irrelevant:
+        irrelevant_objects.update({var: object_values})
+        if var in variable_type[3]:
+            variable_type[3].remove(var)
+        _ = object_properties.pop(var)
 
 
-        if is_irrelevant:
-            irrelevant_objects.update({var: object_values})
-            if var in variable_type[3]:
-                variable_type[3].remove(var)
-            _ = object_properties.pop(var)
-
-    return
 
 
 
@@ -6626,6 +6660,7 @@ def add_sent(consistent, g, h, n, negated_conjunction, r, rule, s, sn):
                 if os(attach_sent[g][s][0][0]):
                     list3 = attach_sent[g][n][0]
                     list3[58] = sn
+                    list3[54] = ""
                     is_in_detach_sent = isinmdlist(list3[42], detach_sent, 42)
                     if not is_in_detach_sent:
                         detach_sent.append(list3)
@@ -6697,6 +6732,7 @@ def eliminate_conjuncts(g, r, h, negated_conjunction):
                 d = findposinmd_alert_error(conjunct_list[i][0], attach_sent[g][n], 1)
                 sent_parts = attach_sent[g][n][d]
                 sent_parts[58] = sn
+                sent_parts[54] = ""
                 is_in_detach_sent = isinmdlist(sent_parts[42], detach_sent, 42)
                 if not is_in_detach_sent:
                     detach_sent.append(sent_parts)
