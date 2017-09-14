@@ -1,5 +1,5 @@
-from dictionary_new import large_dict
-from claims_new import pop_sent
+from .dictionary_new import large_dict
+from .claims_new import pop_sent
 from openpyxl import load_workbook
 from collections import Counter
 import copy
