@@ -10,7 +10,7 @@ import cProfile
 import re
 from pprint import pprint
 import collections
-from start_and_stop import info
+from .start_and_stop import info
 import os
 
 # import pdb
@@ -60,7 +60,7 @@ total_time = time.time()
 
 #tahir - the code for the website should always be mysql == 1 for the prove site
 # for the test machine site, it needs to be mysql == 2 and input = True
-mysql = 0
+mysql = 1
 excel = 0
 if mysql == 0:
     proof_type, get_words_used, order = info()
