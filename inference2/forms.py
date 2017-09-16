@@ -7,7 +7,6 @@ from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from inference2.models import Archives, Define3
 
-
 from django.forms import ModelChoiceField
 
 
@@ -71,7 +70,7 @@ class ImportCSVForm(forms.Form):
             reader = []
             fieldnames = self.importer_class.Meta.fields
             for line in lines:
-                words = line.split(',')
+                words = line.replace('"', '').replace("\\'", "'").split(',')
                 temp = {}
                 for index, value in enumerate(fieldnames):
                     try:
@@ -120,9 +119,9 @@ class ImportCSVForm(forms.Form):
             if row_result:
                 list_obj.append(row_result)
 
-        # if list_obj:
-        #     list_obj[0].__class__.objects.bulk_create(
-        #         list_obj, batch_size=len(list_obj))
+                # if list_obj:
+                #     list_obj[0].__class__.objects.bulk_create(
+                #         list_obj, batch_size=len(list_obj))
 
     def append_import_error(self, error, rownumber=None, column_name=None):
         if rownumber is not None:
