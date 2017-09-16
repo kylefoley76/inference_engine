@@ -75,8 +75,10 @@ def index(request, archive=None):
         Output.objects.all().delete()
         post_data = request.POST.copy()
         prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
+        prove_dictionary = importlib.import_module('.' + archive.dictionary.split('.py')[0],
+                                                   package='inference2.Proofs')
         post_data = prove_algorithm.get_result(
-            request.POST.copy(), archive.id, request)
+            request.POST.copy(), archive.id, request, prove_dict=prove_dictionary)
         print(post_data)
         if post_data:
             post_data["type"] = "prove"
