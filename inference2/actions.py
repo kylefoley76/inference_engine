@@ -80,6 +80,7 @@ def changesymbol(queryset, mode):
         ('|s', u"\u02e2"),
         ('|h', u"\u02b0"),
         ('zzz', u"\u2260"),
+        ('%', u","),
     )
     modelname = queryset.model._meta.model_name
     if modelname == 'input':
