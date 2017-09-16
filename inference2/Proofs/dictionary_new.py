@@ -55,6 +55,8 @@ def large_dict():
     'many': 'aa',
     '=': 'ra',
     '~': 'ma',
+    '%': ',',
+    '"': ' ',
     'conceptⁿ': 'n',
     'imagination': 'n',
     'instance': 'n',
