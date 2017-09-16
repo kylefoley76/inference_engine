@@ -7520,7 +7520,7 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
     dictionary = prove_dict.large_dict() if prove_dict else large_dict()
     not_oft_def = copy.deepcopy(dictionary[6])
 
-    _, _, order = info()
+    _, _, order = info() if mysql == 0 else (0, 0, [0, 0, 1])
     nonlinear = order[2]
     if mysql == 2:
         order = [0]
