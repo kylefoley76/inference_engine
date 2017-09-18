@@ -46,10 +46,10 @@ class Archives(models.Model):
 
 
 class Define3(models.Model):
-    extra = models.CharField(max_length=5, blank=True, null=True)
-    type = models.CharField(max_length=5, blank=True, null=True)
-    word = models.CharField(max_length=66, blank=True, null=True)
-    rel = models.CharField(max_length=4, blank=True, null=True)
+    extra = models.CharField(max_length=1000, blank=True, null=True)
+    type = models.CharField(max_length=1000, blank=True, null=True)
+    word = models.CharField(max_length=1000, blank=True, null=True)
+    rel = models.CharField(max_length=1000, blank=True, null=True)
     definition = models.CharField(max_length=1000, blank=True, null=True)
     archives = models.ForeignKey(Archives, on_delete=models.CASCADE)
 
