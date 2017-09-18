@@ -10,17 +10,22 @@
         <th>Word</th>
         <th>Relation</th>
         <th>Definition</th>
+        <th>subject</th>
+        <th>object</th>
 
     </tr>
-{% for row in result %}
+{% for sentense in output %}
+
     <tr>
-        <td>{{ row.0 }}</td>
-        <td>{{ row.1 }}</td>
-        <td>{{ row.2 }}</td>
-        <td>{{ row.3 }}</td>
+        <td>{{ sentense.type }}</td>
+        <td>{{ sentense.word }}</td>
+        <td>{{ sentense.rel }}</td>
+        <td>{{ sentense.definition }}</td>
+        <td>{{ sentense.subject }}</td>
+        <td>{{ sentense.def_object }}</td>
 
     </tr>
-{% endfor %}
 
+{% endfor %}
 </table>
 {% endblock content %}

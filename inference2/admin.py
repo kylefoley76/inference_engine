@@ -43,14 +43,14 @@ class MyDefineImporter(ModelForm):
     class Meta:
         model = Define3
         fields = ('id', 'extra', 'type', 'word',
-                  'rel', 'definition', 'archives')
+                  'rel', 'definition','subject','def_object', 'archives')
 
 
 class MyDefineForm(ModelForm):
     class Meta:
         model = Define3
         fields = ('id', 'extra', 'type', 'word',
-                  'rel', 'definition', 'archives')
+                  'rel', 'definition', 'subject', 'def_object', 'archives')
 
 
 def delete_everything(modeladmin, request, queryset):
@@ -60,7 +60,7 @@ def delete_everything(modeladmin, request, queryset):
 class MyDefine(ImportCSVModelAdmin):
     importer_class = MyDefineImporter
     form = MyDefineForm
-    list_display = ('id', 'extra', 'type', 'word', 'rel', 'definition')
+    list_display = ('id', 'extra', 'type', 'word', 'rel', 'definition','subject','def_object',)
     empty_value_display = ""
     ordering = ("id",)
     list_per_page = 100
@@ -100,7 +100,8 @@ class MyArchiveForm(ModelForm):
                 for _ in Algorithm.objects.all()]
 
     def get_my_dict_choices():
-        return [(_.dictionary.name.split('/')[-1] if _.dictionary else '', _.dictionary.name.split('/')[-1] if _.dictionary else '')
+        return [(_.dictionary.name.split('/')[-1] if _.dictionary else '',
+                 _.dictionary.name.split('/')[-1] if _.dictionary else '')
                 for _ in Algorithm.objects.all()]
 
     algorithm = forms.ChoiceField(choices=get_my_choices)

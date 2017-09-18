@@ -51,6 +51,8 @@ class Define3(models.Model):
     word = models.CharField(max_length=1000, blank=True, null=True)
     rel = models.CharField(max_length=1000, blank=True, null=True)
     definition = models.CharField(max_length=1000, blank=True, null=True)
+    subject = models.CharField(max_length=1000, blank=True, null=True)
+    def_object = models.CharField(max_length=1000, blank=True, null=True)
     archives = models.ForeignKey(Archives, on_delete=models.CASCADE)
 
     class Meta:

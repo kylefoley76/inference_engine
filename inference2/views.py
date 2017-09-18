@@ -215,7 +215,8 @@ def dictionary(request, archive=None):
     #     url_path = '/archives/{}/'.format(archive.id)
     # dict = Define3.objects.filter(archives_id=archive.id)
     from inference2.Proofs.dictionary_new import large_dict
-    return render(request, "inference2/dict.html", {'result': large_dict, 'url_path': '/'})
+    outputs = Define3.objects.all()
+    return render(request, "inference2/dict.html", {'result': large_dict, 'url_path': '/', 'output': outputs})
 
 
 def tested_dictionary(request, archive=None):
