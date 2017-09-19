@@ -21,7 +21,8 @@ def save_result(archive_id, post_data):
     archive = Archives.objects.get(pk=archive_id)
     Rows = []
     data_found = False
-    for idx in range(15000 - 1):
+    
+    for idx in range(len(post_data) - 1):
         if post_data.get("text_" + str(idx) + "_2", '') or post_data.get("text_" + str(idx) + "_3", ''):
             data_found = True
         if not data_found:
