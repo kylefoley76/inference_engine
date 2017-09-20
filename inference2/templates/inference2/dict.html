@@ -4,28 +4,31 @@
 {% block content %}
     <h1>Dictionary</h1>
 
-<table border="1">
-    <tr>
-        <th>Type</th>
-        <th>Word</th>
-        <th>Relation</th>
-        <th>Definition</th>
-        <th>subject</th>
-        <th>object</th>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Type</th>
+            <th>Word</th>
+            <th>Relation</th>
+            <th>Definition</th>
+            <th>subject</th>
+            <th>object</th>
 
-    </tr>
-{% for sentense in output %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for sentense in output %}
+            <tr>
+                <td>{{ sentense.type }}</td>
+                <td>{{ sentense.word }}</td>
+                <td>{{ sentense.rel }}</td>
+                <td>{{ sentense.definition }}</td>
+                <td>{{ sentense.subject }}</td>
+                <td>{{ sentense.def_object }}</td>
 
-    <tr>
-        <td>{{ sentense.type }}</td>
-        <td>{{ sentense.word }}</td>
-        <td>{{ sentense.rel }}</td>
-        <td>{{ sentense.definition }}</td>
-        <td>{{ sentense.subject }}</td>
-        <td>{{ sentense.def_object }}</td>
+            </tr>
 
-    </tr>
-
-{% endfor %}
-</table>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock content %}
