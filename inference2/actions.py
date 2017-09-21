@@ -55,7 +55,7 @@ def changesymbol(queryset, mode):
         ('&&', chr(8896)),
         ('@', chr(8855)),
         ('e^', chr(8660)),
-        ('g^', chr(8781))
+        ('g^', chr(8781)),
         ('k^', chr(8680)),
         ('|a', u"\u1d43"),
         ('|b', u"\u1d47"),
