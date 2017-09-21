@@ -113,7 +113,8 @@ def changesymbol(queryset, mode):
                 original_text_definition = x.definition
                 original_text_word = x.word
                 original_text_rel = x.rel
-                if original_text_definition or original_text_word or original_text_rel:
+                original_text_type = x.type
+                if original_text_definition or original_text_word or original_text_rel or original_text_type:
                     for (T, S) in symbol_map:
                         if T in original_text_definition:
                             original_text_definition = original_text_definition.replace(
@@ -123,10 +124,14 @@ def changesymbol(queryset, mode):
                                 T, S)
                         if T in original_text_rel:
                             original_text_rel = original_text_rel.replace(T, S)
+                        if T in original_text_type:
+                            original_text_type = original_text_type.replace(T, S)
 
                 x.definition = original_text_definition
                 x.word = original_text_word
                 x.rel = original_text_rel
+                x.type = original_text_type
+
                 x.save()
         if mode == 'StoT':
             for x in queryset:
