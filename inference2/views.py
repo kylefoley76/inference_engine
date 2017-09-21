@@ -7,7 +7,6 @@ from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from inference2.Proofs.new_code import get_result
 from .models import Output, InstructionFile
 import importlib
 from inference2.models import Input
@@ -22,7 +21,8 @@ def save_result(archive_id, post_data):
     archive = Archives.objects.get(pk=archive_id)
     Rows = []
     data_found = False
-    for idx in range(15000 - 1):
+    
+    for idx in range(len(post_data) - 1):
         if post_data.get("text_" + str(idx) + "_2", '') or post_data.get("text_" + str(idx) + "_3", ''):
             data_found = True
         if not data_found:
@@ -70,14 +70,16 @@ def index(request, archive=None):
     result = {}
     output = []
     # output = Output.objects.all()
+    show_column = False
     if request.method == 'POST':
+        show_column = True
         Output.objects.all().delete()
         post_data = request.POST.copy()
-        # prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
-        # my_function = getattr(__import__('inference2.Proofs'+archive.algorithm.split('.py')[0]), 'get_result')
-        # post_data = prove_algorithm.get_result(
-        #     request.POST.copy(), archive.id, request)
-        post_data = get_result(request.POST.copy(), archive.id, request)
+        prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
+        prove_dictionary = importlib.import_module('.' + archive.dictionary.split('.py')[0],
+                                                   package='inference2.Proofs')
+        post_data = prove_algorithm.get_result(
+            request.POST.copy(), archive.id, request, prove_dict=prove_dictionary)
         print(post_data)
         if post_data:
             post_data["type"] = "prove"
@@ -89,7 +91,7 @@ def index(request, archive=None):
     template_args = {'result': result, 'input': input,
                      'url_path': url_path, 'archive_date': archive_date,
                      'output': output, 'ins_file': ins_file,
-                     'archive': archive,
+                     'archive': archive, 'show_column': show_column
                      }
     return render(request, "inference2/index.html", template_args)
 
@@ -103,11 +105,9 @@ def try_input(request, archive=None):
         # input = "It is|a contradictory that I do not have many|n points"
         input = request.POST.get('try_input')
         Output.objects.all().delete()
-        # prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
-        # my_function = getattr(__import__('inference2.Proofs'+archive.algorithm.split('.py')[0]), 'get_result')
-        # post_data = prove_algorithm.get_result(
-        #     request.POST.copy(), archive.id, request, input)
-        post_data=get_result(request.POST.copy(), archive.id, request)
+        prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
+        post_data = prove_algorithm.get_result(
+            request.POST.copy(), archive.id, request, input)
         print(post_data)
         if post_data:
             post_data["type"] = "prove"
@@ -198,9 +198,9 @@ def prove(request, archive=None):
     result = {}
     if request.method == 'POST':
         post_data = request.POST.copy()
-        # prove_algorithm = importlib.import_module(
-        #     '.' + archive.algorithm, package='inference2.Proofs')
-        post_data = get_result(
+        prove_algorithm = importlib.import_module(
+            '.' + archive.algorithm, package='inference2.Proofs')
+        post_data = prove_algorithm.get_result(
             request.POST.copy(), archive.id, request)
         result = json.dumps(post_data, cls=DjangoJSONEncoder)
 
@@ -216,7 +216,8 @@ def dictionary(request, archive=None):
     #     url_path = '/archives/{}/'.format(archive.id)
     # dict = Define3.objects.filter(archives_id=archive.id)
     from inference2.Proofs.dictionary_new import large_dict
-    return render(request, "inference2/dict.html", {'result': large_dict, 'url_path': '/'})
+    outputs = Define3.objects.all()
+    return render(request, "inference2/dict.html", {'result': large_dict, 'url_path': '/', 'output': outputs})
 
 
 def tested_dictionary(request, archive=None):

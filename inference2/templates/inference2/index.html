@@ -8,16 +8,16 @@
     <script src='/static/inference2/js/jquery-ui.min.js'> </script>
     <script src='/static/inference2/jquery-asPieProgress/dist/jquery-asPieProgress.js'> </script>
     <style>
-     
-      #progressbar 
+
+      #progressbar
       {
       /*background-color: yellow;*/
-    
+
       }
-      #progressbar > .ui-progressbar-value 
+      #progressbar > .ui-progressbar-value
       {
       background-color: #ADD8E6;
-    
+
       }
       .ui-progressbar-value {
   transition: width 1s;
@@ -27,7 +27,7 @@
   /*width:100px; */
   height:130px;
   /*padding:10px; */
-  text-align:center; 
+  text-align:center;
   /*background: whiteSmoke;*/
   font-weight: bold;
   color: #444;
@@ -88,7 +88,7 @@
 
 
 $(document).ready(function(){
-  
+
   //Check to see if the window is top if not then display button
   $(window).scroll(function(){
     if ($(this).scrollTop() > 100) {
@@ -97,13 +97,13 @@ $(document).ready(function(){
       $('.scrollToTop').fadeOut();
     }
   });
-  
+
   //Click event to scroll to top
   $('.scrollToTop').click(function(){
     $('html, body').animate({scrollTop : 0},800);
     return false;
   });
-  
+
 });
 
         function textAreaAdjust(o) {
@@ -213,7 +213,7 @@ $(document).ready(function(){
         });
 
 
-         function progress()      
+         function progress()
         {
           $.ajax({
                type: "POST",
@@ -253,10 +253,10 @@ $( function() {
 
                }
            });
-        }  
+        }
 
         $(document).on('click','#prove', function(e) { //Changes
-            
+
           ajaxindicatorstart();
           $("#progressbar").progressbar();
           setInterval(progress, 500);
@@ -275,7 +275,7 @@ $( function() {
       console.log("Prove");
      if (result["type"] == "prove")
      {
-      
+
       var stop_found = false;
 
                for (i =0; i < ROW_LENGTH; i++) {
@@ -285,7 +285,7 @@ $( function() {
                 {
                 stop_found = true
                 $("#text_"+i+"_2").goTo();
-            
+
                 break;
                 }
             }
@@ -319,7 +319,7 @@ $( function() {
 
   </div>
   <div class="page-header">
-    <h4>{{ archive }}</h4>      
+    <h4>{{ archive }}</h4>
   </div>
   <hr/>
 
@@ -332,9 +332,16 @@ $( function() {
     {%endif%}
 
   <table border="1" >
-  <col width="3%">
-  <col width="77%">
-  <col width="20%">
+
+  {% if show_column == True %}
+    <col width="3%">
+    <col width="77%">
+    <col width="20%">
+  {% else %}
+      <col width="3%">
+    <col width="97%">
+  {% endif %}
+
 
   {% for i in input %}
       <tr>
@@ -346,7 +353,9 @@ $( function() {
       </td>
 
       <td style="background-color:#DCDCDC;" id="table_{{ forloop.counter }}_2"><div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text" name="text_{{ forloop.counter }}_2" id="text_{{ forloop.counter }}_2">{{i.col2}}</div></td>
-      <td style="background-color:#DCDCDC;" id="table_{{ forloop.counter }}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="text_{{ forloop.counter }}_3" id="text_{{ forloop.counter }}_3">{{i.col3}}</div></td>
+      {% if show_column == True %}
+          <td style="background-color:#DCDCDC;" id="table_{{ forloop.counter }}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="text_{{ forloop.counter }}_3" id="text_{{ forloop.counter }}_3">{{i.col3}}</div></td>
+      {% endif %}
       </tr>
   {% endfor %}
 
@@ -354,7 +363,10 @@ $( function() {
       <tr class="output_row">
       <td id="table_output_{{i}}_1 text-align: center;"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_1" id="table_output_{{i}}_1">{{i.col1}}</div></td>
       <td id="table_output_{{i}}_2"><div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text" name="table_output_{{i}}_2" id="table_output_{{i}}_2">{{i.col2}}</div></td>
-      <td id="table_output_{{i}}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_3" id="table_output_{{i.col3}}_3">{{i.col3}}</div></td>
+      {% if show_column == True %}
+          <td id="table_output_{{i}}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_3" id="table_output_{{i.col3}}_3">{{i.col3}}</div></td>
+      {% endif %}
+
       </tr>
   {% endfor %}
   </table>

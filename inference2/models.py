@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 
 
@@ -31,6 +32,7 @@ class InstructionFile(models.Model):
 class Archives(models.Model):
     archives_date = models.DateField()
     algorithm = models.CharField(max_length=300, blank=False, null=False)
+    dictionary = models.CharField(max_length=300, blank=False, null=False, default='')
 
     def __unicode__(self):
         return u'{0}, {1}'.format(self.archives_date, self.algorithm)
@@ -44,11 +46,13 @@ class Archives(models.Model):
 
 
 class Define3(models.Model):
-    extra = models.CharField(max_length=5, blank=True, null=True)
-    type = models.CharField(max_length=5, blank=True, null=True)
-    word = models.CharField(max_length=66, blank=True, null=True)
-    rel = models.CharField(max_length=4, blank=True, null=True)
+    extra = models.CharField(max_length=1000, blank=True, null=True)
+    type = models.CharField(max_length=1000, blank=True, null=True)
+    word = models.CharField(max_length=1000, blank=True, null=True)
+    rel = models.CharField(max_length=1000, blank=True, null=True)
     definition = models.CharField(max_length=1000, blank=True, null=True)
+    subject = models.CharField(max_length=1000, blank=True, null=True)
+    def_object = models.CharField(max_length=1000, blank=True, null=True)
     archives = models.ForeignKey(Archives, on_delete=models.CASCADE)
 
     class Meta:
@@ -68,7 +72,6 @@ class Input(models.Model):
 
 
 class Output(models.Model):
-
     col1 = models.CharField(max_length=200, blank=True, null=True)
     col2 = models.CharField(max_length=1000, blank=True, null=True)
     col3 = models.CharField(max_length=300, blank=True, null=True)
@@ -79,6 +82,7 @@ class Output(models.Model):
         db_table = 'output'
         verbose_name = "Argument"
         verbose_name_plural = "Arguments"
+
     def __str__(self):
         return u'{0}'.format(self.id)
 
@@ -91,8 +95,8 @@ class Algorithm(models.Model):
                 u'Only files with py extenstion are supported.')
 
     name = models.CharField(max_length=200)
-    data = models.FileField(upload_to='./inference2/Proofs/',
-                            validators=[])
+    data = models.FileField(upload_to='./inference2/Proofs/', validators=[])
+    dictionary = models.FileField(upload_to='./inference2/Proofs/', validators=[])
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

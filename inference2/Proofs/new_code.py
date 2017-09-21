@@ -1,5 +1,5 @@
-from dictionary_new import large_dict
-from claims_new import pop_sent
+from .dictionary_new import large_dict
+from .claims_new import pop_sent
 from openpyxl import load_workbook
 from collections import Counter
 import copy
@@ -10,7 +10,7 @@ import cProfile
 import re
 from pprint import pprint
 import collections
-from start_and_stop import info
+from .start_and_stop import info
 import os
 
 # import pdb
@@ -58,9 +58,9 @@ total_time = time.time()
 
 ######### tahir begin
 
-#tahir - the code for the website should always be mysql == 1 for the prove site
+# tahir - the code for the website should always be mysql == 1 for the prove site
 # for the test machine site, it needs to be mysql == 2 and input = True
-mysql = 0
+mysql = 1
 excel = 0
 if mysql == 0:
     proof_type, get_words_used, order = info()
@@ -788,7 +788,7 @@ def define_irregular_terms(list1, type=""):
                 bb = 8
 
             if not lies_wi_scope_of_univ_quant(list1[m], i) and \
-                    list1[m][42] not in do_not_define_again and \
+                            list1[m][42] not in do_not_define_again and \
                     (i_defined < 2 or list1[m][i] != 'i'):
                 antecedent = copy.deepcopy(list1[m])
                 consequent = copy.deepcopy(list1[m])
@@ -1038,9 +1038,10 @@ def eliminate_there(i, list1):
 
     return [list1], "DE there"
 
+
 def eliminate_redundant_sentences(list5):
     i = -1
-    while i < len(list5) -1:
+    while i < len(list5) - 1:
         i += 1
         if list5[i][9] == 'EX':
             del list5[i]
@@ -1518,8 +1519,7 @@ def insert_into_dict(_dict, obj, pos):
     return _dict
 
 
-
-def get_more_variable_types(consistent = True):
+def get_more_variable_types(consistent=True):
     if consistent == False:
         return
     global variable_type
@@ -1557,7 +1557,7 @@ def get_more_variable_types(consistent = True):
     uninstantiable = []
     instantiable = []
     for lst in attach_sent:
-        for j in [34,35]:
+        for j in [34, 35]:
             for sent in lst[j]:
                 for i in noun_slots():
                     if not ex(sent, i):
@@ -1567,7 +1567,7 @@ def get_more_variable_types(consistent = True):
                             uninstantiable.append(sent[i])
                         if sent[i] == 'i' and "i" not in variable_type[2]:
                             variable_type[2].append("i")
-                        elif sent[i] not in variable_type[2] and sent[i] not in variable_type[1]\
+                        elif sent[i] not in variable_type[2] and sent[i] not in variable_type[1] \
                                 and sent[i] not in variable_type[0]:
                             if lst[3] == 'e' or (lst[3] == 'c' and j == 34):
                                 variable_type[0].append(sent[i])
@@ -1633,7 +1633,6 @@ def is_irrel_var(list1):
         return True
     else:
         return False
-
 
 
 def define_regular_terms(list1):
@@ -1904,15 +1903,10 @@ def add_def_sent_to_all_sent(definiendum, list1, new_sentences):
             if new_sentences[i][74] == 'add to all_sent':
                 list1.append(new_sentences[i])
 
-
     for i in range(b, len(new_sentences)):
         if not isinmdlist(new_sentences[i][1], all_sent, 1) or definiendum == "i":
             if new_sentences[i][74] == 'add to all_sent':
                 all_sent.append(new_sentences[i])
-
-
-
-
 
 
 def add_first_sent_to_def_sent(defin_sent, first_sent, definiendum, r_sent_loc):
@@ -1920,7 +1914,7 @@ def add_first_sent_to_def_sent(defin_sent, first_sent, definiendum, r_sent_loc):
     if r_sent_loc == []:
         if new_sent[8] == "~":
             # print (definiendum + ' negated definiendum')
-            #negated definiendum
+            # negated definiendum
             new_sent[8] = None
             new_sent = build_sent2(new_sent)
 
@@ -2398,7 +2392,6 @@ def add_necessary_conditions_for_concept(loop_number):
                         break
 
 
-
 def build_sent1(subj, tvalue, relat, obj, relat2="", obj2=""):
     list1 = [None] * 80
     tvalue = " ~ " if tvalue == "~" else " "
@@ -2699,7 +2692,6 @@ def is_standard(list1):
 
     prepositional_relation = ['IN', "INB", "OF", "ATC", "INE"]
 
-
     for i in [15, 19, 23, 27, 31]:
         if list1[i] != None:
             assert list1[i] != ""
@@ -2716,7 +2708,6 @@ def is_standard(list1):
             if not isvariable(list1[i], "i") and not list1[9] == "=" and not i == 14:
                 return False
     return True
-
 
 
 def check_mispellings(test_sent):
@@ -2751,7 +2742,7 @@ def obtain_truth_value(sent):
         return False, sentence[len("It isa contradictory that "):]
     else:
         # tahir system exit
-        print ("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
+        print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
 
 
 def eliminate_logical_connectives(sentence):
@@ -3213,8 +3204,6 @@ def determ_lies_wi_scope_of_univ(list1, i, current_universal, word_pos, univ_pos
             if univ_pos < word_pos:
                 bool1 = True
 
-
-
     return bool1
 
 
@@ -3240,13 +3229,12 @@ def determ_lies_wi_scope_of_univ2(list1, i):
                     k = dict1.get(i)
                     if list1[k] != None:
                         bool1 = True
-            # elif list1[i] == 'every':
-            #     print ('hey')
-            #     dict1 = {3: 59, 10: 60, 16: 61, 20: 62}
-            #     k = dict1.get(i)
-            #     if list1[k] != None:
-            #         bool1 = True
-
+                        # elif list1[i] == 'every':
+                        #     print ('hey')
+                        #     dict1 = {3: 59, 10: 60, 16: 61, 20: 62}
+                        #     k = dict1.get(i)
+                        #     if list1[k] != None:
+                        #         bool1 = True
 
     return bool1
 
@@ -3257,7 +3245,7 @@ def lies_wi_scope_of_univ_quant(list1, i):
     # or you increase the number of determinatives
 
     bool1 = False
-    if 15 in list1[46]:# 15 means there is a universal quantifier in the sentence
+    if 15 in list1[46]:  # 15 means there is a universal quantifier in the sentence
 
         adjective_positions = [4, 13, 17, 21, 25, 29, 33]
         determinative_positions = [3, 10, 16, 20, 24, 28, 32]
@@ -3515,6 +3503,7 @@ def prepare_att_sent_1_sent(ant_sent_parts, rule, connective, consequent, anc1="
 
 def noun_slots():
     return [5, 14, 18, 22, 26, 30, 34]
+
 
 def determ_slots():
     return [3, 10, 16, 20, 24, 28, 32]
@@ -4232,7 +4221,7 @@ def categorize_words(list1):
             if has_comma: sentence_slots[39] = k
             if mysql == 2 and k == 0:
                 # tahir system exit
-                print ("our system does not have this grammatical syntax yet")
+                print("our system does not have this grammatical syntax yet")
 
             if k == 0 and proof_type != 3:
                 print(word)
@@ -4872,6 +4861,7 @@ def check_reflexivity(consistent):
 
     return consistent
 
+
 def use_reflexivity1(sent):
     global sn
     anc1 = sent[58]
@@ -5023,7 +5013,7 @@ def step_two(truth_value):
             if to_be_defined == []:
                 break
             else:
-                print ("two loops")
+                print("two loops")
 
     rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, "final")
 
@@ -5072,6 +5062,7 @@ def obtain_relevant_sentences(consistent):
         rel_sent = " ".join(rel_sent_str)
         add_to_total_sent("", "RELEVANT SENTENCES: " + rel_sent)
 
+
 def rename_rules():
     for lst in total_sent:
         lst[4] = lst[4].replace('AY', 'AX')
@@ -5081,6 +5072,7 @@ def rename_rules():
         lst[4] = lst[4].replace('DFF', 'DEF')
         if lst[2].startswith("INFER"):
             return
+
 
 def make_attached_detached(consistent, to_be_defined):
     global sn
@@ -5159,6 +5151,7 @@ def match_rn_sent_to_definition2(rn_sent):
             j += 1
             total_sent.insert(i + 1 + j, substitution)
 
+
 def rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, type=""):
     # if proof_type = 0 never rearrange
     #
@@ -5167,9 +5160,9 @@ def rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, type=""):
     # if proof_type = 2 rearrange at the first point, and do not rearrange at the second point if it was false by definition
     #
     # if proof_type = 2 rearrange at the first point and at the second point if it was consistent by definition at the first point
-    if proof_type == 0 or (proof_type in [1,4] and type != 'final') or \
+    if proof_type == 0 or (proof_type in [1, 4] and type != 'final') or \
             (proof_type == 2 and false_by_def and type == "final"):
-         return
+        return
     global total_sent
     untran_rules = ['DF', 'LE', "AX", "NC", "NS"]
     infer_rules = [iff + "E", "MP", "MT", "EN", "&I", "&E", idisj + "E", "~~E", bottom + "I", consist + "I"]
@@ -5197,12 +5190,12 @@ def rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, type=""):
         elif lst[4] != "":
             reduce_to_standard_form.append(lst)
 
-    match_rn_sent_to_definition(untranslated_sentences,type, rn_sent)
+    match_rn_sent_to_definition(untranslated_sentences, type, rn_sent)
     num = 0
     new_numbers = {}
     total_sent = []
     total_sent.append(total_sent2[0])
-    add_to_total_sent("","")
+    add_to_total_sent("", "")
     for lst in initial_claims:
         num += 1
         new_numbers.update({lst[0]: num})
@@ -5255,7 +5248,6 @@ def rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, type=""):
         for sent in detach_sent:
             if sent[71] == 'irrelevant':
                 if not irrelevant_sent_found:
-
                     irrelevant_sent_found = True
                     add_to_total_sent("", "")
                     add_to_total_sent("", "IRRELEVANT SENTENCES")
@@ -5279,6 +5271,7 @@ def rearrange(nonstandard_sentences, irrelevant_objects, false_by_def, type=""):
     print_variables()
     print_object_properties(irrelevant_objects)
 
+
 def renumber_sentences(new_numbers):
     # this gives attach_sent their proper number according to the new
     # numbering system as arrived at in the rearrange_total_sent function
@@ -5294,12 +5287,11 @@ def renumber_sentences(new_numbers):
 
         for lst in total_sent:
             if lst[0] == 26:
+                bb = new_numbers.get(lst[5], "")
 
-                bb = new_numbers.get(lst[5],"")
-
-            lst[5] = new_numbers.get(lst[5],"")
-            lst[6] = new_numbers.get(lst[6],"")
-            lst[7] = new_numbers.get(lst[7],"")
+            lst[5] = new_numbers.get(lst[5], "")
+            lst[6] = new_numbers.get(lst[6], "")
+            lst[7] = new_numbers.get(lst[7], "")
 
 
 def match_rn_sent_to_definition(definitions, type, rn_sent):
@@ -5316,6 +5308,7 @@ def match_rn_sent_to_definition(definitions, type, rn_sent):
                 break
         else:
             g = 4 / 0
+
 
 def do_sent_match(list1, list2, i):
     for j in standard_slots_w_neg():
@@ -5465,7 +5458,7 @@ def new_relevant_variables(list1):
         if not ex(list1, i):
             break
         else:
-            if list1[i] not in variable_type[3] and isvariable(list1[i],"i"):
+            if list1[i] not in variable_type[3] and isvariable(list1[i], "i"):
                 variable_type[3].append(list1[i])
 
 
@@ -5480,6 +5473,7 @@ def star_indef_var(list1, i):
             break
     return list1
 
+
 def is_an_exception(lst):
     if abbreviations[0].get(lst[14]) == 'thing':
         return True
@@ -5489,6 +5483,7 @@ def is_an_exception(lst):
         return True
     else:
         return False
+
 
 def is_biconditional(lst, var, object_properties, obj_class, exception):
     if var not in variable_type[0]:
@@ -5526,7 +5521,6 @@ def get_object_properties(consistent, to_be_defined, loop_number):
     groups = {}
     to_be_defined2 = copy.deepcopy(to_be_defined)
     to_be_defined2 = rearrange_all_sent(to_be_defined2)
-
 
     if loop_number == 1:
         for var in variable_type[3]:
@@ -5577,14 +5571,12 @@ def get_object_properties(consistent, to_be_defined, loop_number):
                         elif lst[53][-1] == "q":
                             object_values[2].append(lst2)
                         else:
-                            lst2[69] = 'irrelevant property' # this is because to find out if there are category
+                            lst2[69] = 'irrelevant property'  # this is because to find out if there are category
                             # errors every sentence must be accounted for
                             object_values[2].append(lst2)
                         object_properties[lst[i]] = object_values
 
     categorize_groups(groups, to_be_defined2)
-
-
 
 
 def categorize_groups(groups, to_be_defined2):
@@ -5613,6 +5605,7 @@ def categorize_groups(groups, to_be_defined2):
                         object_values[0] = 'whole'
                     object_properties[group] = object_values
 
+
 def get_irrelevant_objects(consistent, irrelevant_objects):
     if object_properties == {} or not consistent:
         return
@@ -5633,8 +5626,8 @@ def get_irrelevant_objects(consistent, irrelevant_objects):
                 gen_properties = object_properties.get(gen_var)
                 c = 3 if len(gen_properties) > 3 else 0
                 if set(object_values[0]).intersection(set(gen_properties[0])) != () \
-                    and gen_properties[0] != [] \
-                    and set(object_values[0]).intersection(set(gen_properties[c])) != ():
+                        and gen_properties[0] != [] \
+                        and set(object_values[0]).intersection(set(gen_properties[c])) != ():
                     done = True
                     is_irrelevant = False
                     break
@@ -5661,9 +5654,6 @@ def get_irrelevant_objects(consistent, irrelevant_objects):
         if var in variable_type[3]:
             variable_type[3].remove(var)
         _ = object_properties.pop(var)
-
-
-
 
 
 def have_same_properties(particular_properties, general_properties, gen_var, det_var, instantiations, indef=False):
@@ -5741,10 +5731,9 @@ def has_opp_con_prop(particular_properties, general_con_prop):
     for gen_prop in general_con_prop:
         for part_prop in particular_properties:
             if gen_prop[0] == part_prop[0] and gen_prop[2] != part_prop[2] \
-                and gen_prop[69] != 'irrelevant property' and part_prop[69] != 'irrelevant property':
+                    and gen_prop[69] != 'irrelevant property' and part_prop[69] != 'irrelevant property':
                 return True
     return False
-
 
 
 def instantiate():
@@ -5752,7 +5741,7 @@ def instantiate():
     if object_properties == {}:
         return []
     instantiations = []
-    dict1 = {0:1, 1:4, 2:7} # the key is g and the value is index of the property in lst
+    dict1 = {0: 1, 1: 4, 2: 7}  # the key is g and the value is index of the property in lst
     for var in variable_type[0]:
         lst = object_properties.get(var)
         no_of_sets = len(lst) // 3
@@ -5763,7 +5752,7 @@ def instantiate():
                 if k not in variable_type[0] and k not in forbidden:
                     if var == 'u' and k == 't':
                         bb = 8
-                    gen_prop_no = dict1.get(g) # this is the index of the properties
+                    gen_prop_no = dict1.get(g)  # this is the index of the properties
                     particular_class = set(v[0])
                     set1 = general_classes.difference(particular_class)
                     if len(set1) == 0 or lst[0] == []:
@@ -5812,6 +5801,7 @@ def employ_lemma_of_entity(instantiations):
                     add_to_total_sent(sn, new_sent[0], new_sent[1], new_sent[2], "LY ENT")
                     new_sent[58] = sn
                     detach_sent.append(new_sent)
+
 
 def link_gen_var_to_sent(instantiations):
     for k, instantiation in enumerate(instantiations):
@@ -5871,7 +5861,6 @@ def step_three(negated_conjunction, consistent):
     return consistent, proof_done, to_be_defined
 
 
-
 def add_consistency_sign(consistent):
     if not consistent:
         return
@@ -5895,13 +5884,14 @@ def add_consistency_sign(consistent):
     sn += 1
     add_to_total_sent(sn, "", conjunction)
     sn += 1
-    add_to_total_sent(sn, "", consist, "",consist + "I", sn - 1)
+    add_to_total_sent(sn, "", consist, "", consist + "I", sn - 1)
 
 
 def exclusive_classes():
     return ['moment', 'relationship', 'point', 'number',
             'imagination', 'concept' + un, "property" + un, 'property',
             'possible world', 'letter', 'mind', 'matter', 'sensorium']
+
 
 def use_basic_lemmas(consistent):
     if not consistent:
@@ -6133,9 +6123,9 @@ def substitute_in_attach_sent(instantiations):
                     else:
                         sent[25].update({instantiation[0]: instantiation[1]})
                         if sent[48] == "":
-                             sent[48] = instantiation[4]
+                            sent[48] = instantiation[4]
                         else:
-                             sent[49] = instantiation[4]
+                            sent[49] = instantiation[4]
 
     i = -1
     while i < len(attach_sent2) - 1:
@@ -6160,7 +6150,6 @@ def substitute_in_attach_sent(instantiations):
         cond_sent = make_new_attach_sent(cond_sent)
         if not isinmdlist(cond_sent[4], attach_sent, 4):
             attach_sent.append(cond_sent)
-
 
 
 def make_new_attach_sent(cond_sent):
@@ -6247,7 +6236,6 @@ def print_instantiations(instantiations):
             add_to_total_sent("", "INSTANTIATIONS")
 
         for instantiation in instantiations:
-
             str1 = "(" + instantiation[0] + mini_c + instantiation[1] + ")"
             add_to_total_sent(instantiation[4], str1, "", "", "IN")
 
@@ -6350,9 +6338,6 @@ def print_object_properties(irrelevant_objects):
             add_to_total_sent("", str1)
 
 
-
-
-
 def get_class(relat, sent, p):
     # this determines what class or category an object belongs to
     if sent[2] == "~":
@@ -6401,7 +6386,6 @@ def get_class(relat, sent, p):
     else:
         kind = ""
 
-
     return kind
 
 
@@ -6445,6 +6429,7 @@ def get_nonstandard_sent(nonstandard_sentences, loop_number):
             del detach_sent[i]
         else:
             i += 1
+
 
 # never used
 def is_in_md(list1, i, str1, bool1=False, k=0):
@@ -6524,7 +6509,7 @@ def detach1(str1, consistent, negated_conjunction):
         g = -1
         while consistent and g < len(attach_sent) - 1:
             g += 1
-            if attach_sent[g][26] != 'not neww': # problem here
+            if attach_sent[g][26] != 'not neww':  # problem here
                 k = -1
                 while consistent and k < 1:
                     k += 1
@@ -7515,7 +7500,7 @@ def calculate_time_statistics(proof_time, nonlinear):
     print("")
 
 
-def get_result(post_data, archive_id=None, request=None, input=None):
+def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=None):
     global ws, w4, result_data, order, propositional_constants
     global sn, total_sent, prop_name, variable_type, object_properties
     global all_sent, attach_sent, detach_sent, definite_assignments, proof_type
@@ -7532,10 +7517,10 @@ def get_result(post_data, archive_id=None, request=None, input=None):
 
     else:
         test_sent, row_number = pop_sent()
-    dictionary = large_dict()
+    dictionary = prove_dict.large_dict() if prove_dict else large_dict()
     not_oft_def = copy.deepcopy(dictionary[6])
 
-    _, _, order = info()
+    _, _, order = info() if mysql == 0 else (0, 0, [0, 0, 1])
     nonlinear = order[2]
     if mysql == 2:
         order = [0]
@@ -7547,7 +7532,7 @@ def get_result(post_data, archive_id=None, request=None, input=None):
     if mysql == 1:
         views.progressbar_send(request, 0, 100, 0, 1)
     j = -1
-    while j < len(order) -1:
+    while j < len(order) - 1:
         j += 1
         k = order[j]
         if mysql == 1:
