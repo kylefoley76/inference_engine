@@ -309,7 +309,9 @@ $( function() {
   <div class="row" style="
     margin-left: 1px;">
   <input class="btn btn-primary" type="submit" name="prove" value="Prove" id="prove"/>
-  <input class="btn btn-primary" type="button" name="clear" value="Clear Result" id="clear"/>
+
+
+      <a class="btn btn-primary" href="{% url 'index' %}" type="button" name="clear" id="clear">Clear Result</a>
   <a class="btn btn-primary" href="{{ url_path }}dictionary" target="_blank">Show Dictionary</a>
       <a class="btn btn-primary" target="_blank" href="/tested_dict">Show Tested Dictionary</a>
   <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
@@ -319,7 +321,7 @@ $( function() {
 
   </div>
   <div class="page-header">
-    <h4>{{ archive }}</h4>
+    <h4>{{ algo }}</h4>
   </div>
   <hr/>
 
