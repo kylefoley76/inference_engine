@@ -3,7 +3,7 @@ from django import forms
 import os.path
 import pkgutil
 from inference2 import Proofs
-from inference2.models import Define3, Archives
+from inference2.models import Define3, Archives, Profile
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 
@@ -43,7 +43,7 @@ class MyDefineImporter(ModelForm):
     class Meta:
         model = Define3
         fields = ('id', 'extra', 'type', 'word',
-                  'rel', 'definition','subject','def_object', 'archives')
+                  'rel', 'definition', 'subject', 'def_object', 'archives')
 
 
 class MyDefineForm(ModelForm):
@@ -60,7 +60,7 @@ def delete_everything(modeladmin, request, queryset):
 class MyDefine(ImportCSVModelAdmin):
     importer_class = MyDefineImporter
     form = MyDefineForm
-    list_display = ('id', 'extra', 'type', 'word', 'rel', 'definition','subject','def_object',)
+    list_display = ('id', 'extra', 'type', 'word', 'rel', 'definition', 'subject', 'def_object',)
     empty_value_display = ""
     ordering = ("id",)
     list_per_page = 100
@@ -166,9 +166,18 @@ class MyArchivesForm(admin.ModelAdmin):
     ordering = ("archives_date",)
     list_per_page = 1000
 """
+
+
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'about', 'hobbies', 'skills', 'facebook', 'twitter', 'instagram')
+    ordering = ("id",)
+    list_per_page = 50
+
+
 admin.site.register(Define3, MyDefine)
 admin.site.register(Input, MyInput)
 admin.site.register(Archives, MyArchive)
 admin.site.register(Output, OutputAdmin)
 admin.site.register(InstructionFile, InstructionFileAdmin)
 admin.site.register(Algorithm, AlgorithmAdmin)
+admin.site.register(Profile, ProfileAdmin)

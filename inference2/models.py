@@ -100,3 +100,16 @@ class Algorithm(models.Model):
 
     def save(self, *args, **kwargs):
         super(Algorithm, self).save(*args, **kwargs)
+
+
+class Profile(models.Model):
+    name = models.CharField(max_length=200)
+    about = models.TextField()
+    hobbies = models.CharField(max_length=500, null=True, blank=True)
+    skills = models.CharField(max_length=500, null=True, blank=True)
+    facebook = models.CharField(max_length=200, null=True, blank=True)
+    twitter = models.CharField(max_length=200, null=True, blank=True)
+    instagram = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return u'{0}'.format(self.id)
