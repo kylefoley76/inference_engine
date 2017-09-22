@@ -1,7 +1,8 @@
 import json
 import os
 from django.core.serializers.json import DjangoJSONEncoder
-from django.shortcuts import render
+from django.core.urlresolvers import reverse
+from django.shortcuts import render, redirect
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponse
 from django.conf import settings
@@ -303,3 +304,7 @@ def progressbar_send(request, strt, stp, k, status=0):
 def author(request):
     profile = Profile.objects.latest('id')
     return render(request, "inference2/author.html", {'profile': profile})
+
+
+def clear(request):
+    return redirect(reverse('index'))
