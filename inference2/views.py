@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from .models import Output, InstructionFile
+from .models import Output, InstructionFile, Algorithm
 import importlib
 from inference2.models import Input
 
@@ -21,7 +21,7 @@ def save_result(archive_id, post_data):
     archive = Archives.objects.get(pk=archive_id)
     Rows = []
     data_found = False
-    
+
     for idx in range(len(post_data) - 1):
         if post_data.get("text_" + str(idx) + "_2", '') or post_data.get("text_" + str(idx) + "_3", ''):
             data_found = True
@@ -88,10 +88,12 @@ def index(request, archive=None):
             save_result(archive.id, post_data)
         output = Output.objects.all()
 
+    algo = Algorithm.objects.latest('id')
+
     template_args = {'result': result, 'input': input,
                      'url_path': url_path, 'archive_date': archive_date,
                      'output': output, 'ins_file': ins_file,
-                     'archive': archive, 'show_column': show_column
+                     'archive': archive, 'show_column': show_column, 'algo': algo.name if algo else archive
                      }
     return render(request, "inference2/index.html", template_args)
 
@@ -290,9 +292,9 @@ def progress(request):
 def progressbar_send(request, strt, stp, k, status=0):
     if request is not None:
         request.session.modified = True
-        request.session['strt'] = strt
-        request.session['stp'] = stp
-        request.session['idx'] = [strt, stp, k]
+        request.session['strt'] = 0
+        request.session['stp'] = 100
+        request.session['idx'] = [0, 100, k]
         request.session['status'] = status
         request.session.modified = True
         request.session.save()

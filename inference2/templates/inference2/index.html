@@ -2,376 +2,395 @@
 {% load extra_tags %}
 {% block base_head %}
 
-<link rel="stylesheet" href="/static/inference2/jquery-asPieProgress/dist/css/asPieProgress.css">
+    <link rel="stylesheet" href="/static/inference2/jquery-asPieProgress/dist/css/asPieProgress.css">
     <link rel="stylesheet" href="/static/inference2/css/jquery-ui.min.css">
-    <script src="/static/inference2/js/jquery-1.11.3.min.js"> </script>
-    <script src='/static/inference2/js/jquery-ui.min.js'> </script>
-    <script src='/static/inference2/jquery-asPieProgress/dist/jquery-asPieProgress.js'> </script>
+    <script src="/static/inference2/js/jquery-1.11.3.min.js"></script>
+    <script src='/static/inference2/js/jquery-ui.min.js'></script>
+    <script src='/static/inference2/jquery-asPieProgress/dist/jquery-asPieProgress.js'></script>
     <style>
 
-      #progressbar
-      {
-      /*background-color: yellow;*/
+        #progressbar {
+            /*background-color: yellow;*/
 
-      }
-      #progressbar > .ui-progressbar-value
-      {
-      background-color: #ADD8E6;
+        }
 
-      }
-      .ui-progressbar-value {
-  transition: width 1s;
-  -webkit-transition: width 1s;
-}
-.scrollToTop{
-  /*width:100px; */
-  height:130px;
-  /*padding:10px; */
-  text-align:center;
-  /*background: whiteSmoke;*/
-  font-weight: bold;
-  color: #444;
-  text-decoration: none;
-  position:fixed;
-  top:75px;
-  right:40px;
-  display:none;
-  background: url("/static/inference2/images/arrow_up.png") no-repeat 15px 15px;
-}
-.scrollToTop:hover{
-  text-decoration:none;
-}
-.progress-label {
-    float: left;
-    margin-left: 25%;
-    margin-top: 5px;
-    font-weight: bold;
-    text-shadow: 1px 1px 0 #fff;
+        #progressbar > .ui-progressbar-value {
+            background-color: #ADD8E6;
 
-}
-      table{
-    border: solid 1px gray;
-    width: 100%;
-  }
+        }
 
-  input[type=text] {
-    width: 98%;
-    padding: 0px;
-    margin: 0px;
-}
+        .ui-progressbar-value {
+            transition: width 1s;
+            -webkit-transition: width 1s;
+        }
 
-#overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000;
-    filter:alpha(opacity=50);
-    -moz-opacity:0.5;
-    -khtml-opacity: 0.5;
-    opacity: 0.5;
-    background: url("paper.gif");
-    z-index: 10000;
-}
-.color-none{
-  color:black !important;
-  cursor: default;
-}
+        .scrollToTop {
+            /*width:100px; */
+            height: 130px;
+            /*padding:10px; */
+            text-align: center;
+            /*background: whiteSmoke;*/
+            font-weight: bold;
+            color: #444;
+            text-decoration: none;
+            position: fixed;
+            top: 75px;
+            right: 40px;
+            display: none;
+            background: url("/static/inference2/images/arrow_up.png") no-repeat 15px 15px;
+        }
 
-.color-none:hover{
-  text-decoration: none; !important;
-}
-</style>
+        .scrollToTop:hover {
+            text-decoration: none;
+        }
+
+        .progress-label {
+            float: left;
+            margin-left: 25%;
+            margin-top: 5px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #fff;
+
+        }
+
+        table {
+            border: solid 1px gray;
+            width: 100%;
+        }
+
+        input[type=text] {
+            width: 98%;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            filter: alpha(opacity=50);
+            -moz-opacity: 0.5;
+            -khtml-opacity: 0.5;
+            opacity: 0.5;
+            background: url("paper.gif");
+            z-index: 10000;
+        }
+
+        .color-none {
+            color: black !important;
+            cursor: default;
+        }
+
+        .color-none:hover {
+            text-decoration: none;
+        !important;
+        }
+    </style>
 
     <script type="text/javascript">
 
 
-$(document).ready(function(){
+        $(document).ready(function () {
 
-  //Check to see if the window is top if not then display button
-  $(window).scroll(function(){
-    if ($(this).scrollTop() > 100) {
-      $('.scrollToTop').fadeIn();
-    } else {
-      $('.scrollToTop').fadeOut();
-    }
-  });
+            //Check to see if the window is top if not then display button
+            $(window).scroll(function () {
+                if ($(this).scrollTop() > 100) {
+                    $('.scrollToTop').fadeIn();
+                } else {
+                    $('.scrollToTop').fadeOut();
+                }
+            });
 
-  //Click event to scroll to top
-  $('.scrollToTop').click(function(){
-    $('html, body').animate({scrollTop : 0},800);
-    return false;
-  });
+            //Click event to scroll to top
+            $('.scrollToTop').click(function () {
+                $('html, body').animate({scrollTop: 0}, 800);
+                return false;
+            });
 
-});
+        });
 
         function textAreaAdjust(o) {
-    o.style.height = "1px";
-    o.style.height = (25+o.scrollHeight)+"px";
-}
-  function ajaxindicatorstart()
-  {
-    if(jQuery('body').find('#resultLoading').attr('id') != 'resultLoading'){
-    jQuery('body').append('<div id="resultLoading" style="display:none"><div><div id="progressbar"><div><div class="progress-label">Solving...</div></div></div></div><div class="bg"></div></div>');
+            o.style.height = "1px";
+            o.style.height = (25 + o.scrollHeight) + "px";
+        }
+        function ajaxindicatorstart() {
+            if (jQuery('body').find('#resultLoading').attr('id') != 'resultLoading') {
+                jQuery('body').append('<div id="resultLoading" style="display:none"><div><div id="progressbar"><div><div class="progress-label">Solving...</div></div></div></div><div class="bg"></div></div>');
 
 
-    }
+            }
 
-    jQuery('#resultLoading').css({
-      'width':'100%',
-      'height':'100%',
-      'position':'fixed',
-      'z-index':'10000000',
-      'top':'0',
-      'left':'0',
-      'right':'0',
-      'bottom':'0',
-      'margin':'auto'
-    });
+            jQuery('#resultLoading').css({
+                'width': '100%',
+                'height': '100%',
+                'position': 'fixed',
+                'z-index': '10000000',
+                'top': '0',
+                'left': '0',
+                'right': '0',
+                'bottom': '0',
+                'margin': 'auto'
+            });
 
-    jQuery('#resultLoading .bg').css({
-      'background':'#000000',
-      'opacity':'0.7',
-      'width':'100%',
-      'height':'100%',
-      'position':'absolute',
-      'top':'0'
-    });
+            jQuery('#resultLoading .bg').css({
+                'background': '#000000',
+                'opacity': '0.7',
+                'width': '100%',
+                'height': '100%',
+                'position': 'absolute',
+                'top': '0'
+            });
 
-    jQuery('#resultLoading>div:first').css({
-      'width': '250px',
-      'height':'75px',
-      'text-align': 'center',
-      'position': 'fixed',
-      'top':'0',
-      'left':'0',
-      'right':'0',
-      'bottom':'0',
-      'margin':'auto',
-      'font-size':'16px',
-      'z-index':'10',
-      'color':'#ffffff'
+            jQuery('#resultLoading>div:first').css({
+                'width': '250px',
+                'height': '75px',
+                'text-align': 'center',
+                'position': 'fixed',
+                'top': '0',
+                'left': '0',
+                'right': '0',
+                'bottom': '0',
+                'margin': 'auto',
+                'font-size': '16px',
+                'z-index': '10',
+                'color': '#ffffff'
 
-    });
+            });
 
-      jQuery('#resultLoading .bg').height('100%');
-        jQuery('#resultLoading').fadeIn(300);
-      jQuery('body').css('cursor', 'wait');
-  }
+            jQuery('#resultLoading .bg').height('100%');
+            jQuery('#resultLoading').fadeIn(300);
+            jQuery('body').css('cursor', 'wait');
+        }
 
-  function ajaxindicatorstop()
-  {
-      jQuery('#resultLoading .bg').height('100%');
-        jQuery('#resultLoading').fadeOut(300);
-      jQuery('body').css('cursor', 'default');
-  }
+        function ajaxindicatorstop() {
+            jQuery('#resultLoading .bg').height('100%');
+            jQuery('#resultLoading').fadeOut(300);
+            jQuery('body').css('cursor', 'default');
+        }
 
-  function callAjax()
-  {
-    jQuery.ajax({
-      type: "GET",
-      url: "fetch_data.php",
-      cache: false,
-      success: function(res){
-          jQuery('#ajaxcontent').html(res);
-      }
-    });
-  }
+        function callAjax() {
+            jQuery.ajax({
+                type: "GET",
+                url: "fetch_data.php",
+                cache: false,
+                success: function (res) {
+                    jQuery('#ajaxcontent').html(res);
+                }
+            });
+        }
 
-</script>
+    </script>
     <script>
 
-        var ROW_LENGTH=5000;
+        var ROW_LENGTH = 5000;
 
-    $(document).ready(function () {
+        $(document).ready(function () {
 
-    var result = {{ result|safe }};
+            var result = {{ result|safe }};
 
-        if (result)
-        {
-            for(var index in result) {
-                $("#"+index).val(result[index]);
+            if (result) {
+                for (var index in result) {
+                    $("#" + index).val(result[index]);
 
-            }
-        }
-
-         $(document).on('click','#reset', function(e) {
-
-            for (i =0; i < ROW_LENGTH; i++) {
-            $("#text_"+i+"_1").val('');
-            $("#text_"+i+"_2").val('');
-            $("#text_"+i+"_3").val('');
-            }
-
-        });
-           $(document).on('click','#clear', function(e) {
-
-            $('.output_row').remove();
-            $('.input_a').addClass('color-none');
-            $('.output_info').hide();
-        });
-
-
-         function progress()
-        {
-          $.ajax({
-               type: "POST",
-               url: "progress",
-               //async: false,
-               data:{csrfmiddlewaretoken:'{{csrf_token}}' },
-               success: function (result) {
-                if ($('#progressbar').length) {
-    //console.log("exist");
-}
-var v = $("#progressbar").progressbar("value");
-//console.log(v)
-if (v < result["K"][2])
-{
-$( function() {
-    var progressLabel = $(".progress-label");
-    $( "#progressbar" ).progressbar({
-      value: result["K"][2],
-      max: result["K"][1],
-      min: result["K"][0],
-      change: function () {
-              progressLabel.text($("#progressbar").progressbar("value") + "%");
-          },
-      complete: function () {
-              progressLabel.text("Complete!");
-              progressLabel.text("Wait 10 seconds!");
-                  }
-
-
-  } );
-  })
-}
-                //$('.pie_progress').asPieProgress('go',((result["K"][2] - result["K"][0]) * 100) / (result["K"][1] - result["K"][0]));
-                //console.log(((result["K"][2] - result["K"][0]) * 100) / (result["K"][1] - result["K"][0]));
-               },
-               error: function (err) {
-
-               }
-           });
-        }
-
-        $(document).on('click','#prove', function(e) { //Changes
-
-          ajaxindicatorstart();
-          $("#progressbar").progressbar();
-          setInterval(progress, 500);
-       });
-
-     (function($) {
-    $.fn.goTo = function() {
-        $('html, body').animate({
-            scrollTop: $(this).offset().top + 'px'
-        }, 'slow');
-        return this; // for chaining...
-    }
-})(jQuery);
-
-     $(function(){
-      console.log("Prove");
-     if (result["type"] == "prove")
-     {
-
-      var stop_found = false;
-
-               for (i =0; i < ROW_LENGTH; i++) {
-            if (!stop_found)
-            {
-                if ($("#text_"+i+"_2").val()=='stop')
-                {
-                stop_found = true
-                $("#text_"+i+"_2").goTo();
-
-                break;
                 }
             }
-                else
-            {
-                $("#text_"+i+"_1").val('');
-            $("#text_"+i+"_2").val('');
-            $("#text_"+i+"_3").val('');
-            }
-            }
-     }})
 
-    });
+            $(document).on('click', '#reset', function (e) {
+
+                for (i = 0; i < ROW_LENGTH; i++) {
+                    $("#text_" + i + "_1").val('');
+                    $("#text_" + i + "_2").val('');
+                    $("#text_" + i + "_3").val('');
+                }
+
+            });
+            $(document).on('click', '#clear', function (e) {
+
+                $('.output_row').remove();
+                $('.input_a').addClass('color-none');
+                $('.output_info').hide();
+            });
+
+
+            function progress() {
+                $.ajax({
+                    type: "POST",
+                    url: "progress",
+                    //async: false,
+                    data: {csrfmiddlewaretoken: '{{csrf_token}}'},
+                    success: function (result) {
+                        if ($('#progressbar').length) {
+                            //console.log("exist");
+                        }
+                        var v = $("#progressbar").progressbar("value");
+//console.log(v)
+                        if (v < result["K"][2]) {
+                            $(function () {
+                                var progressLabel = $(".progress-label");
+                                $("#progressbar").progressbar({
+                                    value: result["K"][2],
+                                    max: result["K"][1],
+                                    min: result["K"][0],
+                                    change: function () {
+                                        progressLabel.text($("#progressbar").progressbar("value") + "%");
+                                    },
+                                    complete: function () {
+                                        progressLabel.text("Complete!");
+                                        progressLabel.text("Wait 10 seconds!");
+                                    }
+
+
+                                });
+                            })
+                        }
+                        //$('.pie_progress').asPieProgress('go',((result["K"][2] - result["K"][0]) * 100) / (result["K"][1] - result["K"][0]));
+                        //console.log(((result["K"][2] - result["K"][0]) * 100) / (result["K"][1] - result["K"][0]));
+                    },
+                    error: function (err) {
+
+                    }
+                });
+            }
+
+            $(document).on('click', '#prove', function (e) { //Changes
+
+                ajaxindicatorstart();
+                $("#progressbar").progressbar();
+                setInterval(progress, 500);
+            });
+
+            (function ($) {
+                $.fn.goTo = function () {
+                    $('html, body').animate({
+                        scrollTop: $(this).offset().top + 'px'
+                    }, 'slow');
+                    return this; // for chaining...
+                }
+            })(jQuery);
+
+            $(function () {
+                console.log("Prove");
+                if (result["type"] == "prove") {
+
+                    var stop_found = false;
+
+                    for (i = 0; i < ROW_LENGTH; i++) {
+                        if (!stop_found) {
+                            if ($("#text_" + i + "_2").val() == 'stop') {
+                                stop_found = true
+                                $("#text_" + i + "_2").goTo();
+
+                                break;
+                            }
+                        }
+                        else {
+                            $("#text_" + i + "_1").val('');
+                            $("#text_" + i + "_2").val('');
+                            $("#text_" + i + "_3").val('');
+                        }
+                    }
+                }
+            })
+
+        });
     </script>
 
 {% endblock %}
 {% block content %}
-  <form id="excel" method="post">
-   {% csrf_token %}
-  <!--input type="button" name="reset" value="Reset" id="reset"/-->
-  <div class="row" style="
+    <form id="excel" method="post">
+        {% csrf_token %}
+        <!--input type="button" name="reset" value="Reset" id="reset"/-->
+        <div class="row" style="
     margin-left: 1px;">
-  <input class="btn btn-primary" type="submit" name="prove" value="Prove" id="prove"/>
-  <input class="btn btn-primary" type="button" name="clear" value="Clear Result" id="clear"/>
-  <a class="btn btn-primary" href="{{ url_path }}dictionary" target="_blank">Show Dictionary</a>
-      <a class="btn btn-primary" target="_blank" href="/tested_dict">Show Tested Dictionary</a>
-  <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
+            <input class="btn btn-primary" type="submit" name="prove" value="Prove" id="prove"/>
 
-  <a class="btn btn-primary" href="/export_xlsx/{{archive.id}}">Download Dictionary</a>
-  <a class="btn btn-primary" href="/export_xlsx/{{archive.id}}?only_output=1">Download Arguments</a>
 
-  </div>
-  <div class="page-header">
-    <h4>{{ archive }}</h4>
-  </div>
-  <hr/>
+            <a class="btn btn-primary" href="/" name="clear" id="clear">Clear Result</a>
+            <a class="btn btn-primary" href="{{ url_path }}dictionary" target="_blank">Show Dictionary</a>
+{#            <a class="btn btn-primary" target="_blank" href="/tested_dict">Show Tested Dictionary</a>#}
+            <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
 
-  <div id = "table_wrapper">
-    {% if output %}
-    <div class="alert alert-info alert-dismissable output_info">
-    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-    <strong>Info!</strong> Click number to see proof.
+            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}">Download Dictionary</a>
+{#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}?only_output=1">Download Arguments</a>#}
+
+        </div>
+    </form>
+    <div class="page-header">
+        <h4>{{ algo }}</h4>
     </div>
-    {%endif%}
+    <hr/>
 
-  <table border="1" >
+    <div id="table_wrapper">
+        {% if output %}
+            <div class="alert alert-info alert-dismissable output_info">
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                <strong>Info!</strong> Click number to see proof.
+            </div>
+        {% endif %}
 
-  {% if show_column == True %}
-    <col width="3%">
-    <col width="77%">
-    <col width="20%">
-  {% else %}
-      <col width="3%">
-    <col width="97%">
-  {% endif %}
+        <table border="1">
+
+            {% if show_column == True %}
+                <col width="3%">
+                <col width="77%">
+                <col width="20%">
+            {% else %}
+                <col width="3%">
+                <col width="97%">
+            {% endif %}
 
 
-  {% for i in input %}
-      <tr>
-      <td style="text-align: center;background-color:#DCDCDC;" id="table_{{ forloop.counter }}_1">
-      <a id="a_text_{{ forloop.counter }}_1" href ="#table_output_{{i.col1}}_3" {% if not output %} class='color-none input_a' {% else %} class='input_a'{% endif %} >
+            {% for i in input %}
+                <tr>
+                    <td style="text-align: center;background-color:#DCDCDC;" id="table_{{ forloop.counter }}_1">
+                        <a id="a_text_{{ forloop.counter }}_1" href="#table_output_{{ i.col1 }}_3" {% if not output %}
+                           class='color-none input_a' {% else %} class='input_a'{% endif %} >
 
-        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="text_{{ forloop.counter }}_1" id="text_{{ forloop.counter }}_1">{{i.col1}}</div>
-      </a>
-      </td>
+                            <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                                 name="text_{{ forloop.counter }}_1"
+                                 id="text_{{ forloop.counter }}_1">{{ i.col1 }}</div>
+                        </a>
+                    </td>
 
-      <td style="background-color:#DCDCDC;" id="table_{{ forloop.counter }}_2"><div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text" name="text_{{ forloop.counter }}_2" id="text_{{ forloop.counter }}_2">{{i.col2}}</div></td>
-      {% if show_column == True %}
-          <td style="background-color:#DCDCDC;" id="table_{{ forloop.counter }}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="text_{{ forloop.counter }}_3" id="text_{{ forloop.counter }}_3">{{i.col3}}</div></td>
-      {% endif %}
-      </tr>
-  {% endfor %}
+                    <td style="background-color:#DCDCDC;" id="table_{{ forloop.counter }}_2">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text"
+                             name="text_{{ forloop.counter }}_2" id="text_{{ forloop.counter }}_2">{{ i.col2 }}</div>
+                    </td>
+                    {% if show_column == True %}
+                        <td style="background-color:#DCDCDC;" id="table_{{ forloop.counter }}_3">
+                            <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                                 name="text_{{ forloop.counter }}_3"
+                                 id="text_{{ forloop.counter }}_3">{{ i.col3 }}</div>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
 
-  {% for i in output%}
-      <tr class="output_row">
-      <td id="table_output_{{i}}_1 text-align: center;"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_1" id="table_output_{{i}}_1">{{i.col1}}</div></td>
-      <td id="table_output_{{i}}_2"><div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text" name="table_output_{{i}}_2" id="table_output_{{i}}_2">{{i.col2}}</div></td>
-      {% if show_column == True %}
-          <td id="table_output_{{i}}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_3" id="table_output_{{i.col3}}_3">{{i.col3}}</div></td>
-      {% endif %}
+            {% for i in output %}
+                <tr class="output_row">
+                    <td id="table_output_{{ i }}_1 text-align: center;">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                             name="table_output_{{ i }}_1" id="table_output_{{ i }}_1">{{ i.col1 }}</div>
+                    </td>
+                    <td id="table_output_{{ i }}_2">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text"
+                             name="table_output_{{ i }}_2" id="table_output_{{ i }}_2">{{ i.col2 }}</div>
+                    </td>
+                    {% if show_column == True %}
+                        <td id="table_output_{{ i }}_3">
+                            <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                                 name="table_output_{{ i }}_3" id="table_output_{{ i.col3 }}_3">{{ i.col3 }}</div>
+                        </td>
+                    {% endif %}
 
-      </tr>
-  {% endfor %}
-  </table>
-  </div>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 
-  </form>
-  <a href="#" class="scrollToTop">Scroll To Top</a>
+
+    <a href="#" class="scrollToTop">Scroll To Top</a>
 {% endblock content %}
