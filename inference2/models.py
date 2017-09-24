@@ -94,6 +94,7 @@ class Algorithm(models.Model):
                 u'Only files with py extenstion are supported.')
 
     name = models.CharField(max_length=200)
+    notes = models.TextField(null=True, blank=True)
     data = models.FileField(upload_to='./inference2/Proofs/', validators=[])
     dictionary = models.FileField(upload_to='./inference2/Proofs/', validators=[])
     created_at = models.DateTimeField(auto_now_add=True)
