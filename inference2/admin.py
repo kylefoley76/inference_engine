@@ -3,7 +3,7 @@ from django import forms
 import os.path
 import pkgutil
 from inference2 import Proofs
-from inference2.models import Define3, Archives, Profile
+from inference2.models import Define3, Archives, Profile, Define3Notes
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 
@@ -174,6 +174,12 @@ class ProfileAdmin(admin.ModelAdmin):
     list_per_page = 50
 
 
+class Define3NotesAdmin(admin.ModelAdmin):
+    list_display = ('notes',)
+    ordering = ("id",)
+    list_per_page = 50
+
+
 admin.site.register(Define3, MyDefine)
 admin.site.register(Input, MyInput)
 admin.site.register(Archives, MyArchive)
@@ -181,3 +187,4 @@ admin.site.register(Output, OutputAdmin)
 admin.site.register(InstructionFile, InstructionFileAdmin)
 admin.site.register(Algorithm, AlgorithmAdmin)
 admin.site.register(Profile, ProfileAdmin)
+admin.site.register(Define3Notes, Define3NotesAdmin)

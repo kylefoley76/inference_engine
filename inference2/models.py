@@ -44,6 +44,13 @@ class Archives(models.Model):
         db_table = 'archives'
 
 
+class Define3Notes(models.Model):
+    notes = models.TextField()
+
+    def __str__(self):
+        return u'{0}'.format(self.id)
+
+
 class Define3(models.Model):
     extra = models.CharField(max_length=1000, blank=True, null=True)
     type = models.CharField(max_length=1000, blank=True, null=True)

@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from .models import Output, InstructionFile, Algorithm, Profile
+from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes
 import importlib
 from inference2.models import Input
 
@@ -89,13 +89,13 @@ def index(request, archive=None):
             save_result(archive.id, post_data)
         output = Output.objects.all()
 
-    algo = Algorithm.objects.latest('id')
+    algo = Algorithm.objects.all().order_by('id')
 
     template_args = {'result': result, 'input': input,
                      'url_path': url_path, 'archive_date': archive_date,
                      'output': output, 'ins_file': ins_file,
-                     'archive': archive, 'show_column': show_column, 'algo': algo.name if algo else archive,
-                     'notes': algo.notes if algo else ''
+                     'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
+                     'notes': algo[0].notes if algo else ''
                      }
     return render(request, "inference2/index.html", template_args)
 
@@ -221,7 +221,10 @@ def dictionary(request, archive=None):
     # dict = Define3.objects.filter(archives_id=archive.id)
     from inference2.Proofs.dictionary_new import large_dict
     outputs = Define3.objects.all()
-    return render(request, "inference2/dict.html", {'result': large_dict, 'url_path': '/', 'output': outputs})
+    notes = Define3Notes.objects.all().order_by('id')
+    return render(request, "inference2/dict.html",
+                  {'result': large_dict, 'url_path': '/', 'output': outputs,
+                   'notes': notes[0].notes if notes else '', })
 
 
 def tested_dictionary(request, archive=None):
