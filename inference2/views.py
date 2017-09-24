@@ -94,7 +94,8 @@ def index(request, archive=None):
     template_args = {'result': result, 'input': input,
                      'url_path': url_path, 'archive_date': archive_date,
                      'output': output, 'ins_file': ins_file,
-                     'archive': archive, 'show_column': show_column, 'algo': algo.name if algo else archive
+                     'archive': archive, 'show_column': show_column, 'algo': algo.name if algo else archive,
+                     'notes': algo.notes if algo else ''
                      }
     return render(request, "inference2/index.html", template_args)
 
