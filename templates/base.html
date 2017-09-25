@@ -33,6 +33,9 @@
           </div>
         </nav>
         {% block content %}{% endblock %}
+    <script>
+        $("textarea").height( $("textarea")[0].scrollHeight );
+    </script>
     </body>
 </html>
 {% endblock %}
