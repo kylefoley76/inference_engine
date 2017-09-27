@@ -7,6 +7,30 @@
     <script src="/static/inference2/js/jquery-1.11.3.min.js"></script>
     <script src='/static/inference2/js/jquery-ui.min.js'></script>
     <script src='/static/inference2/jquery-asPieProgress/dist/jquery-asPieProgress.js'></script>
+
+
+    <style>
+#myBtn {
+            width:80px;
+            height: 100px;
+            /*padding:10px; */
+            text-align: center;
+            /*background: whiteSmoke;*/
+            font-weight: bold;
+            color: #444;
+            text-decoration: none;
+            position: fixed;
+            top: 75px;
+            right: 40px;
+            display: none;
+            background: url("/static/inference2/images/arrow_up.png") no-repeat 15px 15px;
+}
+
+#myBtn:hover {
+  text-decoration: none;
+}
+</style>
+
     <style>
 
         #progressbar {
@@ -89,6 +113,26 @@
         !important;
         }
     </style>
+
+
+    <script>
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+        document.getElementById("myBtn").style.display = "block";
+    } else {
+        document.getElementById("myBtn").style.display = "none";
+    }
+}
+
+// When the user clicks on the button, scroll to the top of the document
+function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+}
+</script>
 
     <script type="text/javascript">
 
@@ -300,7 +344,8 @@
 
 {% endblock %}
 {% block content %}
-     <a href="#" class="scrollToTop">Scroll To Top</a>
+    <button onclick="topFunction()" id="myBtn" title="Go to top"></button>
+{#     <a href="#" class="scrollToTop">Scroll To Top</a>#}
     <form id="excel" method="post">
         {% csrf_token %}
         <!--input type="button" name="reset" value="Reset" id="reset"/-->
@@ -397,6 +442,9 @@
             {% endfor %}
         </table>
     </div>
+
+
+
 
 
 
