@@ -54,6 +54,10 @@ def current_archive():
 def index(request, archive=None):
     ins_file = InstructionFile.objects.filter(
         file_type='0').order_by('-id').first()
+    is_pdf_file = False
+    if ins_file and ins_file.file_extension == InstructionFile.PDF:
+        is_pdf_file = True
+
     if (ins_file):
         ins_file = '/' + str(ins_file.data)
     else:
@@ -95,7 +99,7 @@ def index(request, archive=None):
                      'url_path': url_path, 'archive_date': archive_date,
                      'output': output, 'ins_file': ins_file,
                      'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
-                     'notes': algo[0].notes if algo else ''
+                     'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
                      }
     return render(request, "inference2/index.html", template_args)
 

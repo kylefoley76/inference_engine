@@ -7,6 +7,10 @@ from django.db import models
 class InstructionFile(models.Model):
     name = models.CharField(max_length=100, default='name')
     data = models.FileField(upload_to='./static/inference2/')
+
+    PDF = 'pdf'
+    CSV = 'csv'
+    FILE_EXTENSION = ((PDF, 'Pdf'), (CSV, 'Csv'))
     FILE_TYPE_CHOICES = (
         ('0', 'rules_in_depth'),
         ('1', 'downloadable_file'),
@@ -22,6 +26,8 @@ class InstructionFile(models.Model):
         max_length=1, choices=FILE_TYPE_CHOICES, default='0')
     color_type = models.CharField(
         max_length=10, choices=COLOR_CHOICES, default='white')
+
+    file_extension = models.CharField(max_length=20, choices=FILE_EXTENSION, default='PDF')
 
     def save(self, *args, **kwargs):
         super(InstructionFile, self).save(*args, **kwargs)

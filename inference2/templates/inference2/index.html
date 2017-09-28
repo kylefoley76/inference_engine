@@ -357,7 +357,13 @@ function topFunction() {
             <a class="btn btn-primary" href="{% url 'clear-result' %}" name="clear" id="clear">Clear Result</a>
             <a class="btn btn-primary" href="{{ url_path }}dictionary" target="_blank">Show Dictionary</a>
             {#            <a class="btn btn-primary" target="_blank" href="/tested_dict">Show Tested Dictionary</a>#}
-            <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
+
+            {% if pdf %}
+                <a class="btn btn-primary" href="{{ ins_file }}" target="_blank">Rules In Depth</a>
+            {% else %}
+                <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
+            {% endif %}
+
 
             <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}">Download Dictionary</a>
             {#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}?only_output=1">Download Arguments</a>#}
