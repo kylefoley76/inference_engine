@@ -13,7 +13,7 @@ class InstructionFile(models.Model):
     FILE_EXTENSION = ((PDF, 'Pdf'), (CSV, 'Csv'))
     FILE_TYPE_CHOICES = (
         ('0', 'rules_in_depth'),
-        ('1', 'downloadable_file'),
+        ('1', 'download_dictionary'),
         ('2', 'rules_in_brief'),
     )
     COLOR_CHOICES = (
