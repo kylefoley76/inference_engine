@@ -58,10 +58,21 @@ def index(request, archive=None):
     if ins_file and ins_file.file_extension == InstructionFile.PDF:
         is_pdf_file = True
 
+    download_dict_file = InstructionFile.objects.filter(
+        file_type='1').order_by('-id').first()
+    is_dict_pdf_file = False
+    if download_dict_file and download_dict_file.file_extension == InstructionFile.PDF:
+        is_dict_pdf_file = True
+
     if (ins_file):
         ins_file = '/' + str(ins_file.data)
     else:
         ins_file = ''
+
+    if (download_dict_file):
+        download_dict_file = '/' + str(download_dict_file.data)
+    else:
+        download_dict_file = ''
     progressbar_send(request, 1, 100, 1)
     url_path = ''
     archive_date = ''
@@ -97,7 +108,8 @@ def index(request, archive=None):
 
     template_args = {'result': result, 'input': input,
                      'url_path': url_path, 'archive_date': archive_date,
-                     'output': output, 'ins_file': ins_file,
+                     'output': output, 'ins_file': ins_file, 'download_dict_file': download_dict_file,
+                     'download_dict_pdf': is_dict_pdf_file,
                      'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
                      'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
                      }

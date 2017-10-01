@@ -365,7 +365,15 @@ function topFunction() {
             {% endif %}
 
 
-            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}">Download Dictionary</a>
+        {% if download_dict_pdf %}
+                <a class="btn btn-primary" href="{{ download_dict_file }}" target="_blank">Download Dictionary</a>
+            {% else %}
+                <a class="btn btn-primary" href="{{ download_dict_file }}">Download Dictionary</a>
+            {% endif %}
+
+
+
+{#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}">Download Dictionary</a>#}
             {#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}?only_output=1">Download Arguments</a>#}
 
         </div>
