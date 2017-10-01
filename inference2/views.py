@@ -51,28 +51,31 @@ def current_archive():
     return archive
 
 
+def id_file_pdf(inst_file):
+    if inst_file and inst_file.file_extension == InstructionFile.PDF:
+        return True
+    return False
+
+
+def make_file_path(inst_file):
+    if (inst_file):
+        return '/' + str(inst_file.data)
+    return ''
+
+
 def index(request, archive=None):
-    ins_file = InstructionFile.objects.filter(
-        file_type='0').order_by('-id').first()
-    is_pdf_file = False
-    if ins_file and ins_file.file_extension == InstructionFile.PDF:
-        is_pdf_file = True
+    ins_file = InstructionFile.objects.filter(file_type='0').order_by('-id').first()
+    download_dict_file = InstructionFile.objects.filter(file_type='1').order_by('-id').first()
+    rules_in_brief_file = InstructionFile.objects.filter(file_type='2').order_by('-id').first()
 
-    download_dict_file = InstructionFile.objects.filter(
-        file_type='1').order_by('-id').first()
-    is_dict_pdf_file = False
-    if download_dict_file and download_dict_file.file_extension == InstructionFile.PDF:
-        is_dict_pdf_file = True
+    is_pdf_file = id_file_pdf(ins_file)
+    is_dict_pdf_file = id_file_pdf(download_dict_file)
+    is_rules_in_bried_pdf_file = id_file_pdf(rules_in_brief_file)
 
-    if (ins_file):
-        ins_file = '/' + str(ins_file.data)
-    else:
-        ins_file = ''
+    ins_file = make_file_path(ins_file)
+    download_dict_file = make_file_path(download_dict_file)
+    rules_in_brief_file = make_file_path(rules_in_brief_file)
 
-    if (download_dict_file):
-        download_dict_file = '/' + str(download_dict_file.data)
-    else:
-        download_dict_file = ''
     progressbar_send(request, 1, 100, 1)
     url_path = ''
     archive_date = ''
@@ -110,6 +113,8 @@ def index(request, archive=None):
                      'url_path': url_path, 'archive_date': archive_date,
                      'output': output, 'ins_file': ins_file, 'download_dict_file': download_dict_file,
                      'download_dict_pdf': is_dict_pdf_file,
+                     'rules_in_brief_file': rules_in_brief_file,
+                     'is_rules_in_bried_pdf_file': is_rules_in_bried_pdf_file,
                      'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
                      'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
                      }

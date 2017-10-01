@@ -10,8 +10,8 @@
 
 
     <style>
-#myBtn {
-            width:80px;
+        #myBtn {
+            width: 80px;
             height: 100px;
             /*padding:10px; */
             text-align: center;
@@ -24,12 +24,12 @@
             right: 40px;
             display: none;
             background: url("/static/inference2/images/arrow_up.png") no-repeat 15px 15px;
-}
+        }
 
-#myBtn:hover {
-  text-decoration: none;
-}
-</style>
+        #myBtn:hover {
+            text-decoration: none;
+        }
+    </style>
 
     <style>
 
@@ -116,23 +116,25 @@
 
 
     <script>
-// When the user scrolls down 20px from the top of the document, show the button
-window.onscroll = function() {scrollFunction()};
+        // When the user scrolls down 20px from the top of the document, show the button
+        window.onscroll = function () {
+            scrollFunction()
+        };
 
-function scrollFunction() {
-    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-        document.getElementById("myBtn").style.display = "block";
-    } else {
-        document.getElementById("myBtn").style.display = "none";
-    }
-}
+        function scrollFunction() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                document.getElementById("myBtn").style.display = "block";
+            } else {
+                document.getElementById("myBtn").style.display = "none";
+            }
+        }
 
-// When the user clicks on the button, scroll to the top of the document
-function topFunction() {
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-}
-</script>
+        // When the user clicks on the button, scroll to the top of the document
+        function topFunction() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+    </script>
 
     <script type="text/javascript">
 
@@ -345,7 +347,7 @@ function topFunction() {
 {% endblock %}
 {% block content %}
     <button onclick="topFunction()" id="myBtn" title="Go to top"></button>
-{#     <a href="#" class="scrollToTop">Scroll To Top</a>#}
+    {#     <a href="#" class="scrollToTop">Scroll To Top</a>#}
     <form id="excel" method="post">
         {% csrf_token %}
         <!--input type="button" name="reset" value="Reset" id="reset"/-->
@@ -358,22 +360,39 @@ function topFunction() {
             <a class="btn btn-primary" href="{{ url_path }}dictionary" target="_blank">Show Dictionary</a>
             {#            <a class="btn btn-primary" target="_blank" href="/tested_dict">Show Tested Dictionary</a>#}
 
-            {% if pdf %}
-                <a class="btn btn-primary" href="{{ ins_file }}" target="_blank">Rules In Depth</a>
-            {% else %}
-                <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
+
+            {% if ins_file %}
+                {% if pdf %}
+                    <a class="btn btn-primary" href="{{ ins_file }}" target="_blank">Rules In Depth</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
+                {% endif %}
+
+            {% endif %}
+
+            {% if download_dict_file %}
+                {% if download_dict_pdf %}
+                    <a class="btn btn-primary" href="{{ download_dict_file }}" target="_blank">Download Dictionary</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ download_dict_file }}">Download Dictionary</a>
+                {% endif %}
+
             {% endif %}
 
 
-        {% if download_dict_pdf %}
-                <a class="btn btn-primary" href="{{ download_dict_file }}" target="_blank">Download Dictionary</a>
-            {% else %}
-                <a class="btn btn-primary" href="{{ download_dict_file }}">Download Dictionary</a>
+            {% if rules_in_brief_file %}
+                {% if is_rules_in_bried_pdf_file %}
+                    <a class="btn btn-primary" href="{{ rules_in_brief_file }}" target="_blank">Rules In Brief</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ rules_in_brief_file }}">Rules In Brief</a>
+                {% endif %}
             {% endif %}
 
 
 
-{#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}">Download Dictionary</a>#}
+
+
+            {#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}">Download Dictionary</a>#}
             {#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}?only_output=1">Download Arguments</a>#}
 
         </div>
