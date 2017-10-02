@@ -1,5 +1,5 @@
-from .dictionary_new import large_dict
-from .claims_new import pop_sent
+from dictionary_new import large_dict
+from claims_new import pop_sent
 from openpyxl import load_workbook
 from collections import Counter
 import copy
@@ -10,7 +10,7 @@ import cProfile
 import re
 from pprint import pprint
 import collections
-from .start_and_stop import info
+from start_and_stop import info
 import os
 
 # import pdb
@@ -60,7 +60,7 @@ total_time = time.time()
 
 # tahir - the code for the website should always be mysql == 1 for the prove site
 # for the test machine site, it needs to be mysql == 2 and input = True
-mysql = 2
+mysql = 0
 excel = 0
 if mysql == 0:
     proof_type, get_words_used, order = info()
@@ -4613,7 +4613,7 @@ def print_sent_full(test_sent, tot_prop_name, row_number):
 
                 row_number += 1
         row_number += 3
-
+    # print ("row number " + str(row_number))
 
 def determine_words_used():
     if get_words_used == 1:
@@ -7591,12 +7591,10 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 ########## THE CODE BEGINS HERE
 
 
-if mysql == 2:
-    try:
-        get_result('hey')
-    except:
-        print ("this is our fault not yours")
-        sys.exit()
+if mysql == 0:
+
+    get_result('hey')
+
 
 
     if proof_type == 1:
