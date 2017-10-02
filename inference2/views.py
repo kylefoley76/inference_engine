@@ -1,13 +1,14 @@
 import json
 import os
 from django.core.serializers.json import DjangoJSONEncoder
-from django.shortcuts import render
+from django.core.urlresolvers import reverse
+from django.shortcuts import render, redirect
 from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from .models import Output, InstructionFile, Algorithm
+from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes
 import importlib
 from inference2.models import Input
 
@@ -50,13 +51,31 @@ def current_archive():
     return archive
 
 
+def id_file_pdf(inst_file):
+    if inst_file and inst_file.file_extension == InstructionFile.PDF:
+        return True
+    return False
+
+
+def make_file_path(inst_file):
+    if (inst_file):
+        return '/' + str(inst_file.data)
+    return ''
+
+
 def index(request, archive=None):
-    ins_file = InstructionFile.objects.filter(
-        file_type='0').order_by('-id').first()
-    if (ins_file):
-        ins_file = '/' + str(ins_file.data)
-    else:
-        ins_file = ''
+    ins_file = InstructionFile.objects.filter(file_type='0').order_by('-id').first()
+    download_dict_file = InstructionFile.objects.filter(file_type='1').order_by('-id').first()
+    rules_in_brief_file = InstructionFile.objects.filter(file_type='2').order_by('-id').first()
+
+    is_pdf_file = id_file_pdf(ins_file)
+    is_dict_pdf_file = id_file_pdf(download_dict_file)
+    is_rules_in_bried_pdf_file = id_file_pdf(rules_in_brief_file)
+
+    ins_file = make_file_path(ins_file)
+    download_dict_file = make_file_path(download_dict_file)
+    rules_in_brief_file = make_file_path(rules_in_brief_file)
+
     progressbar_send(request, 1, 100, 1)
     url_path = ''
     archive_date = ''
@@ -88,12 +107,16 @@ def index(request, archive=None):
             save_result(archive.id, post_data)
         output = Output.objects.all()
 
-    algo = Algorithm.objects.latest('id')
+    algo = Algorithm.objects.all().order_by('id')
 
     template_args = {'result': result, 'input': input,
                      'url_path': url_path, 'archive_date': archive_date,
-                     'output': output, 'ins_file': ins_file,
-                     'archive': archive, 'show_column': show_column, 'algo': algo.name if algo else archive
+                     'output': output, 'ins_file': ins_file, 'download_dict_file': download_dict_file,
+                     'download_dict_pdf': is_dict_pdf_file,
+                     'rules_in_brief_file': rules_in_brief_file,
+                     'is_rules_in_bried_pdf_file': is_rules_in_bried_pdf_file,
+                     'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
+                     'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
                      }
     return render(request, "inference2/index.html", template_args)
 
@@ -219,7 +242,10 @@ def dictionary(request, archive=None):
     # dict = Define3.objects.filter(archives_id=archive.id)
     from inference2.Proofs.dictionary_new import large_dict
     outputs = Define3.objects.all()
-    return render(request, "inference2/dict.html", {'result': large_dict, 'url_path': '/', 'output': outputs})
+    notes = Define3Notes.objects.all().order_by('id')
+    return render(request, "inference2/dict.html",
+                  {'result': large_dict, 'url_path': '/', 'output': outputs,
+                   'notes': notes[0].notes if notes else '', })
 
 
 def tested_dictionary(request, archive=None):
@@ -301,4 +327,9 @@ def progressbar_send(request, strt, stp, k, status=0):
 
 
 def author(request):
-    return render(request, "inference2/author.html")
+    profile = Profile.objects.latest('id')
+    return render(request, "inference2/author.html", {'profile': profile})
+
+
+def clear(request):
+    return redirect(reverse('index'))

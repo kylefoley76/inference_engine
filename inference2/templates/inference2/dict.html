@@ -5,6 +5,13 @@
 
 
     <h1>Dictionary</h1>
+    <br>
+    {% if notes %}
+        <textarea rows="4" cols="100" readonly>{{ notes }}</textarea>
+    {% endif %}
+
+
+    <br>
 
     <table class="table table-bordered">
         <thead class="thead-inverse">
