@@ -389,6 +389,15 @@
             {% endif %}
 
 
+            {% if argument_file %}
+                {% if is_arguments_pdf_file %}
+                    <a class="btn btn-primary" href="{{ argument_file }}" target="_blank">Argument File</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{{ argument_file }}">Argument File</a>
+                {% endif %}
+            {% endif %}
+
+
 
 
 

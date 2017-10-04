@@ -73,14 +73,17 @@ def index(request, archive=None):
     ins_file = InstructionFile.objects.filter(file_type='0').order_by('-id').first()
     download_dict_file = InstructionFile.objects.filter(file_type='1').order_by('-id').first()
     rules_in_brief_file = InstructionFile.objects.filter(file_type='2').order_by('-id').first()
+    arguments = InstructionFile.objects.filter(file_type='3').order_by('-id').first()
 
     is_pdf_file = id_file_pdf(ins_file)
     is_dict_pdf_file = id_file_pdf(download_dict_file)
     is_rules_in_bried_pdf_file = id_file_pdf(rules_in_brief_file)
+    is_arguments_pdf_file = id_file_pdf(arguments)
 
     ins_file = make_file_path(ins_file)
     download_dict_file = make_file_path(download_dict_file)
     rules_in_brief_file = make_file_path(rules_in_brief_file)
+    arguments_file = make_file_path(arguments)
 
     progressbar_send(request, 1, 100, 1)
     url_path = ''
@@ -120,7 +123,9 @@ def index(request, archive=None):
                      'output': output, 'ins_file': ins_file, 'download_dict_file': download_dict_file,
                      'download_dict_pdf': is_dict_pdf_file,
                      'rules_in_brief_file': rules_in_brief_file,
+                     'argument_file': arguments_file,
                      'is_rules_in_bried_pdf_file': is_rules_in_bried_pdf_file,
+                     'is_arguments_pdf_file': is_arguments_pdf_file,
                      'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
                      'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
                      }
