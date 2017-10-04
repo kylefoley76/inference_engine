@@ -8,13 +8,15 @@ from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes
+from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings
 import importlib
 from inference2.models import Input
 
 from .models import Define3, Archives
 import openpyxl
 from openpyxl.cell import get_column_letter
+
+DEFAULT_ROWS = 40000
 
 
 def save_result(archive_id, post_data):
@@ -23,7 +25,11 @@ def save_result(archive_id, post_data):
     Rows = []
     data_found = False
 
-    for idx in range(len(post_data) - 1):
+    rows_settings = Settings.objects.first()
+    rows_to_show = rows_settings.rows_to_show if rows_settings else (len(post_data) - 1)
+    if rows_to_show > (len(post_data) - 1):
+        rows_to_show = len(post_data) - 1
+    for idx in range(rows_to_show):
         if post_data.get("text_" + str(idx) + "_2", '') or post_data.get("text_" + str(idx) + "_3", ''):
             data_found = True
         if not data_found:

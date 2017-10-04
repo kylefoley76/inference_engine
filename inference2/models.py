@@ -127,3 +127,13 @@ class Profile(models.Model):
 
     def __str__(self):
         return u'{0}'.format(self.id)
+
+
+class Settings(models.Model):
+    rows_to_show = models.IntegerField(default=40000)
+
+    def __str__(self):
+        return u'{0}'.format(self.id)
+
+    class Meta:
+        verbose_name_plural = "Settings"

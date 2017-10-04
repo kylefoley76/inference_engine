@@ -3,7 +3,7 @@ from django import forms
 import os.path
 import pkgutil
 from inference2 import Proofs
-from inference2.models import Define3, Archives, Profile, Define3Notes
+from inference2.models import Define3, Archives, Profile, Define3Notes, Settings
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 
@@ -188,3 +188,4 @@ admin.site.register(InstructionFile, InstructionFileAdmin)
 admin.site.register(Algorithm, AlgorithmAdmin)
 admin.site.register(Profile, ProfileAdmin)
 admin.site.register(Define3Notes, Define3NotesAdmin)
+admin.site.register(Settings)
