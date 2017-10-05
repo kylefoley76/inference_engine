@@ -7581,6 +7581,11 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
                 j = -1
         else:
             print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1)))
+        if mysql == 2:
+            if consistent:
+                print ('Right')
+            else:
+                print ('Wrong')
 
     calculate_time_statistics(time_used_proving_sent, nonlinear)
 
