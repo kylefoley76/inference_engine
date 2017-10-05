@@ -12,14 +12,13 @@ import re
 from pprint import pprint
 import collections
 import os
+# import pdb
 
 if mysql in [1,2]:
     from .dictionary_new import large_dict
     from .claims_new import pop_sent
     from .start_and_stop import info
 
-
-    # import pdb
 else:
     from dictionary_new import large_dict
     from claims_new import pop_sent
@@ -79,10 +78,14 @@ if mysql == 0:
     if get_words_used == 1:
         wb5 = load_workbook('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
         ws = wb5.worksheets[0]
-else:
+elif mysql == 1:
     proof_type = 4
     get_words_used = 0
     order = [0, 0, 1]
+elif mysql == 2:
+    proof_type = 4
+    get_words_used = 0
+    order = [0, 1, 1]
 
 if mysql in [1,2]:
     import os
