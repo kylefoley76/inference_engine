@@ -4,7 +4,13 @@
 {% block content %}
 
 
-    <h1>Dictionary</h1>
+    <h1>
+    {% if tested_dict %}
+        Tested Dictionary
+    {% else %}
+        Dictionary
+    {% endif %}
+    </h1>
     <br>
     {% if notes %}
         <textarea rows="4" cols="100" readonly>{{ notes }}</textarea>

@@ -251,13 +251,14 @@ def dictionary(request, archive=None):
                   {'result': large_dict, 'url_path': '/', 'output': outputs,
                    'notes': notes[0].notes if notes else '', })
 
+
 def tested_dict(request, archive=None):
     from inference2.Proofs.dictionary_new import large_dict
     outputs = TestedDictionary.objects.all()
     notes = Define3Notes.objects.all().order_by('id')
     return render(request, "inference2/dict.html",
                   {'result': large_dict, 'url_path': '/', 'output': outputs,
-                   'notes': notes[1].notes if notes.count() > 1 else '', })
+                   'notes': notes[1].notes if notes.count() > 1 else '', 'tested_dict': True})
 
 
 def tested_dictionary(request, archive=None):
