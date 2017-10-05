@@ -21,6 +21,7 @@ urlpatterns = [
 
     url(r'^$', views.index, name='index'),
     url(r'^dictionary$', views.dictionary, name='result'),
+    url(r'^tested_dictionary$', views.tested_dict, name='result'),
     url(r'^prove$', views.prove, name='prove'),
     url(r'^export_xlsx/(?P<archives_id>[0-9]+)$',
         views.export_xlsx, name='export_xlsx'),
@@ -37,6 +38,5 @@ urlpatterns = [
     url(r'^tested_dict', views.tested_dictionary, name='tested_dictionary'),
     url(r'^try_input', views.try_input, name='try_input'),
     url(r'^clear', views.clear, name='clear-result'),
-
 
 ]

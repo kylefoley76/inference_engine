@@ -35,6 +35,7 @@ def export(queryset, format):
 
     return response
 
+
 # hey
 @transaction.atomic
 def changesymbol(queryset, mode):
@@ -107,7 +108,7 @@ def changesymbol(queryset, mode):
                 x.col2 = original_text_col2
                 x.save()
 
-    if modelname == 'define3':
+    if modelname == 'define3' or modelname == 'testeddict':
         if mode == 'TtoS':
 
             for x in queryset:

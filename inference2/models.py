@@ -73,6 +73,21 @@ class Define3(models.Model):
         db_table = 'define3'
 
 
+class TestedDictionary(models.Model):
+    extra = models.CharField(max_length=1000, blank=True, null=True)
+    type = models.CharField(max_length=1000, blank=True, null=True)
+    word = models.CharField(max_length=1000, blank=True, null=True)
+    rel = models.CharField(max_length=1000, blank=True, null=True)
+    definition = models.CharField(max_length=1000, blank=True, null=True)
+    subject = models.CharField(max_length=1000, blank=True, null=True)
+    def_object = models.CharField(max_length=1000, blank=True, null=True)
+    archives = models.ForeignKey(Archives, on_delete=models.CASCADE)
+
+    class Meta:
+        managed = True
+        db_table = 'testeddict'
+
+
 class Input(models.Model):
     col1 = models.CharField(max_length=5, blank=True, null=True)
     col2 = models.CharField(max_length=1000, blank=True, null=True)

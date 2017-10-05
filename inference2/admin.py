@@ -3,7 +3,7 @@ from django import forms
 import os.path
 import pkgutil
 from inference2 import Proofs
-from inference2.models import Define3, Archives, Profile, Define3Notes, Settings
+from inference2.models import Define3, Archives, Profile, Define3Notes, Settings, TestedDictionary
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 
@@ -55,6 +55,34 @@ class MyDefineForm(ModelForm):
 
 def delete_everything(modeladmin, request, queryset):
     Define3.objects.all().delete()
+
+
+class MyTestedDictImporter(ModelForm):
+    class Meta:
+        model = TestedDictionary
+        fields = ('id', 'extra', 'type', 'word',
+                  'rel', 'definition', 'subject', 'def_object', 'archives')
+
+
+class MyTestedForm(ModelForm):
+    class Meta:
+        model = TestedDictionary
+        fields = ('id', 'extra', 'type', 'word',
+                  'rel', 'definition', 'subject', 'def_object', 'archives')
+
+
+def delete_tested_dict_everything(modeladmin, request, queryset):
+    TestedDictionary.objects.all().delete()
+
+
+class MyTestedDict(ImportCSVModelAdmin):
+    importer_class = MyTestedDictImporter
+    form = MyTestedForm
+    list_display = ('id', 'extra', 'type', 'word', 'rel', 'definition', 'subject', 'def_object',)
+    empty_value_display = ""
+    ordering = ("id",)
+    list_per_page = 100
+    actions = [delete_tested_dict_everything]
 
 
 class MyDefine(ImportCSVModelAdmin):
@@ -181,6 +209,7 @@ class Define3NotesAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Define3, MyDefine)
+admin.site.register(TestedDictionary, MyTestedDict)
 admin.site.register(Input, MyInput)
 admin.site.register(Archives, MyArchive)
 admin.site.register(Output, OutputAdmin)

@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings
+from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary
 import importlib
 from inference2.models import Input
 
@@ -244,19 +244,20 @@ def prove(request, archive=None):
 
 
 def dictionary(request, archive=None):
-    # url_path = '/archives/'
-    # if not archive:
-    #     archive = current_archive()
-    #     url_path = '/'
-    # else:
-    #     url_path = '/archives/{}/'.format(archive.id)
-    # dict = Define3.objects.filter(archives_id=archive.id)
     from inference2.Proofs.dictionary_new import large_dict
     outputs = Define3.objects.all()
     notes = Define3Notes.objects.all().order_by('id')
     return render(request, "inference2/dict.html",
                   {'result': large_dict, 'url_path': '/', 'output': outputs,
                    'notes': notes[0].notes if notes else '', })
+
+def tested_dict(request, archive=None):
+    from inference2.Proofs.dictionary_new import large_dict
+    outputs = TestedDictionary.objects.all()
+    notes = Define3Notes.objects.all().order_by('id')
+    return render(request, "inference2/dict.html",
+                  {'result': large_dict, 'url_path': '/', 'output': outputs,
+                   'notes': notes[1].notes if notes.count() > 1 else '', })
 
 
 def tested_dictionary(request, archive=None):
