@@ -1,5 +1,6 @@
-from dictionary_new import large_dict
-from claims_new import pop_sent
+
+mysql = 0
+
 from openpyxl import load_workbook
 from collections import Counter
 import copy
@@ -10,11 +11,19 @@ import cProfile
 import re
 from pprint import pprint
 import collections
-from start_and_stop import info
 import os
 
-# import pdb
+if mysql in [1,2]:
+    from .dictionary_new import large_dict
+    from .claims_new import pop_sent
+    from .start_and_stop import info
 
+
+    # import pdb
+else:
+    from dictionary_new import large_dict
+    from claims_new import pop_sent
+    from start_and_stop import info
 
 
 
@@ -60,7 +69,7 @@ total_time = time.time()
 
 # tahir - the code for the website should always be mysql == 1 for the prove site
 # for the test machine site, it needs to be mysql == 2 and input = True
-mysql = 0
+
 excel = 0
 if mysql == 0:
     proof_type, get_words_used, order = info()
@@ -2741,8 +2750,9 @@ def obtain_truth_value(sent):
     elif sentence[7:12] == 'contr':
         return False, sentence[len("It isa contradictory that "):]
     else:
+        if mysql == 2:
         # tahir system exit
-        print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
+            print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
 
 
 def eliminate_logical_connectives(sentence):
@@ -7591,13 +7601,19 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 ########## THE CODE BEGINS HERE
 
 
-if mysql == 0:
+# if mysql == 1:
 
+if mysql == 2:
+    try:
+        get_result('hey')
+    except:
+        print ("our fault not yours")
+else:
     get_result('hey')
 
 
 
-    if proof_type == 1:
-        wb4.save('/Users/kylefoley/Desktop/inference engine/temp_proof.xlsx')
-    if get_words_used == 1:
-        wb5.save('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
+if proof_type == 1:
+    wb4.save('/Users/kylefoley/Desktop/inference engine/temp_proof.xlsx')
+if get_words_used == 1:
+    wb5.save('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
