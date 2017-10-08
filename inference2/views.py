@@ -15,6 +15,7 @@ from inference2.models import Input
 from .models import Define3, Archives
 import openpyxl
 from openpyxl.cell import get_column_letter
+from django.contrib import messages
 
 DEFAULT_ROWS = 40000
 
@@ -134,29 +135,34 @@ def index(request, archive=None):
 
 def try_input(request, archive=None):
     output = []
+    template_args = {}
+    template_args['success'] = 'Right'
     if not archive:
         archive = current_archive()
         url_path = '/'
     if request.method == 'POST':
-        # input = "It is|a contradictory that I do not have many|n points"
-        input = request.POST.get('try_input')
-        Output.objects.all().delete()
-        prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
-        post_data = prove_algorithm.get_result(
-            request.POST.copy(), archive.id, request, input)
-        print(post_data)
-        if post_data:
-            post_data["type"] = "prove"
-            result = json.dumps(post_data, cls=DjangoJSONEncoder)
+        try:
+            # input = "It is|a contradictory that I do not have many|n points"
+            input = request.POST.get('try_input')
+            Output.objects.all().delete()
+            prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0],
+                                                      package='inference2.Proofs')
+            post_data = prove_algorithm.get_result_from_views(
+                request.POST.copy(), archive.id, request, input)
+            print(post_data)
+            if post_data:
+                post_data["type"] = "prove"
+                result = json.dumps(post_data, cls=DjangoJSONEncoder)
 
-            save_result(archive.id, post_data)
-        output = Output.objects.all()
+                save_result(archive.id, post_data)
+            output = Output.objects.all()
+        except Exception as e:
+            messages.error(request, str(e))
+            template_args['success'] = 'Wrong'
 
-    template_args = {
-        'url_path': url_path,
-        'output': output,
-        'archive': archive,
-    }
+    template_args['url_path'] = url_path
+    template_args['output'] = output
+    template_args['archive'] = archive
     return render(request, "inference2/try_input.html", template_args)
 
 

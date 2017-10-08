@@ -1,4 +1,3 @@
-
 mysql = 0
 
 from openpyxl import load_workbook
@@ -12,23 +11,23 @@ import re
 from pprint import pprint
 import collections
 import os
+
 # import pdb
 
-if mysql in [1,2]:
+if mysql in [1, 2]:
     from .dictionary_new import large_dict
     from .claims_new import pop_sent
     from .start_and_stop import info
 
 else:
-    from dictionary_new import large_dict
-    from claims_new import pop_sent
-    from start_and_stop import info
-
-
-
-
-
-
+    try:
+        from dictionary_new import large_dict
+        from claims_new import pop_sent
+        from start_and_stop import info
+    except:
+        from .dictionary_new import large_dict
+        from .claims_new import pop_sent
+        from .start_and_stop import info
 # what's up
 
 
@@ -87,7 +86,7 @@ elif mysql == 2:
     get_words_used = 0
     order = [0, 1, 1]
 
-if mysql in [1,2]:
+if mysql in [1, 2]:
     import os
 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -2754,8 +2753,10 @@ def obtain_truth_value(sent):
         return False, sentence[len("It isa contradictory that "):]
     else:
         if mysql == 2:
-        # tahir system exit
-            print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
+            raise Exception(
+                "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+            # tahir system exit
+            #     print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
 
 
 def eliminate_logical_connectives(sentence):
@@ -4234,7 +4235,8 @@ def categorize_words(list1):
             if has_comma: sentence_slots[39] = k
             if mysql == 2 and k == 0:
                 # tahir system exit
-                print("our system does not have this grammatical syntax yet")
+                raise Exception("our system does not have this grammatical syntax yet")
+                # print("our system does not have this grammatical syntax yet")
 
             if k == 0 and proof_type != 3:
                 print(word)
@@ -4567,7 +4569,7 @@ def print_sent_full(test_sent, tot_prop_name, row_number):
 
 
 
-                elif mysql in [1,2]:
+                elif mysql in [1, 2]:
                     result_data['text_' + str(row_number - 1) + '_1'] = test_sent[i][j][0]
                     result_data['text_' + str(row_number - 1) + '_2'] = test_sent[i][j][1]
                     result_data['text_' + str(row_number - 1) + '_3'] = test_sent[i][j][4]
@@ -4585,7 +4587,7 @@ def print_sent_full(test_sent, tot_prop_name, row_number):
                 print(list1[j])
             elif proof_type == 1:
                 w4.cell(row=row_number, column=3).value = list1[j]
-            elif mysql in [1,2]:
+            elif mysql in [1, 2]:
                 result_data['text_' + str(row_number) + '_2'] = list1[j]
             row_number += 1
         row_number += 1
@@ -4619,14 +4621,15 @@ def print_sent_full(test_sent, tot_prop_name, row_number):
                     if test_sent[i][j][2] == bottom or test_sent[i][j][2] == consist:
                         w4.cell(row=row_number, column=5).value = 1
 
-                elif mysql in [1,2]:
+                elif mysql in [1, 2]:
                     result_data['text_' + str(row_number) + '_1'] = test_sent[i][j][0]
                     result_data['text_' + str(row_number) + '_2'] = test_sent[i][j][3] + test_sent[i][j][2]
                     result_data['text_' + str(row_number - 1) + '_3'] = test_sent[i][j][4]
 
                 row_number += 1
         row_number += 3
-    # print ("row number " + str(row_number))
+        # print ("row number " + str(row_number))
+
 
 def determine_words_used():
     if get_words_used == 1:
@@ -7452,7 +7455,7 @@ def populate_sentences():
     last_row_blank = False
     row_number = 1
 
-    if mysql in [1,2]:
+    if mysql in [1, 2]:
         for row in w4:
             row_number += 1
             if row[0] != "":
@@ -7586,9 +7589,9 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
             print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1)))
         if mysql == 2:
             if consistent:
-                print ('Right')
+                print('Right')
             else:
-                print ('Wrong')
+                print('Wrong')
 
     calculate_time_statistics(time_used_proving_sent, nonlinear)
 
@@ -7611,15 +7614,20 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 
 # if mysql == 1:
 
+def get_result_from_views(post_data, archive_id=None, request=None, input=None, prove_dict=None):
+    if mysql == 2:
+        raise Exception('Our fault not yours')
+    else:
+        return get_result(post_data, archive_id, request, input, prove_dict)
+
+
 if mysql == 2:
     try:
         get_result('hey')
     except:
-        print ("our fault not yours")
+        print("our fault not yours")
 else:
     get_result('hey')
-
-
 
 if proof_type == 1:
     wb4.save('/Users/kylefoley/Desktop/inference engine/temp_proof.xlsx')
