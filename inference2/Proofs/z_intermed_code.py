@@ -7604,7 +7604,7 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 
     print_sent_full(test_sent, tot_prop_name, row_number)
 
-    if mysql == 1:
+    if mysql in [1, 2]:
         views.progressbar_send(request, 0, 100, 100, 2)
         views.save_result(archive_id, result_data)
         return result_data
@@ -7615,19 +7615,19 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 ########## THE CODE BEGINS HERE
 
 
-# if mysql == 1:
 
 def get_result_from_views(post_data, archive_id=None, request=None, input=None, prove_dict=None):
     if mysql == 2:
-        raise Exception('Our fault not yours')
+        return get_result(post_data, archive_id, request, input, prove_dict)
     else:
         return get_result(post_data, archive_id, request, input, prove_dict)
 
 
 if mysql == 2:
-
-    get_result('hey')
-    raise Exception('Our fault not yours')
+    try:
+        get_result('hey')
+    except:
+        raise Exception('Our fault not yours')
 else:
     get_result('hey')
 

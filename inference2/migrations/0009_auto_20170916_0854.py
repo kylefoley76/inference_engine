@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='algorithm',
             name='dictionary',
-            field=models.FileField(upload_to='./inference2/Proofs/'),
+            field=models.FileField(blank=True, null=True, default=None,upload_to='./inference2/Proofs/'),
         ),
     ]
