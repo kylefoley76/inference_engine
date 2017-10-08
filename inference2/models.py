@@ -39,6 +39,7 @@ class Archives(models.Model):
     archives_date = models.DateField()
     algorithm = models.CharField(max_length=300, blank=False, null=False)
     dictionary = models.CharField(max_length=300, blank=False, null=False, default='')
+    test_machine = models.CharField(max_length=300, blank=False, null=False, default='')
 
     def __unicode__(self):
         return u'{0}, {1}'.format(self.archives_date, self.algorithm)
@@ -125,6 +126,8 @@ class Algorithm(models.Model):
     name = models.CharField(max_length=200)
     notes = models.TextField(null=True, blank=True)
     data = models.FileField(upload_to='./inference2/Proofs/', validators=[])
+    test_machine = models.FileField(upload_to='./inference2/Proofs/', validators=[], null=True, blank=True,
+                                    default=None)
     dictionary = models.FileField(upload_to='./inference2/Proofs/', validators=[])
     created_at = models.DateTimeField(auto_now_add=True)
 

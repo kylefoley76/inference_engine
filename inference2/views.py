@@ -145,8 +145,8 @@ def try_input(request, archive=None):
             # input = "It is|a contradictory that I do not have many|n points"
             input = request.POST.get('try_input')
             Output.objects.all().delete()
-            prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0],
-                                                      package='inference2.Proofs')
+            prove_algorithm = importlib.import_module('.' + archive.test_machine.split('.py')[0],
+                                                       package='inference2.Proofs')
             post_data = prove_algorithm.get_result_from_views(
                 request.POST.copy(), archive.id, request, input)
             print(post_data)
