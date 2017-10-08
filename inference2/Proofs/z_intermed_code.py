@@ -1,4 +1,4 @@
-mysql = 0
+mysql = 1
 
 from openpyxl import load_workbook
 from collections import Counter
@@ -4358,8 +4358,11 @@ def get_part_of_speech(word, str5):
         else:
             posp = dictionary[0].get(word)
             if posp == None:
-                print("you misspelled " + word)
-                if proof_type != 3 or mysql == 2:
+
+                if mysql == 2:
+                    raise Exception("you misspelled " + word)
+                elif proof_type != 3:
+                    print("you misspelled " + word)
                     # tahir system exit
                     g = 4 / 0
                 else:
@@ -7622,10 +7625,9 @@ def get_result_from_views(post_data, archive_id=None, request=None, input=None, 
 
 
 if mysql == 2:
-    try:
-        get_result('hey')
-    except:
-        print("our fault not yours")
+
+    get_result('hey')
+    raise Exception('Our fault not yours')
 else:
     get_result('hey')
 
