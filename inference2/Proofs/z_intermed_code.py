@@ -7595,8 +7595,8 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
                 print('Right')
             else:
                 print('Wrong')
-
-    calculate_time_statistics(time_used_proving_sent, nonlinear)
+    if mysql != 2:
+        calculate_time_statistics(time_used_proving_sent, nonlinear)
 
     determine_words_used()
 
