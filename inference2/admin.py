@@ -132,8 +132,14 @@ class MyArchiveForm(ModelForm):
                  _.dictionary.name.split('/')[-1] if _.dictionary else '')
                 for _ in Algorithm.objects.all()]
 
+    def get_test_machine_choices():
+        return [(_.test_machine.name.split('/')[-1] if _.test_machine else '',
+                 _.test_machine.name.split('/')[-1] if _.test_machine else '')
+                for _ in Algorithm.objects.all()]
+
     algorithm = forms.ChoiceField(choices=get_my_choices)
     dictionary = forms.ChoiceField(choices=get_my_dict_choices)
+    test_machine = forms.ChoiceField(choices=get_test_machine_choices)
 
     class Meta:
         model = Archives
