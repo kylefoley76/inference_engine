@@ -1,4 +1,4 @@
-mysql = 1
+mysql = 2
 
 from openpyxl import load_workbook
 from collections import Counter
@@ -7530,7 +7530,7 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
         archive = Archives.objects.latest('archives_date')
         test_sent, row_number = pop_sent()
     elif mysql == 2:
-        input = "It is|a contradictory that I do not have many|n points"
+        # input = "It is|a contradictory that I do not have many|n points"
         test_sent = [[0, input]]
         row_number = 1
 
