@@ -7615,7 +7615,6 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 ########## THE CODE BEGINS HERE
 
 
-
 def get_result_from_views(post_data, archive_id=None, request=None, input=None, prove_dict=None):
     if mysql == 2:
         return get_result(post_data, archive_id, request, input, prove_dict)
@@ -7623,15 +7622,9 @@ def get_result_from_views(post_data, archive_id=None, request=None, input=None, 
         return get_result(post_data, archive_id, request, input, prove_dict)
 
 
-if mysql == 2:
-    try:
-        get_result('hey')
-    except:
-        raise Exception('Our fault not yours')
-else:
+if mysql == 0:
     get_result('hey')
-
-if proof_type == 1:
-    wb4.save('/Users/kylefoley/Desktop/inference engine/temp_proof.xlsx')
-if get_words_used == 1:
-    wb5.save('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
+    if proof_type == 1:
+        wb4.save('/Users/kylefoley/Desktop/inference engine/temp_proof.xlsx')
+    if get_words_used == 1:
+        wb5.save('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
