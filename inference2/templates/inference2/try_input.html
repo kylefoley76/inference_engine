@@ -32,15 +32,19 @@ $(document).ready(function(){
 {% endif %}
     </div>
     <div class="row">
-    <table style="text-align: center;background-color:#DCDCDC; border: 1px">
-      {% for i in output%}
+
+        <table class="table table-bordered">
+            <thead class="thead-inverse"></thead>
+        <tbody>
+          {% for i in output%}
       <tr class="output_row">
       <td id="table_output_{{i}}_1 text-align: center;"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_1" id="table_output_{{i}}_1">{{i.col1}}</div></td>
       <td id="table_output_{{i}}_2"><div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text" name="table_output_{{i}}_2" id="table_output_{{i}}_2">{{i.col2}}</div></td>
       <td id="table_output_{{i}}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_3" id="table_output_{{i.col3}}_3">{{i.col3}}</div></td>
       </tr>
   {% endfor %}
-  </table>
+        </tbody>
+    </table>
 
     </div>
 {% endblock content %}
