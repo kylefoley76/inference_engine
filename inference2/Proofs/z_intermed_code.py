@@ -1,4 +1,4 @@
-mysql = 1
+mysql = 2
 
 from openpyxl import load_workbook
 from collections import Counter
@@ -7623,15 +7623,10 @@ def get_result_from_views(post_data, archive_id=None, request=None, input=None, 
         return get_result(post_data, archive_id, request, input, prove_dict)
 
 
-if mysql == 2:
-    try:
-        get_result('hey')
-    except:
-        raise Exception('Our fault not yours')
-else:
-    get_result('hey')
+if mysql == 0:
 
-if proof_type == 1:
-    wb4.save('/Users/kylefoley/Desktop/inference engine/temp_proof.xlsx')
-if get_words_used == 1:
-    wb5.save('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
+    get_result('hey')
+    if proof_type == 1:
+        wb4.save('/Users/kylefoley/Desktop/inference engine/temp_proof.xlsx')
+    if get_words_used == 1:
+        wb5.save('/Users/kylefoley/Desktop/inference engine/dictionary4.xlsx')
