@@ -1,4 +1,4 @@
-mysql = 2
+mysql = 0
 
 from openpyxl import load_workbook
 from collections import Counter
@@ -2747,14 +2747,23 @@ def obtain_truth_value(sent):
     add_to_total_sent("", "CLAIM " + str(sent[0]) + ": " + sentence)
     add_to_total_sent("", "")
 
-    if sentence[7:12] == 'consi':
-        return True, sentence[len("It isa consistent that "):]
-    elif sentence[7:12] == 'contr':
-        return False, sentence[len("It isa contradictory that "):]
-    else:
+    if len(sentence) < 22:
         if mysql == 2:
             raise Exception(
                 "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+        else:
+            print ("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+            sys.exit()
+
+    else:
+        if sentence[7:12] == 'consi':
+            return True, sentence[len("It isa consistent that "):]
+        elif sentence[7:12] == 'contr':
+            return False, sentence[len("It isa contradictory that "):]
+        else:
+            if mysql == 2:
+                raise Exception(
+                    "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
             # tahir system exit
             #     print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
 
