@@ -3,48 +3,72 @@
 
 {% block base_head %}
     <script type="text/javascript">
-$(document).ready(function(){
+        $(document).ready(function () {
 
-});
-</script>
+        });
+    </script>
 {% endblock base_head %}
 
 {% block content %}
     <h1>Test Machine</h1>
     <div class="row">
 
-    <form action="/try_input" method="post">
-        {% csrf_token %}
-        <div class="form-group">
-          <label for="comment">Input:</label>
-          <input id="try_input" type="text" name="try_input" size="100">
-            <button type="submit" class="btn btn-info" id="btn_try">Calculate</button>
-        </div>
+        <form action="/try_input" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="comment">Input:</label>
+                <input id="try_input" type="text" name="try_input" size="100">
+                <button type="submit" class="btn btn-info" id="btn_try">Calculate</button>
+            </div>
 
-    </form>
+        </form>
 
-    {% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     </div>
     <div class="row">
+        {% if notes %}
+            <p>
+                <textarea rows="4" cols="100" readonly>{{ notes }}</textarea>
+            </p>
+        {% endif %}
 
+
+    {% if result %}
+        {% if result == 'Wrong' %}
+            <h3>Result :    <span class="label label-danger">{{ result }}</span></h3>
+            {% else %}
+            <h3>Result :    <span class="label label-success">{{ result }}</span></h3>
+        {% endif %}
+
+
+    {% endif %}
         <table class="table table-bordered">
             <thead class="thead-inverse"></thead>
-        <tbody>
-          {% for i in output%}
-      <tr class="output_row">
-      <td id="table_output_{{i}}_1 text-align: center;"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_1" id="table_output_{{i}}_1">{{i.col1}}</div></td>
-      <td id="table_output_{{i}}_2"><div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text" name="table_output_{{i}}_2" id="table_output_{{i}}_2">{{i.col2}}</div></td>
-      <td id="table_output_{{i}}_3"><div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text" name="table_output_{{i}}_3" id="table_output_{{i.col3}}_3">{{i.col3}}</div></td>
-      </tr>
-  {% endfor %}
-        </tbody>
-    </table>
+            <tbody>
+            {% for i in output %}
+                <tr class="output_row">
+                    <td id="table_output_{{ i }}_1 text-align: center;">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                             name="table_output_{{ i }}_1" id="table_output_{{ i }}_1">{{ i.col1 }}</div>
+                    </td>
+                    <td id="table_output_{{ i }}_2">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text"
+                             name="table_output_{{ i }}_2" id="table_output_{{ i }}_2">{{ i.col2 }}</div>
+                    </td>
+                    <td id="table_output_{{ i }}_3">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                             name="table_output_{{ i }}_3" id="table_output_{{ i.col3 }}_3">{{ i.col3 }}</div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
 
     </div>
 {% endblock content %}

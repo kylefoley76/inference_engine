@@ -85,7 +85,7 @@ def changesymbol(queryset, mode):
         ('%', u","),
     )
     modelname = queryset.model._meta.model_name
-    if modelname == 'input':
+    if modelname == 'input' :
         if mode == 'TtoS':
             for x in queryset:
                 original_text_col2 = x.col2
@@ -108,7 +108,7 @@ def changesymbol(queryset, mode):
                 x.col2 = original_text_col2
                 x.save()
 
-    if modelname == 'define3' or modelname == 'testeddict':
+    if modelname == 'define3' or modelname == 'testeddictionary':
         if mode == 'TtoS':
 
             for x in queryset:

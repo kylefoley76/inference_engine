@@ -146,9 +146,10 @@ def try_input(request, archive=None):
             input = request.POST.get('try_input')
             Output.objects.all().delete()
             prove_algorithm = importlib.import_module('.' + archive.test_machine.split('.py')[0],
-                                                       package='inference2.Proofs')
-            post_data = prove_algorithm.get_result_from_views(
+                                                      package='inference2.Proofs')
+            post_data, result_string = prove_algorithm.get_result_from_views(
                 request.POST.copy(), archive.id, request, input)
+            template_args['result'] = result_string
             print(post_data)
             if post_data:
                 post_data["type"] = "prove"
@@ -159,10 +160,14 @@ def try_input(request, archive=None):
         except Exception as e:
             messages.error(request, str(e))
             template_args['success'] = 'Wrong'
+            template_args['result'] = 'Wrong'
 
+    algo = Algorithm.objects.all().order_by('id')
+    template_args['notes'] = algo[0].try_input_notes if algo else ''
     template_args['url_path'] = url_path
     template_args['output'] = output
     template_args['archive'] = archive
+
     return render(request, "inference2/try_input.html", template_args)
 
 
@@ -346,7 +351,10 @@ def progressbar_send(request, strt, stp, k, status=0):
 
 
 def author(request):
-    profile = Profile.objects.latest('id')
+    try:
+        profile = Profile.objects.latest('id')
+    except Profile.DoesNotExist:
+        profile = None
     return render(request, "inference2/author.html", {'profile': profile})
 
 

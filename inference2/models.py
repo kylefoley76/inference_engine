@@ -125,10 +125,11 @@ class Algorithm(models.Model):
 
     name = models.CharField(max_length=200)
     notes = models.TextField(null=True, blank=True)
+    try_input_notes = models.TextField(null=True, blank=True, default='')
     data = models.FileField(upload_to='./inference2/Proofs/', validators=[])
     test_machine = models.FileField(upload_to='./inference2/Proofs/', validators=[], null=True, blank=True,
                                     default=None)
-    dictionary = models.FileField(upload_to='./inference2/Proofs/', validators=[])
+    dictionary = models.FileField(upload_to='./inference2/Proofs/', validators=[], null=True, blank=True, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

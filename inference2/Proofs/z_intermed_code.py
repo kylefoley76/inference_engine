@@ -7551,6 +7551,7 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
     if mysql == 1:
         views.progressbar_send(request, 0, 100, 0, 1)
     j = -1
+    result = 'Wrong'
     while j < len(order) - 1:
         j += 1
         k = order[j]
@@ -7593,8 +7594,10 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
         if mysql == 2:
             if consistent:
                 print('Right')
+                result = 'Right'
             else:
                 print('Wrong')
+                result = 'Wrong'
     if mysql != 2:
         calculate_time_statistics(time_used_proving_sent, nonlinear)
 
@@ -7607,6 +7610,8 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
     if mysql in [1, 2]:
         views.progressbar_send(request, 0, 100, 100, 2)
         views.save_result(archive_id, result_data)
+        if mysql == 2:
+            return result_data, result
         return result_data
 
 
