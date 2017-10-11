@@ -1,4 +1,4 @@
-mysql = 0
+mysql = 2
 
 from openpyxl import load_workbook
 from collections import Counter
@@ -64,6 +64,8 @@ else:
 total_time = time.time()
 
 ######### tahir begin
+ERROR_MESSAGES = ["Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that",
+                  "our system does not have this grammatical syntax yet", "you misspelled", ]
 
 # tahir - the code for the website should always be mysql == 1 for the prove site
 # for the test machine site, it needs to be mysql == 2 and input = True
@@ -2752,7 +2754,7 @@ def obtain_truth_value(sent):
             raise Exception(
                 "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
         else:
-            print ("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+            print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
             sys.exit()
 
     else:
@@ -2764,8 +2766,8 @@ def obtain_truth_value(sent):
             if mysql == 2:
                 raise Exception(
                     "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
-            # tahir system exit
-            #     print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
+                # tahir system exit
+                #     print("Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that'")
 
 
 def eliminate_logical_connectives(sentence):
@@ -7631,7 +7633,13 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 
 def get_result_from_views(post_data, archive_id=None, request=None, input=None, prove_dict=None):
     if mysql == 2:
-        return get_result(post_data, archive_id, request, input, prove_dict)
+        try:
+            return get_result(post_data, archive_id, request, input, prove_dict)
+        except Exception as e:
+            if str(e) in ERROR_MESSAGES or str(e).startswith(ERROR_MESSAGES[2]):
+                Exception(e)
+            else:
+                Exception("Our Fault Not Yours")
     else:
         return get_result(post_data, archive_id, request, input, prove_dict)
 
