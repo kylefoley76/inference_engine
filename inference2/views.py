@@ -360,3 +360,8 @@ def author(request):
 
 def clear(request):
     return redirect(reverse('index'))
+
+
+def clear_output(request):
+    Output.objects.all().delete()
+    return redirect(reverse('try_input'))
