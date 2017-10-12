@@ -4533,7 +4533,7 @@ def space_sentences(str1, str2):
 
 ###### tahir
 def print_sent_full(test_sent, tot_prop_name, row_number):
-    global result_data
+    result_data = {}
     if proof_type == 0 and mysql == 0:
         return
     elif proof_type == 1:
@@ -4642,7 +4642,7 @@ def print_sent_full(test_sent, tot_prop_name, row_number):
 
                 row_number += 1
         row_number += 3
-        # print ("row number " + str(row_number))
+    return result_data
 
 
 def determine_words_used():
@@ -7463,8 +7463,6 @@ def add_outer_paren(str1):
 
 ##### tahir begin
 def populate_sentences():
-    global result_data
-
     test_sent = []
     last_row_blank = False
     row_number = 1
@@ -7616,7 +7614,7 @@ def get_result(post_data, archive_id=None, request=None, input=None, prove_dict=
 
     # cProfile.run("get_result('hey')")
 
-    print_sent_full(test_sent, tot_prop_name, row_number)
+    result_data = print_sent_full(test_sent, tot_prop_name, row_number)
 
     if mysql in [1, 2]:
         views.progressbar_send(request, 0, 100, 100, 2)
@@ -7637,11 +7635,12 @@ def get_result_from_views(post_data, archive_id=None, request=None, input=None, 
             return get_result(post_data, archive_id, request, input, prove_dict)
         except Exception as e:
             if str(e) in ERROR_MESSAGES or str(e).startswith(ERROR_MESSAGES[2]):
-                raise(e)
+                raise (e)
             else:
                 raise Exception("Our Fault Not Yours")
     else:
         return get_result(post_data, archive_id, request, input, prove_dict)
+
 
 if mysql == 0:
 

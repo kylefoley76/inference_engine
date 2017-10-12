@@ -21,7 +21,7 @@ DEFAULT_ROWS = 40000
 
 
 def save_result(archive_id, post_data):
-    Output.objects.filter(archives_id=archive_id).delete()
+    Output.objects.all().delete()
     archive = Archives.objects.get(pk=archive_id)
     Rows = []
     data_found = False
@@ -30,7 +30,7 @@ def save_result(archive_id, post_data):
     rows_to_show = rows_settings.rows_to_show if rows_settings else (len(post_data) - 1)
     if rows_to_show > (len(post_data) - 1):
         rows_to_show = len(post_data) - 1
-    for idx in range(rows_to_show):
+    for idx in range(min(rows_to_show, len(post_data))):
         if post_data.get("text_" + str(idx) + "_2", '') or post_data.get("text_" + str(idx) + "_3", ''):
             data_found = True
         if not data_found:
