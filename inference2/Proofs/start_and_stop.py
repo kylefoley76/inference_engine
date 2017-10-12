@@ -1,7 +1,7 @@
 
 def info():
 
-    order = [0, 1, 0, "#", 11, 14, 21, 71, 73, 79, 93, 178]
+    order = [0, 0, 0, "#", 11, 14, 21, 71, 73, 79, 93, 178]
     get_words_used = 0
     proof_type = 2
     # 0 is for testing the whole code without printing

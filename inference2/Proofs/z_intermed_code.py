@@ -7637,12 +7637,11 @@ def get_result_from_views(post_data, archive_id=None, request=None, input=None, 
             return get_result(post_data, archive_id, request, input, prove_dict)
         except Exception as e:
             if str(e) in ERROR_MESSAGES or str(e).startswith(ERROR_MESSAGES[2]):
-                Exception(e)
+                raise(e)
             else:
-                Exception("Our Fault Not Yours")
+                raise Exception("Our Fault Not Yours")
     else:
         return get_result(post_data, archive_id, request, input, prove_dict)
-
 
 if mysql == 0:
 
