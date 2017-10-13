@@ -34,19 +34,20 @@
     <div class="row">
         {% if notes %}
             <br>
-            <button class="show_button btn btn-success">Hide</button>
+            <button class="show_button btn btn-success">Show Instructions</button>
             <br><br>
             <script>$(".show_button").click(function () {
                 $("#text_id").toggle()
                 if ($('#text_id').css('display') == 'none') {
-                    $('.show_button').text("Show");
+                    $('.show_button').text("Show Instructions");
 
                 } else {
-                    $('.show_button').text("Hide");
+                    $('.show_button').text("Hide Instructions");
+                    $("textarea").height( $("textarea")[0].scrollHeight );
                 }
             })</script>
             <p>
-                <textarea id='text_id' rows="4" cols="100" readonly>{{ notes }}</textarea>
+                <textarea id='text_id' rows="4" cols="100" readonly style="display: none">{{ notes }}</textarea>
             </p>
         {% endif %}
 
