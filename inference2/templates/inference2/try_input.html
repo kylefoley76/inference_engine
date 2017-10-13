@@ -22,7 +22,7 @@
             </div>
 
         </form>
-        <a class="btn btn-primary" href="{{ clear_output }}" >Clear</a>
+        <a class="btn btn-primary" href="{{ clear_output }}">Clear</a>
         {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
@@ -33,21 +33,33 @@
     </div>
     <div class="row">
         {% if notes %}
+            <br>
+            <button class="show_button btn btn-success">Hide</button>
+            <br><br>
+            <script>$(".show_button").click(function () {
+                $("#text_id").toggle()
+                if ($('#text_id').css('display') == 'none') {
+                    $('.show_button').text("Show");
+
+                } else {
+                    $('.show_button').text("Hide");
+                }
+            })</script>
             <p>
-                <textarea rows="4" cols="100" readonly>{{ notes }}</textarea>
+                <textarea id='text_id' rows="4" cols="100" readonly>{{ notes }}</textarea>
             </p>
         {% endif %}
 
 
-    {% if result %}
-        {% if result == 'Wrong' %}
-            <h3>Result :    <span class="label label-danger">{{ result }}</span></h3>
+        {% if result %}
+            {% if result == 'Wrong' %}
+                <h3>Result : <span class="label label-danger">{{ result }}</span></h3>
             {% else %}
-            <h3>Result :    <span class="label label-success">{{ result }}</span></h3>
+                <h3>Result : <span class="label label-success">{{ result }}</span></h3>
+            {% endif %}
+
+
         {% endif %}
-
-
-    {% endif %}
         <table class="table table-bordered">
             <thead class="thead-inverse"></thead>
             <tbody>
