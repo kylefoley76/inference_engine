@@ -16,7 +16,6 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -35,10 +34,9 @@ ALLOWED_HOSTS = ['*']
     }
 }"""
 
-
 # Application definition
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-#SESSION_FILE_PATH = BASE_DIR
+# SESSION_FILE_PATH = BASE_DIR
 
 BOOTSTRAP3_FOLDER = os.path.abspath(os.path.join(BASE_DIR, '..', 'bootstrap3'))
 
@@ -135,7 +133,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 # change file name here
@@ -148,7 +145,6 @@ STATIC_URL = '/static/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),
                     os.path.join(BASE_DIR, 'inference2/Proofs/'),)
-
 
 # Settings for django-bootstrap3
 BOOTSTRAP3 = {
@@ -165,3 +161,9 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning warning',
     messages.ERROR: 'alert-danger error'
 }
+
+MEDIA_ROOT = (
+    BASE_DIR
+)
+
+MEDIA_URL = '/media/'

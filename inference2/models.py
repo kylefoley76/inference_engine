@@ -144,6 +144,7 @@ class Profile(models.Model):
     facebook = models.CharField(max_length=200, null=True, blank=True)
     twitter = models.CharField(max_length=200, null=True, blank=True)
     instagram = models.CharField(max_length=200, null=True, blank=True)
+    profile_photo = models.ImageField(upload_to='img', null=True, blank=True, default=None)
 
     def __str__(self):
         return u'{0}'.format(self.id)

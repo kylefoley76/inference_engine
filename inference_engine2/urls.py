@@ -14,8 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import include, url
+from django.conf.urls.static import static
 from django.contrib import admin
 from inference2 import views
+from inference_engine2 import settings
 
 urlpatterns = [
 
@@ -41,3 +43,5 @@ urlpatterns = [
     url(r'^clear', views.clear, name='clear-result'),
 
 ]
+
+urlpatterns = urlpatterns + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
