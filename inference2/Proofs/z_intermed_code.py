@@ -1,4 +1,4 @@
-mysql = 2
+mysql = 0
 
 from openpyxl import load_workbook
 from collections import Counter
