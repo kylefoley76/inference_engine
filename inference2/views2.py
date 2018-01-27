@@ -172,6 +172,62 @@ def try_input(request, archive=None):
     return render(request, "inference2/try_input.html", template_args)
 
 
+def print_output(test_sent):
+
+    row_number = 1
+
+    for i in order:
+        for j in range(len(test_sent[i])):
+            rule = ""
+            if test_sent[i][j][4] != "":
+                rule = test_sent[i][j][4] + " "
+                if test_sent[i][j][5] != "":
+                    rule += str(test_sent[i][j][5])
+
+                    if test_sent[i][j][6] != "":
+                        rule += "," + str(test_sent[i][j][6])
+
+            result_data['text_' + str(row_number - 1) + '_1'] = test_sent[i][j][0]
+            result_data['text_' + str(row_number - 1) + '_2'] = test_sent[i][j][3] + test_sent[i][j][1]
+            result_data['text_' + str(row_number - 1) + '_3'] = rule
+                
+            row_number += 1
+
+    return result_data
+
+def progress(count, total, suffix=''):
+    bar_len = 60
+    filled_len = int(round(bar_len * count / float(total)))
+
+    percents = round(100.0 * count / float(total), 1)
+    bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+    sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', suffix))
+    sys.stdout.flush()
+    ERROR_MESSAGES = ["Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that",
+                      "our system does not have this grammatical syntax yet", "you misspelled", ]
+
+    # if print_type in [8, 9]:
+    #     views.progressbar_send(request, 0, 100, 100, 2)
+    #     views.save_result(archive_id, result_data)
+    #     if print_type == 9:
+    #         return result_data, result
+    #     return result_data
+    
+# 
+# def get_result_from_views(post_data, archive_id=None, request=None, input=None, prove_dict=None):
+#     if print_type == 9:
+#         try:
+#             return get_result(post_data, archive_id, request, input, prove_dict)
+#         except Exception as e:
+#             if str(e) in ERROR_MESSAGES or str(e).startswith(ERROR_MESSAGES[2]):
+#                 raise (e)
+#             else:
+#                 raise Exception("Our Fault Not Yours")
+#     else:
+#         return get_result(post_data, archive_id, request, input, prove_dict)
+
+
 def export_xlsx(request, archives_id=None):
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
