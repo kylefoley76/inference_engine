@@ -1,10 +1,8 @@
 import copy
 from settings import *
-from general_functions import build_greek_num_dict, get_key, findposinmd
+from general_functions import *
 from analyze_sentence import find_sentences
 import operator
-
-
 
 premise = False
 def_info = []
@@ -18,7 +16,6 @@ families = {}
 set1 = []
 
 
-
 def is_ordered():
     for k, v in main_dict.items():
         if not value_is_fixed(v):
@@ -27,7 +24,6 @@ def is_ordered():
 
 
 def order_conn_pairs(set1):
-
     for k, v in main_dict.items():
         if len(v) == 2:
             sent1 = sentences[set1[7].get(set1[6][v[0]])]
@@ -45,6 +41,7 @@ def order_conn_pairs(set1):
                 elif sent2[13] == 'W':
                     main_dict[k] = [[v[1]], [v[0]]]
 
+
 def value_is_fixed(v):
     if len(v) > 1:
         if isinstance(v[0], int):
@@ -53,7 +50,8 @@ def value_is_fixed(v):
             return False
     return True
 
-#bbb
+
+# bbb
 def order_by_conn_type():
     conn_order = {"": 0, xorr: 1, idisj: 2, conditional: 2, iff: 3}
     for k, v in main_dict.items():
@@ -112,7 +110,8 @@ def order_biconditionals():
                             main_dict[k] = [[v[1]], [v[0]]]
 
                 else:
-                    raise Exception ('you havent done this yet')
+                    pass
+                    # raise Exception('you havent done this yet')
 
             elif parent_type == conditional:
                 main_dict[k] = [[v[0]], [v[1]]]
@@ -145,7 +144,7 @@ def order_sets_of_biconditionals2(lst, k, v, lst_counter):
         for child in children:
             greek = def_info[0][6][child]
             if len(greek) == 1:
-                g = findposinmd(greek, sentences, 5, 10, True)
+                g = findposinmd(greek, sentences, 5, 0, True)
                 score += ord(sentences[g][13][0])
                 if sentences[g][3] == "~":
                     score += 100
@@ -164,7 +163,6 @@ def order_sets_of_biconditionals2(lst, k, v, lst_counter):
 
     lst_counter += 1
     return lst_counter
-
 
 
 def use_alpha_relations_test(set1):
@@ -205,7 +203,8 @@ def use_alpha_relations_test(set1):
 
     return
 
-#sent_kinds
+
+# sent_kinds
 
 # first letter represents whether the whole is bicond = b, cond = c, disj = d
 # second letter represents whether the antecedent is conj = &, cond = c, bicond, single = s
@@ -214,8 +213,7 @@ def use_alpha_relations_test(set1):
 
 
 def get_conn_conjuncts(conn_conjuncts):
-
-    for side in ["1","2"]:
+    for side in ["1", "2"]:
         e = -1
         for lst, sent, esent, fam_num in zip(set1[4], set1[6], set1[3], set1[1]):
             e += 1
@@ -240,25 +238,24 @@ def get_conn_conjuncts(conn_conjuncts):
     return
 
 
-#ccc
-def order_sentence(def_info2, definition2, set_sentences2, premise2 = False):
+
+def order_sentence(def_info2, definition2, reduced_def2, premise2=False):
     global sentences, def_info, definition, set1
     global families, set_sentences, mixed_dict, premise
-    set_sentences = set_sentences2
+    reduced_def = reduced_def2
     ordered = False
     def_info = def_info2
     definition = definition2
-    if 'improbable' in definition:
+    renumber = [0] * len(def_info)
+    if 'concept' + un in definition:
         bb = 8
 
     premise = premise2
-    conn_conjuncts = []
-    n = 1 if len(def_info) > 1 else 0
-    for o in range(n, len(def_info)):
-        set1 = def_info[o]
-
-        sentences = set_sentences[o]
-        build_greek_num_dict(sentences, set1)
+    o = 0
+    def_part = []
+    for set1, tlist in zip(def_info, reduced_def):
+        sentences = tlist.sentences
+        conn_conjuncts = []
         if premise:
             conn_conjuncts = [["1", set1[6][0], set1[3][0]]]
         else:
@@ -278,15 +275,26 @@ def order_sentence(def_info2, definition2, set_sentences2, premise2 = False):
                     if needs_translation():
                         swap_sentences(conn_conjunct2, o)
                         ordered = True
-                    elif not needs_translation():
-                        pos = def_info[o][6].index(current_sent)
-                        renumber_sentence(conn_conjunct, def_info[o][3][pos])
+
+            translate_sentence(o)
+            def_part.append(def_info[o][5])
+            if ordered:
+                renumber[o] = def_info[o][5]
+
+        else:
+            def_part.append(set1[3][0])
+        o += 1
+
+    if ordered:
+        if o > 1:
+            definition = " & ".join(def_part)
+        else:
+            definition = def_part[0]
 
 
 
 
-
-    return definition, ordered
+    return definition, ordered, renumber
 
 
 # if conjunctive then the eldest generation has 3 dots if no sibling, 4 dots if siblings
@@ -310,8 +318,6 @@ def build_main_dict(conn_conjunct, set1):
             elif premise:
                 sent_types.update({e: lst[1]})
                 main_dict.setdefault(tparent, []).append(e)
-
-
 
 
 def order_sentence2():
@@ -345,7 +351,6 @@ def get_families(set1, str1=""):
     return families
 
 
-
 def all_kids_are_fixed(families, list1, unfixed_children):
     for num in list1:
         children = families.get(num)
@@ -356,7 +361,6 @@ def all_kids_are_fixed(families, list1, unfixed_children):
                 if child in unfixed_children:
                     return False
     return True
-
 
 
 def all_children_are_fixed():
@@ -443,11 +447,10 @@ def use_alpha_abbrev_test(fixed_abbrev, unfixed_children, families, unfixed_fami
                         ordering_occurred = True
                         reformat_list(v, e, list1, unfixed_children)
 
-
         if is_ordered():
             return
         elif not ordering_occurred:
-            raise Exception ('you failed to order ' + definition)
+            raise Exception('you failed to order ' + definition)
     return
 
 
@@ -483,8 +486,6 @@ def use_alpha_abbrev_test2(fixed_abbrev, lst, families):
 
 
 def use_neg_test(lst):
-
-
     if len(lst) == 2:
         if lst[0] in families.keys():
             list1 = families.get(lst[0])
@@ -509,9 +510,9 @@ def use_neg_test(lst):
                     score2 += 1
 
         if score1 > score2:
-            return [[lst[0]],[lst[1]]]
+            return [[lst[0]], [lst[1]]]
         elif score1 < score2:
-            return [[lst[0]],[lst[1]]]
+            return [[lst[0]], [lst[1]]]
 
     return []
 
@@ -552,13 +553,6 @@ def needs_translation():
     return False
 
 
-def get_position(m):
-    for d, num in enumerate(set1[2]):
-        if num == sentences[m][6]:
-            return d
-    raise Exception ("you failed to find a sentence")
-
-
 def swap_sentences(conn_conjunct2, o):
     current_sent = conn_conjunct2[1]
 
@@ -567,7 +561,6 @@ def swap_sentences(conn_conjunct2, o):
     new_fvalues = []
     if o > 0:
         original_greek = set1[5]
-
 
     for lst in new_values:
         if len(lst) > 1:
@@ -603,43 +596,22 @@ def swap_sentences(conn_conjunct2, o):
                 def_info[0][5] = def_info[0][5].replace(k, v)
                 # set1[5] = set1[5].replace(k, v)
                 current_sent = current_sent.replace(k, v)
-            bb = 8
-    if o > 0:
-        def_info[0][5] = def_info[0][5].replace(original_greek, set1[5])
-    conn_conjunct2[1] = current_sent
-    translate_sentence(conn_conjunct2)
+
+    old_sent = conn_conjunct2[1]
+    for greek in def_info[o][6]:
+        if greek == old_sent:
+            def_info[o][5] = def_info[o][5].replace(greek, current_sent)
 
     return
 
 
 
-def translate_sentence(conn_conjunct2):
-    global definition, set1
-    current_sent = conn_conjunct2[1]
-    english_sent = conn_conjunct2[2]
-    for greek, english in zip(def_info[0][6], def_info[0][3]):
+
+def translate_sentence(o):
+    for greek, english in zip(def_info[o][6], def_info[o][3]):
         if len(greek) == 1:
-            def_info[0][5] = def_info[0][5].replace(greek, english)
-            current_sent = current_sent.replace(greek, english)
-
-    definition = definition.replace(english_sent, current_sent)
-    return
-
-
-
-
-def renumber_sentence(conn_conjunct, current_sent):
-    def_info2 = find_sentences(current_sent)
-    m = 10
-    while sentences[m] != None:
-        if sentences[m][6].startswith(conn_conjunct + "."):
-            temp_sent = sentences[m][0]
-            if sentences[m][3] == "~" and "~" not in sentences[m][0]:
-                temp_sent = "~" + temp_sent
-
-            pos = def_info2[3].index(temp_sent)
-            new_num = def_info2[2][pos]
-            sentences[m][59] = new_num
-        m += 1
+            def_info[o][5] = def_info[o][5].replace(greek, english)
 
     return
+
+

@@ -3,7 +3,7 @@ import copy
 import sys
 import pickle
 from natural_language import step_one
-
+from general_functions import parameters
 
 
 def calculate_time_statistics(num_proved, total_time):
@@ -18,12 +18,18 @@ def calculate_time_statistics(num_proved, total_time):
 def get_result(one_sent, print_type = 4, order = [0], do_not_argue = []):
     total_time = time.time()
 
-    if one_sent != "":
+    if one_sent == 'a':
+        proof_type, print_type, get_words_used, order = parameters()
+        pkl_file = open('zz_claims.pkl', 'rb')
+        test_sent = pickle.load(pkl_file)
+        pkl_file.close()
+    elif one_sent != "":
         test_sent = [[one_sent]]
     else:
         pkl_file = open('zz_claims.pkl', 'rb')
         test_sent = pickle.load(pkl_file)
         pkl_file.close()
+
 
     j = -1
     num_proved = 0
@@ -54,7 +60,7 @@ def get_result(one_sent, print_type = 4, order = [0], do_not_argue = []):
         elif print_type == 0 and k % 50 == 0:
             print (k)
 
-    if print_type in [0, 2, 3]:
+    if print_type in [0, 2, 3, 4]:
         if print_type == 0:
             print ("success")
         calculate_time_statistics(num_proved, total_time)

@@ -3,16 +3,9 @@
 from general_functions import *
 from put_words_in_slots import categorize_words
 
-all_sent = []
 definite_assignments = []
 inferences = []
-abbreviations = {}
-total_sent = []
 words_used = []
-prop_name = {}
-oprop_name = {}
-variables = []
-prop_var = []
 i_defined = False
 consistent = True
 
@@ -29,11 +22,11 @@ def detach_inferences():
 
         if lst[3] == 'AE':
             pot_ancestor = lst[4]
-            lst[4] = find_counterpart_inlist(pot_ancestor, total_sent, 6, 0)
+            lst[4] = find_counterpart_inlist(pot_ancestor, output[0], 6, 0)
             assert lst[4] != -1
         elif isinstance(lst[4], str):
 
-            for tlst in total_sent:
+            for tlst in output[0]:
                 if tlst[3] + tlst[2] == lst[4]:
                     lst[4] = tlst[0]
                     break
@@ -41,52 +34,44 @@ def detach_inferences():
                 raise Exception ('you failed to find the ancestor')
 
 
-        add_to_total_sent(total_sent, lst[0], lst[1], lst[2], lst[3], lst[4], lst[5], lst[6])
-        consistent = check_consistency(total_sent)
+        add_to_tsent(output[0], lst[0], lst[1], lst[2], lst[3], lst[4], lst[5], lst[6])
+        consistent = check_consistency(output)
         if not consistent:
             return
 
-    for sent in all_sent:
+    for sent in output[1]:
         if len(sent) != 46:
-            g = find_2posinlist(sent[2], sent[3], total_sent, 2, 3)
+            g = find_2posinlist(sent[2], sent[3], output[0], 2, 3)
             assert g > -1
-            sent[44] = total_sent[g][0]
+            sent[44] = output[0][g][0]
             sent[7] = 'c'
     return
 
 
-def define_irregular_terms(all_sent2, inferences2, abbreviations2, total_sent2, words_used2, prop_name2, oprop_name2,
-                           variables2, connected_const2, prop_var2):
+def define_irregular_terms(output2, inferences2, words_used2):
 
 
-    global all_sent, inferences, abbreviations, total_sent, oprop_name, consistent
-    global words_used, prop_name, variables, prop_var, definite_assignments, i_defined
-    global connected_const
-
-    all_sent = all_sent2
+    global inferences, consistent
+    global words_used, definite_assignments, i_defined
+    global output
+    
+    output = output2
     definite_assignments = {}
     inferences = inferences2
-    abbreviations = abbreviations2
-    total_sent = total_sent2
     words_used = words_used2
-    prop_name = prop_name2
-    oprop_name = oprop_name2
-    variables = variables2
-    prop_var = prop_var2
-    connected_const = connected_const2
     i_defined = False
     consistent = True
 
-    main_loop(all_sent)
+    main_loop(output[1])
 
     detach_inferences()
 
-    return all_sent, consistent
+    return output, consistent
 
 
 
 
-def main_loop(list1, kind=""):
+def main_loop(list1, kind="", kind2 = ""):
     m = -1
     while m < len(list1) - 1:
         m += 1
@@ -102,8 +87,8 @@ def main_loop(list1, kind=""):
                 first_person_pronoun(list1[m][slot]):
 
                 antecedent = copy.deepcopy(list1[m])
-                determine_which_function_to_use(antecedent, list1, m, slot, category, kind)
-                if category not in [.4, .5, 13, 13.5]:
+                determine_which_function_to_use(antecedent, list1, m, slot, category, kind, kind2)
+                if category not in [.4, .5, 13]:
                     del list1[m]
                 m -= 1
                 break
@@ -112,7 +97,7 @@ def main_loop(list1, kind=""):
 
 
 
-def determine_which_function_to_use(antecedent, list1, m, slot, category, kind=""):
+def determine_which_function_to_use(antecedent, list1, m, slot, category, kind, kind2):
     anc1 = list1[m][44]
     consequent = None
     if category not in [2, .4, .5, 13, 13.5]:
@@ -122,7 +107,7 @@ def determine_which_function_to_use(antecedent, list1, m, slot, category, kind="
     elif category == .5:
         consequent, rule = infer_first_pronoun()
     elif category == 1:
-        consequent, rule = eliminate_determiners(list1[m], slot, kind)
+        consequent, rule = eliminate_determiners(list1[m], slot)
     elif category == 2:
         consequent, rule = eliminate_pronouns(list1[m], slot, kind)
     elif category == 3:
@@ -139,9 +124,9 @@ def determine_which_function_to_use(antecedent, list1, m, slot, category, kind="
         consequent, rule = eliminate_relative_pronouns(list1[m], slot)
     elif category == 11:
         consequent, rule = eliminate_as(list1[m], slot)
-    elif category == 13 and kind == "":
+    elif category == 13 and kind2 in ["", "consequent"]:
         consequent, rule = divide_relations(list1[m], slot)
-    elif category == 13.5 and kind == "":
+    elif category == 13.5 and kind2 in ["", "consequent"]:
         consequent, rule = divide_relations2(list1[m], slot)
     elif category == 14:
         consequent, rule = eliminate_there(slot, list1[m])
@@ -163,7 +148,7 @@ def final_step(list1, antecedent, consequent2, rule, category, anc1, kind):
     conjunction = []
     conjunctionp = []
 
-    for sent in consequent: name_and_build(sent, oprop_name, prop_name)
+    for sent in consequent: name_and_build(output, sent)
     if len(consequent) > 1:
         for sent in consequent: conjunction.append(sent[0])
         for sent in consequent: conjunctionp.append(sent[3] + sent[2])
@@ -180,16 +165,16 @@ def final_step(list1, antecedent, consequent2, rule, category, anc1, kind):
     if kind == "":
         implication = build_connection(antecedent[0], conn, consequent_str)
         implicationp = build_connection(antecedent[3] + antecedent[2], conn, consequent_strp)
-        add_to_total_sent(total_sent, implication, implicationp, "", rule)
+        add_to_tsent(output[0], implication, implicationp, "", rule)
         inferences.append([consequent_str, consequent_strp, tvalue, irule,
-            antecedent[3] + antecedent[2], get_sn(total_sent), standard])
+            antecedent[3] + antecedent[2], get_sn(output[0]), standard])
 
     for sent in consequent:
         if kind == "":
-            sent[44] = get_sn(total_sent)
+            sent[44] = get_sn(output[0])
             if len(consequent) > 1:
                 inferences.append([sent[1], sent[2], sent[3], "AE",
-                        get_sn(total_sent), "", is_standard(sent)])
+                        get_sn(output[0]), "", is_standard(sent)])
         list1.append(copy.deepcopy(sent))
 
 
@@ -243,27 +228,25 @@ def eliminate_negative_determiners(slot, list1, m):
 
 def infer_first_pronoun():
     global i_defined
-    var = get_key(abbreviations, "person")
+    var = get_key(output[6], "person")
     if var == None:
-        abbreviations.update({variables[0]: 'person'})
-        var = variables[0]
-        del variables[0]
-    cons = svo_sent(prop_name, "i", "I", var, oprop_name)
+        output[6].update({output[14][0]: 'person'})
+        var = output[14][0]
+        del output[14][0]
+    cons = svo_sent(output, "i", "I", var)
     i_defined = True
 
     return [cons], "AY FPP"
 
 
-def eliminate_determiners(list1, slot, kind=""):
+def eliminate_determiners(list1, slot):
     word = list1[slot]
     list1[slot] = ""
     consequent = []
     sentences = copy.deepcopy(dictionary[9].get(word))
-    # posp = dictionary[0].get(word)
     abbrev_dict = {}
     sentences = sentences[0]
-    change_constants(abbrev_dict, abbreviations, variables, sentences[9])
-    # possessive_pronoun = True if len(posp) > 1 and posp[1] == 'c' else False
+    change_constants(abbrev_dict, output, sentences[9])
     instance = None
     new_pos = determiner_dict.get(slot)
     if word == 'the':
@@ -271,11 +254,11 @@ def eliminate_determiners(list1, slot, kind=""):
 
     if instance == None:
         if word == 'the':
-            definite_assignments.update({list1[new_pos]:variables[0]})
+            definite_assignments.update({list1[new_pos]:output[14][0]})
 
-        abbrev_dict.update({sentences[32][0]: list1[new_pos], sentences[30][0]: variables[0]})
-        list1[new_pos] = variables[0]
-        del variables[0]
+        abbrev_dict.update({sentences[32][0]: list1[new_pos], sentences[30][0]: output[14][0]})
+        list1[new_pos] = output[14][0]
+        del output[14][0]
     else:
         abbrev_dict.update({sentences[32][0]: list1[new_pos], sentences[30][0]: instance})
         list1[new_pos] = instance
@@ -297,9 +280,9 @@ def replace_variables2(abbrev_dict, consequent, list1, sentences):
                 if sentences[m][noun] != "i":
                     var = abbrev_dict.get(sentences[m][noun])
                     if var == None:
-                        abbrev_dict.update({sentences[m][noun]: variables[0]})
-                        sentences[m][noun] = variables[0]
-                        del variables[0]
+                        abbrev_dict.update({sentences[m][noun]: output[14][0]})
+                        sentences[m][noun] = output[14][0]
+                        del output[14][0]
                     else:
                         sentences[m][noun] = var
             consequent.append(sentences[m])
@@ -312,8 +295,8 @@ def eliminate_pronouns(list1, slot, kind=""):
     sentences = copy.deepcopy(dictionary[9].get(word))
     abbrev_dict = {}
     sentences = sentences[0]
-    change_constants(abbrev_dict, abbreviations, variables, sentences[9])
-    new_var = get_key(abbreviations, word)
+    change_constants(abbrev_dict, output, sentences[9])
+    new_var = get_key(output[6], word)
     abbrev_dict.update({sentences[30][0]: new_var})
     list1[slot] = new_var
 
@@ -331,13 +314,13 @@ def eliminate_proper_name_possessives3(list1, slot):
     possessee_concept = list1[concept_position]
     new_possessee = definite_assignments.get(possessee_concept)
     if new_possessee == None:
-        definite_assignments[possessee_concept] = variables[0]
-        new_possessee = variables[0]
-        del variables[0]
+        definite_assignments[possessee_concept] = output[14][0]
+        new_possessee = output[14][0]
+        del output[14][0]
     list1[slot] = None
     list1[concept_position] = new_possessee
-    cons2 = svo_sent(prop_name, new_possessor, "OWN", new_possessee, oprop_name)
-    cons3 = svo_sent(prop_name, new_possessee, "I", possessee_concept, oprop_name)
+    cons2 = svo_sent(output, new_possessor, "OWN", new_possessee)
+    cons3 = svo_sent(output, new_possessee, "I", possessee_concept)
 
     return [list1, cons2, cons3], "PPE"
 
@@ -348,12 +331,12 @@ def eliminate_common_name_possessives(list1, slot):
     possessee = list1[concept_position]
     new_possessor = definite_assignments.get(possessor_concept)
     if new_possessor == None:
-        definite_assignments[possessor_concept] = variables[0]
-        new_possessor = variables[0]
-        del variables[0]
+        definite_assignments[possessor_concept] = output[14][0]
+        new_possessor = output[14][0]
+        del output[14][0]
     list1[slot] = None
-    cons2 = svo_sent(prop_name, new_possessor, "OWN", possessee, oprop_name)
-    cons3 = svo_sent(prop_name, new_possessor, "I", possessor_concept, oprop_name)
+    cons2 = svo_sent(output, new_possessor, "OWN", possessee)
+    cons3 = svo_sent(output, new_possessor, "I", possessor_concept)
 
     return [list1, cons2, cons3], "CPE"
 
@@ -388,7 +371,7 @@ def eliminate_adjectives(list1, slot):
     else:
         noun_pos = pos_counterpart(modifiable_nouns, adjective_positions, slot)
         rule = 'ADJ E'
-    cons2 = svo_sent(prop_name, list1[noun_pos], "J", list1[slot], oprop_name, list1[neg_pos])
+    cons2 = svo_sent(output, list1[noun_pos], "J", list1[slot], list1[neg_pos])
 
     list1[slot] = None
     if list1[neg_pos] == "~":
@@ -402,20 +385,12 @@ def eliminate_adjectives(list1, slot):
 def eliminate_concept_instance_apposition(list1, slot):
     dict1 = {91: 10, 93: 14, 95: 21, 96: 23}
     j = dict1.get(slot)
-    cons2 = svo_sent(prop_name, list1[slot], "I", list1[j], oprop_name)
+    cons2 = svo_sent(output, list1[slot], "I", list1[j])
     list1[j] = list1[slot]
     list1[slot] = None
     list1[42].remove(slot)
 
     return [list1, cons2], "CIA"
-
-
-def restore_original_sent(list1):
-    list2 = list(filter(lambda x: not_blank(list1[x]), list1[54]))
-    list4 = list(map(lambda x: list1[x], list2))
-    list3 = [None] * 80
-    for x in range(len(list4)): list3[x + 4] = list4[x]
-    return categorize_words(abbreviations, list3, False, [], prop_name, oprop_name)
 
 
 def eliminate_relative_pronouns(cons1, slot):
@@ -424,9 +399,8 @@ def eliminate_relative_pronouns(cons1, slot):
     noun = standard_nouns[1:][pos]
     clause_members = cons1[47].get(slot)
     del cons1[47][slot]
-    clause_words = list(map(lambda x: cons1[x], clause_members))
-    clause_words.insert(0, cons1[noun])
-    cons2 = [None] * 4 + clause_words + [None]
+    cons2 = list(map(lambda x: cons1[x], clause_members))
+    cons2.insert(0, cons1[noun])
     for x in clause_members:
         cons1[x] = None
         cons1[54].remove(x)
@@ -435,7 +409,7 @@ def eliminate_relative_pronouns(cons1, slot):
     except:
         pass
 
-    cons2 = categorize_words(abbreviations, cons2, False,[], prop_name, oprop_name)
+    cons2 = categorize_words(output[6], cons2, False, output[8], output[9])
 
     return [cons1, cons2], rule
 
@@ -444,7 +418,7 @@ def eliminate_as(list1, slot):
     # modify this if 'as' can be placed in a location other than 15
     list1[slot] = None
     list1[54].remove(21)
-    cons2 = svo_sent(prop_name, list1[21], list1[13], list1[14], oprop_name)
+    cons2 = svo_sent(output, list1[21], list1[13], list1[14])
     list1[21] = None
 
     return [list1, cons2], "DE AS"
@@ -453,26 +427,26 @@ def eliminate_as(list1, slot):
 def divide_relations(list1, slot):
     # b R c S d > b S d
     subject = 10 if slot == 20 else slot - 1
-    tvalue = axiom_of_prepositional_non_existence(list1, slot)
-    cons = svo_sent(prop_name, list1[subject], list1[20], list1[slot + 1], oprop_name, tvalue)
+    tvalue, rule = axiom_of_prepositional_non_existence(list1, slot, "RDA")
+    cons = svo_sent(output, list1[subject], list1[20], list1[slot + 1], tvalue)
 
-    return [cons], "RDA"
+    return [cons], rule
 
 
 def divide_relations2(list1, slot):
     # (b R c S d T e) = (b R c & b S d T e)
 
-    tvalue = axiom_of_prepositional_non_existence(list1, slot)
-    cons1 = svo_sent(prop_name, list1[10], list1[13], list1[14], oprop_name)
-    cons2 = svo_sent(prop_name, list1[10], list1[20], list1[21], oprop_name, tvalue)
+    tvalue, rule = axiom_of_prepositional_non_existence(list1, slot, "RDB")
+    cons1 = svo_sent(output, list1[10], list1[13], list1[14])
+    cons2 = svo_sent(output, list1[10], list1[20], list1[21], tvalue)
 
     return [cons1, cons2], "RDB"
 
 
-def axiom_of_prepositional_non_existence(list1, slot):
+def axiom_of_prepositional_non_existence(list1, slot, rule):
     if list1[13] == 'EX' and list1[3] == "~": #todo this is a hard-coded rule
-        return "~"
-    return ""
+        return "~", rule + ",NT"
+    return "", rule
 
 
 def eliminate_there(slot, list1):
@@ -534,14 +508,13 @@ def lies_wi_scope_of_univ2(list1, current_universal, slot, univ_pos, pos_positio
         return False
 
 def eliminate_universals(orig_sent, list1, slot):
-    global connected_const
     word = list1[slot]
     rule = "DE " + list1[slot]
-    new_var = variables[0]
-    del variables[0]
+    new_var = output[14][0]
+    del output[14][0]
     rel_pro = pos_counterpart(relative_pronoun_positions, determinative_positions, slot)
     noun_c = pos_counterpart(standard_nouns[1:], determinative_positions, slot)
-    class_sent = svo_sent(prop_name, new_var, "I", list1[noun_c], oprop_name)
+    class_sent = svo_sent(output, new_var, "I", list1[noun_c])
     list1[rel_pro] = None
     if rel_pro in list1[54]: list1[54].remove(rel_pro)
     subclause = list1[47].get(rel_pro)
@@ -559,7 +532,6 @@ def eliminate_universals(orig_sent, list1, slot):
     elif slot == 61 and list1[13] not in dictionary[8]:
         antecedent = class_sent[0]
         antecedentp = class_sent[2]
-        get_connected_const([class_sent])
         ant_done = True
         consequent = [list1[x] for x in list1[54]]
     else:
@@ -571,7 +543,6 @@ def eliminate_universals(orig_sent, list1, slot):
         if list1[next_rel] == None:
             antecedent = class_sent[0]
             antecedentp = class_sent[2]
-            get_connected_const([class_sent])
             ant_done = True
             consequent = [list1[x] for x in list1[54]]
         else:
@@ -585,14 +556,14 @@ def eliminate_universals(orig_sent, list1, slot):
     list2[0] = build_connection(antecedent, conditional, consequent)
     list2[2] = build_connection(antecedentp, conditional, consequentp)
     list2[45] = []
-    all_sent.append(list2)
+    output[1].append(list2)
 
 
     implication = build_connection(orig_sent[0], iff, "(" + list2[0] + ")")
     implicationp = build_connection(orig_sent[3] + orig_sent[2], iff, "(" + list2[2] + ")")
-    add_to_total_sent(total_sent, implication, implicationp, "", rule)
+    add_to_tsent(output[0], implication, implicationp, "", rule)
     inferences.append([list2[0], list2[2], "", "EF",
-                       orig_sent[3] + orig_sent[2], get_sn(total_sent), "standard"])
+                       orig_sent[3] + orig_sent[2], get_sn(output[0]), "standard"])
 
     return None, None
 
@@ -602,7 +573,8 @@ def backwards_conditional(list1, slot, noun_c, new_var):
     antecedent = []
     for num in list1[54]:
         word = list1[num]
-        if num in relational_positions and list1[m] not in dictionary[8] + dictionary[17] and num != 13:
+        if num in relational_positions and list1[m] not in dictionary[8] + dictionary[17] \
+            and num != 13:
             break
         elif num != noun_c:
             antecedent.append(word)
@@ -618,29 +590,23 @@ def backwards_conditional(list1, slot, noun_c, new_var):
 
 
 
-def get_connected_const(list1):
-    for lst in list1:
-        for num in lst[54]:
-            if lst[num] in abbreviations.keys():
-                connected_const.append(lst[num])
-            elif num == 10 and lst[13] == 'J' and \
-                abbreviations.get(lst[14]) == 'definite':
-                connected_const.append(lst[num])
+
 
 
 def put_in_main_loop(list2, class_sent, kind, word):
     for i, obj in enumerate(list2):
         obj = 'a' if obj == 'a' + uh else obj
         list2[i] = obj
-    list2 = [None] * 4 + list2 + [None]
 
-    list2 = categorize_words(abbreviations, list2, False, connected_const, prop_name,
-                             oprop_name, False, True)
+    list2 = categorize_words(output[6], list2, False, output[8], output[9], False, True)
+
+    if kind == 'consequent' and word == 'no':
+        list2[3] = "" if list2[3] == "~" else "~"
 
     list2[44] = 0
     if list2[45] != [] or kind == 'antecedent':
         if list2[45] != []:
-            list2 = main_loop([list2], "recursive")
+            list2 = main_loop([list2], "recursive", kind)
         if kind == 'antecedent':
             if len(list2) > 12:
                 list2 = [list2]
@@ -648,10 +614,8 @@ def put_in_main_loop(list2, class_sent, kind, word):
     else:
         list2 = [list2]
 
-    get_connected_const(list2)
-
     for lst in list2:
-        if lst[0] == None: name_and_build(lst, oprop_name, prop_name)
+        if lst[0] == None: name_and_build(output, lst)
 
     list3 = [x[0] for x in list2]
     list3p = [x[3] + x[2] for x in list2]
@@ -659,12 +623,9 @@ def put_in_main_loop(list2, class_sent, kind, word):
         final = "(" + " & ".join(list3) + ")"
         finalp = "(" + " & ".join(list3p) + ")"
     else:
-        if word == 'no':
-            list2[0][3] = "~"
-
-
         final = list2[0][3] + list2[0][1]
         finalp = list2[0][3] + list2[0][2]
+
 
     return final, finalp
 

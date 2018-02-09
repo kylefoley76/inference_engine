@@ -2,13 +2,14 @@
 from main_loop import get_result
 from openpyxl import load_workbook
 import sys
+import pickle
 
 arguments = sys.argv
 
-start = 221
-stop = 222
-end = 238
-print_type = 3
+start = 240
+stop = 241
+end = 241
+print_type = 2
 get_words_used = 0
 iff = chr(8801)
 implies = chr(8866)
@@ -16,10 +17,10 @@ conditional = chr(8594)
 xorr = chr(8891)
 idisj = chr(8744)
 
-# was at 121
 
 do_not_argue = []
-
+# all arguments fit the relevance rule except for 180
+# 80, 178, 233 get caught in infinite loops without relevance rule
 
 
 if len(arguments) > 1:
@@ -43,20 +44,13 @@ if len(arguments) > 1:
 
 
 
-def parameters():
-    proof_type = 0
-    print_type = 2
-    get_words_used = 0
-
-    return proof_type, print_type, get_words_used
-
-
     # print type
     # 0 do not print sentence or individual times, stop if false, only
     # interested in success or failure
     # 1 print all sentences to temp.xlsx
     # 2 print to terminal
     # 3 do not print but print the time of each sentence
+    # 4 do not print individual times, do not stop if false
     # 8 print to web page
     # 9 print to test machine
 

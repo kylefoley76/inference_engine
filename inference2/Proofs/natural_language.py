@@ -31,15 +31,9 @@ variables2 = variables + variables3 + variables4 + variables5
 
 
 inferences = []
-all_sent = []
-abbreviations = {}
-total_sent = []
 get_words_used = 0
 words_used = []
-oprop_name = {}
-variables = []
 
-prop_name = defaultdict(lambda: prop_var.pop(), {})
 
 ######### group: eliminate uninstantiable words part one
 
@@ -122,32 +116,12 @@ def tran_str(str1, has_sentence_connectives=False):
     return str1
 
 
-def check_mispellings(test_sent):
-    if proof_type != 3:
-        return
-    global prop_name, total_sent, all_sent, attach_sent, detach_sent, prop_var, sn, abbreviations
-    for k in order:
-        print(k)
-        prop_name = []
-        total_sent = []
-        all_sent = []
-        attach_sent = []
-        detach_sent = []
-        abbreviations = [{}, {}, {}]
-        prop_var = copy.deepcopy(prop_var2)
-        sn = test_sent[k][-1][0] + 1
-
-        divide_sent(test_sent[k])
-
-        eliminate_redundant_words()
-    sys.exit()
-
-
-def obtain_truth_value(sent):
+def obtain_truth_value():
+    sent = output[1][0]
     sent = sent.replace("!", "|")
     sentence = tran_str(sent)
-    add_to_total_sent(total_sent, "CLAIM " + str(sent[0]) + ": " + sentence)
-    add_to_total_sent(total_sent, "ABBREVIATIONS")
+    add_to_tsent(output[0], "CLAIM " + str(sent[0]) + ": " + sentence)
+    add_to_tsent(output[0], "ABBREVIATIONS")
 
     if len(sentence) < 22:
 
@@ -164,43 +138,39 @@ def obtain_truth_value(sent):
                 "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
 
 
-def eliminate_logical_connectives(sentence):
-    return sentence.split(" and ")
+def eliminate_logical_connectives():
+    list1 = output[1][0].split(" and ")
+    return list1
 
 
-def step_one(all_sent2):
-    global all_sent, definite_assignments, inferences, total_sent
-    global prop_name, abbreviations, words_used, oprop_name
-    global variables, consistent, connected_const
+def step_one(sent):
+    global definite_assignments, inferences
+    global words_used, prop_var2
+    global consistent, output
 
     artificial = False
     consistent = True
     inferences = []
-    all_sent = all_sent2
-    abbreviations = {}
-    total_sent = []
-    connected_const = []
+    output = [[], [], [], [], [], {}, {}, [], {}, {}, [], [], [], {}, [], {}, []]
     words_used = []
-    variables = copy.deepcopy(variables2)
-    prop_var = copy.deepcopy(prop_var2)
+    output[14] = copy.deepcopy(variables2)
+    output[7] = copy.deepcopy(prop_var2)
+    output[8] = defaultdict(lambda: output[7].pop(), {})
 
-    oprop_name = {}
-    prop_name = defaultdict(lambda: prop_var.pop(), {})
-
-
-
-    if "(" in all_sent[0]:
+    if "(" in sent[0]:
 
         artificial = True
-        truth_value = artificial_sentence(all_sent)
+        truth_value = artificial_sentence(sent)
 
     else:
 
-        truth_value, sentence = obtain_truth_value(all_sent[0])
+        output[1].append(sent[0])
 
-        all_sent = eliminate_logical_connectives(sentence)
+        truth_value, output[1][0] = obtain_truth_value()
 
-        divide_sent(all_sent)
+        output[1] = eliminate_logical_connectives()
+
+        divide_sent()
 
         eliminate_redundant_words()
 
@@ -214,58 +184,49 @@ def step_one(all_sent2):
 
         word_sub()
 
-        all_sent = remove_duplicates(all_sent, 0)
+        output[1] = remove_duplicates(output[1], 0)
 
-        all_sent, consistent = define_irregular_terms(all_sent, inferences,
-                                                      abbreviations, total_sent,
-                                                      words_used,
-                                                      prop_name, oprop_name,
-                                                      variables, connected_const,
-                                                      prop_var)
+        output, consistent = define_irregular_terms(output, inferences, words_used)
 
-        all_sent = remove_duplicates(all_sent, 0)
+        output[1] = remove_duplicates(output[1], 0)
 
         shorten_sent()
 
     if consistent:
 
-        total_sent, consistent = try_instantiation(all_sent, prop_var, oprop_name,
-                                                   prop_name, variables, total_sent,
-                                                   abbreviations, connected_const,
-                                                   artificial)
+        output, consistent = try_instantiation(output, artificial)
 
 
 
 
-    return truth_value == consistent, total_sent
+    return truth_value == consistent, output[0]
 
 
-def divide_sent(all_sent):
-    for i, sent in enumerate(all_sent):
+def divide_sent():
+    for i, sent in enumerate(output[1]):
         sent = sent.lower()
         sent = sent.strip()
         if "'s" not in sent: sent = sent.replace("'", "")
         if "," in sent: sent = sent.replace(",", " ,")
-        sentp = name_sent(sent, prop_name)
-        oprop_name[sentp] = sent
+        sentp = name_sent(sent, output[8])
+        output[9][sentp] = sent
         words_in_sent = sent.split()
-        all_sent[i] = [None] * 80
-        all_sent[i][0] = sent
-        all_sent[i][46] = sent
-        all_sent[i][2] = sentp
-        all_sent[i][3] = ""
-        for j in range(len(words_in_sent)): all_sent[i][j + 4] = words_in_sent[j]
-        add_to_total_sent(total_sent, sent, sentp, "", "")
-        all_sent[i][44] = get_sn(total_sent)
+        output[1][i] = [None] * 80
+        output[1][i][0] = sent
+        output[1][i][46] = sent
+        output[1][i][2] = sentp
+        output[1][i][3] = ""
+        for j in range(len(words_in_sent)): output[1][i][j + 4] = words_in_sent[j]
+        add_to_tsent(output[0], sent, sentp, "", "")
+        output[1][i][44] = get_sn(output[0])
 
     return
 
 
 def eliminate_redundant_words():
     # modify this if we start dealing with sentences longer than 41 words
-    global all_sent
     bool1 = False
-    for sent in all_sent:
+    for sent in output[1]:
         ant_sent = sent[0]
         ant_sentp = sent[2]
         rule = "RD"
@@ -298,14 +259,14 @@ def eliminate_redundant_words():
             sent[1] = build_sent_pos(sent)
             sent[3] = ""
             sent[0] = sent[3] + sent[1]
-            sent[2] = name_sent(sent[46], prop_name)
+            sent[2] = name_sent(sent[46], output[8])
 
-            direct_equivalence(total_sent, ant_sent, ant_sentp, sent, prop_name, oprop_name, rule)
-            inferences.append([sent[0], sent[2], "", "EF", anc1, get_sn(total_sent), is_standard(sent)])
+            direct_equivalence(output, ant_sent, ant_sentp, sent, rule)
+            inferences.append([sent[0], sent[2], "", "EF", anc1, get_sn(output[0]), is_standard(sent)])
 
 
 def replace_determinative_nouns():
-    for sent in all_sent:
+    for sent in output[1]:
         replacement_made = False
         m = 4
         while sent[m] != None:
@@ -333,14 +294,14 @@ def replace_determinative_nouns():
             sent_name2 = " ".join(sent[4:m])
             sent_name = sent_name.replace("|", " ")
             sent_name2 = sent_name2.replace("|", "")
-            sent[2] = name_sent(sent_name, prop_name)
+            sent[2] = name_sent(sent_name, output[8])
             sent[0] = "(" + sent_name2 + ")"
             sent[1] = sent[0]
             implication = build_connection(ant_sent, iff, sent[0])
             implicationp = build_connection(ant_sentp, iff, sent[2])
-            qn = get_sn(total_sent)
-            add_to_total_sent(total_sent, implication, implicationp, "", rule)
-            add_to_total_sent(total_sent, definition, "", "", rule)
+            qn = get_sn(output[0])
+            add_to_tsent(output[0], implication, implicationp, "", rule)
+            add_to_tsent(output[0], definition, "", "", rule)
             inferences.append([sent[0], sent[2], "", "EF", ant_sentp, qn, is_standard(sent)])
 
 
@@ -348,8 +309,7 @@ def replace_determinative_nouns():
 
 
 def categorize_words2():
-    global all_sent
-    for i, sent in enumerate(all_sent):
+    for i, sent in enumerate(output[1]):
         comma_elimination = False
         if "," in sent[0]:
             ant_sent = sent[0]
@@ -357,15 +317,14 @@ def categorize_words2():
             anc1 = sent[44]
             rule = "CME"
             comma_elimination = True
-
+        b = sent[4:].index(None) + 4
         sent_num = sent[44]
-        all_sent[i] = categorize_words(abbreviations, sent, False,[], prop_name, oprop_name,
-                                       True)
-        all_sent[i][44] = sent_num
+        output[1][i] = categorize_words(output[6], sent[4:b], False, output[8], output[9], True)
+        output[1][i][44] = sent_num
         if comma_elimination:
-            direct_equivalence(total_sent, ant_sent, ant_sentp, all_sent[i], prop_name, oprop_name, rule)
-            inferences.append([all_sent[i][0], all_sent[i][2], "", "EF", anc1,
-                               get_sn(total_sent), is_standard(all_sent[i])])
+            direct_equivalence(output, ant_sent, ant_sentp, output[1][i], rule)
+            inferences.append([output[1][i][0], output[1][i][2], "", "EF", anc1,
+                               get_sn(output[0]), is_standard(output[1][i])])
 
     return
 
@@ -373,12 +332,12 @@ def categorize_words2():
 def replace_synonyms():
     definitions_added = []
     m = -1
-    while m < len(all_sent) - 1:
+    while m < len(output[1]) - 1:
         m += 1
         replacement_made = False
-        word_order = all_sent[m][45]
+        word_order = output[1][m][45]
         j = 0
-        while j < len(all_sent[m][45]):
+        while j < len(output[1][m][45]):
             if j == 6:
                 bb = 8
 
@@ -386,25 +345,25 @@ def replace_synonyms():
             if word_order[j][1] == 18:
                 i = word_order[j][0]
 
-                ant_sent = all_sent[m][0]
-                ant_sentp = all_sent[m][2]
+                ant_sent = output[1][m][0]
+                ant_sentp = output[1][m][2]
                 if i == 9:
                     bb = 8
-                synonym = dictionary[2].get(all_sent[m][i])
+                synonym = dictionary[2].get(output[1][m][i])
                 assert synonym != None
                 j = recategorize_word(synonym, m, i, j)
-                definition = dictionary[1].get(all_sent[m][i])
+                definition = dictionary[1].get(output[1][m][i])
                 if definition not in definitions_added:
                     definitions_added.append(definition)
-                    add_to_total_sent(total_sent, definition, "", "", "DE " + all_sent[m][i])
+                    add_to_tsent(output[0], definition, "", "", "DE " + output[1][m][i])
                 replacement_made = True
-                all_sent[m][i] = synonym
+                output[1][m][i] = synonym
 
             j += 1
         if replacement_made:
-            direct_equivalence(total_sent, ant_sent, ant_sentp, all_sent[m], prop_name, oprop_name, "SUB")
-            all_sent[m][45] = sorted(all_sent[m][45], key=operator.itemgetter(1))
-            inferences.append([all_sent[m][0], all_sent[m][2], "", "EF", ant_sentp, get_sn(total_sent), is_standard(all_sent[m])])
+            direct_equivalence(output, ant_sent, ant_sentp, output[1][m], "SUB")
+            output[1][m][45] = sorted(output[1][m][45], key=operator.itemgetter(1))
+            inferences.append([output[1][m][0], output[1][m][2], "", "EF", ant_sentp, get_sn(output[0]), is_standard(output[1][m])])
 
     return
 
@@ -419,63 +378,63 @@ def recategorize_word(synonym, m, slot, j):
     category = dictionary[10].get(synonym)
     if category != None:
         category = place_in_decision_procedure(category, slot, synonym, raw_pos)
-        all_sent[m][45][j] = tuple([slot, category])
+        output[1][m][45][j] = tuple([slot, category])
     else:
-        del all_sent[m][45][j]
+        del output[1][m][45][j]
         j -= 1
     return j
 
 
 def replace_special_synonyms():
     m = -1
-    while m < len(all_sent) - 1:
+    while m < len(output[1]) - 1:
         m += 1
         replacement_made = False
         j = 0
-        word_order = all_sent[m][45]
-        while j < len(all_sent[m][45]):
+        word_order = output[1][m][45]
+        while j < len(output[1][m][45]):
             if word_order[j][1] == 20:
-                ant_sent = all_sent[m][0]
-                ant_sentp = all_sent[m][1]
+                ant_sent = output[1][m][0]
+                ant_sentp = output[1][m][1]
                 i = word_order[j][0]
-                rule = 'DE ' + all_sent[m][i]
+                rule = 'DE ' + output[1][m][i]
                 replace_special_synonyms2(m, i)
                 replacement_made = True
-                del all_sent[m][45][j]
+                del output[1][m][45][j]
             j += 1
         if replacement_made:
-            direct_equivalence(total_sent, ant_sent, ant_sentp, all_sent[m], prop_name, oprop_name, rule)
-            inferences.append([all_sent[m][0], all_sent[m][2], "", "EF", ant_sentp, get_sn(total_sent), is_standard(all_sent[m])])
+            direct_equivalence(output, ant_sent, ant_sentp, output[1][m], rule)
+            inferences.append([output[1][m][0], output[1][m][2], "", "EF", ant_sentp, get_sn(output[0]), is_standard(output[1][m])])
 
     return
 
 
 def replace_special_synonyms2(m, i):
-    if all_sent[m][i] == 'distinct from':
-        all_sent[m][i] = "="
-        all_sent[m][3] = "~"
+    if output[1][m][i] == 'distinct from':
+        output[1][m][i] = "="
+        output[1][m][3] = "~"
 
 
 def word_sub():
     m = -1
-    while m < len(all_sent) - 1:
+    while m < len(output[1]) - 1:
         m += 1
         replacement_made = False
-        word_order = all_sent[m][45]
+        word_order = output[1][m][45]
 
         j = 0
-        while j < len(all_sent[m][45]):
+        while j < len(output[1][m][45]):
             if word_order[j][1] == 0:
-                ant_sent = all_sent[m][0]
-                ant_sentp = all_sent[m][2]
+                ant_sent = output[1][m][0]
+                ant_sentp = output[1][m][2]
                 k = word_order[j][0]
-                word = all_sent[m][k]
+                word = output[1][m][k]
                 if word == 'which':
                     bb = 8
 
                 if word == "not":
-                    all_sent[m][k] = "~"
-                    all_sent[m][3] = "~"
+                    output[1][m][k] = "~"
+                    output[1][m][3] = "~"
                     replacement_made = True
                 elif word[-2:] == "'s":
                     replacement_made = True
@@ -490,68 +449,70 @@ def word_sub():
                             assert word in dictionary[3].values()
                         else:
                             replacement_made = True
-                            abbreviations.update({word: relat})
-                            all_sent[m][k] = relat
+                            output[6].update({word: relat})
+                            output[1][m][k] = relat
                     else:
                         replacement_made = True
                         replace_word_w_variable(m, k, word)
-                del all_sent[m][45][j]
+                del output[1][m][45][j]
             else:
                 j += 1
 
         if replacement_made:
             try:
-                if all_sent[m][54].index(12) > all_sent[m][54].index(13):
-                    g = all_sent[m][54].index(12)
-                    del all_sent[m][54][g]
-                    all_sent[m][54].insert(g-1, 12)
+                if output[1][m][54].index(12) > output[1][m][54].index(13):
+                    g = output[1][m][54].index(12)
+                    del output[1][m][54][g]
+                    output[1][m][54].insert(g-1, 12)
             except:
                 pass
 
-            direct_equivalence(total_sent, ant_sent, ant_sentp, all_sent[m], prop_name, oprop_name, "SUY")
-            inferences.append([all_sent[m][1], all_sent[m][2], all_sent[m][3], "EF", ant_sentp,
-                               get_sn(total_sent), is_standard(all_sent[m])])
+            direct_equivalence(output, ant_sent, ant_sentp, output[1][m], "SUY")
+            inferences.append([output[1][m][1], output[1][m][2], output[1][m][3], "EF", ant_sentp,
+                               get_sn(output[0]), is_standard(output[1][m])])
 
     return
 
 
 def replace_word_w_variable(m, k, str2):
     if isvariable(str2) == False:
-        str3 = get_key(abbreviations, str2)
+        str3 = get_key(output[6], str2)
         if str3 == None:
             pos = dictionary[0].get(str2)
             if len(pos) > 1 and pos[1] == "u":
 
-                list1 = svo_sent(prop_name, variables[0], "=", str2, oprop_name)
-                add_to_total_sent(total_sent, list1[0], list1[2])
-                list1[44] = get_sn(total_sent)
-                all_sent.append(list1)
+                list1 = svo_sent(output, output[14][0], "=", str2)
+                add_to_tsent(output[0], list1[0], list1[2])
+                list1[44] = get_sn(output[0])
+                output[1].append(list1)
             if k == 134 or k == 135:
-                all_sent[m][k] = variables[0] + "'s"
+                output[1][m][k] = output[14][0] + "'s"
             else:
-                all_sent[m][k] = variables[0]
-            abbreviations.update({variables[0]: str2})
-            del variables[0]
+                output[1][m][k] = output[14][0]
+            output[6].update({output[14][0]: str2})
+            del output[14][0]
         elif k == 134 or k == 135:
-            all_sent[m][k] = str3 + "'s"
+            output[1][m][k] = str3 + "'s"
         else:
-            all_sent[m][k] = str3
+            output[1][m][k] = str3
 
     return
 
 
-def artificial_sentence(all_sent):
-    assert all_sent[-1] == bottom or all_sent[-1] == consist
-    truth_value = False if all_sent[-1] == bottom else True
-    del all_sent[-1]
+def artificial_sentence(sent):
+    for snt in sent:
+        output[1].append(snt)
+    assert output[1][-1] == bottom or output[1][-1] == consist
+    truth_value = False if output[1][-1] == bottom else True
+    del output[1][-1]
     return truth_value
 
 
 def shorten_sent():
-    for j, sent in enumerate(all_sent):
+    for j, sent in enumerate(output[1]):
         if len(sent) == 200:
             for i in range(140):
-                del all_sent[j][-1]
+                del output[1][j][-1]
 
     return
 

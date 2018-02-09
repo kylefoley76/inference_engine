@@ -1,16 +1,16 @@
 
+# from classes import *
 import pickle, re
 import json
 
-#
-# with open('z_dictionary.json', 'r') as f:
-#     dictionary = json.load(f)
 
-
-get_words_used = 0
 pkl_file = open('z_dict_words.pkl', 'rb')
 dictionary = pickle.load(pkl_file)
 pkl_file.close()
+
+
+
+get_words_used = 0
 
 cond_r = chr(8835)
 consist = "\u2102"  # consistency
@@ -253,9 +253,9 @@ pos_counterpart = lambda x, y, z: x[y.index(z)]
 
 standard_nouns = [8, 10, 11, 14, 15, 16, 17, 18, 19, 21, 23, 25,	27,	29,
                   31,	33,	35,	37,	39,	41]
+
 modifiable_nouns = [10, 11, 14, 15, 21, 23, 25,	27,	29,
                   31,	33,	35,	37,	39,	41]
-
 
 negative_positions = [12] + [x for x in range(121, 132)]
 
@@ -286,6 +286,15 @@ the_is_of_adjective = ["J", "is" + ua, "be" + ua, "are" + ua, "was" + ua,
                            "am" + ua, "were" + ua]
 
 spec_rel = the_is_of_adjective + the_is_of_group
+
+special_connectives = [iff, conditional, xorr, idisj]
+
+all_connectives = special_connectives + [implies, nonseq, "&"]
+
+conditionals = [conditional, iff]
+
+
+
 
 #
 # variables9 = [chr(98 + t) for t in range(25)]

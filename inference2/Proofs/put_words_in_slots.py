@@ -1,6 +1,7 @@
 from settings import *
-from general_functions import isvariable, build_sent_pos, determine_constants
-import  operator
+from general_functions import *
+# from general_functions import isvariable, build_sent_pos, determine_constants
+import operator
 
 category = 0
 sentence_slots = []
@@ -13,21 +14,20 @@ is_a_standard_sent = True
 order_of_definition = []
 
 
-
-
-
 def is_ad_hoc_sentence(list1):
     global ad_hoc_sentence
     if "concept" + ua in list1:
         ad_hoc_sentence =  True
 
 
-def categorize_words(abbreviations, list1, is_a_standard_sent2=True, connected_const=[], prop_name={},
-                     oprop_name={}, sub_words=False, recursive=False):  # zzz
+def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={}, oprop_name={}, sub_words=False,
+                     recursive=False):
 
     global slot, category, relation_type, word, sentence_slots, is_a_standard_sent
     global subclause_counter, order_of_definition
     is_a_standard_sent = is_a_standard_sent2
+    list1 = [None] * 4 + list1 + [None]
+    list1[3] = ""
     sentence_slots = [None] * 200
     for pos in negative_positions: sentence_slots[pos] = ""
 
@@ -41,7 +41,7 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, connected_c
     is_ad_hoc_sentence(list1)
 
     i = 3
-    while list1[i + 1] != None:
+    while list1[i] != None:
         i += 1
         if list1[i] == ',':
             del list1[i]
@@ -151,9 +151,7 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, connected_c
     sentence_slots[54] = places_used
     sentence_slots[47] = subclauses
     if not recursive:
-        negative, positive = determine_constants(abbreviations, places_used, sentence_slots, connected_const)
-        sentence_slots[58] = negative
-        sentence_slots[55] = positive
+        sentence_slots[58] = determine_constants(abbreviations, sentence_slots)
         sentence_slots[1] = build_sent_pos(sentence_slots)
         sentence_slots[0] = nbuild_sent(sentence_slots, sentence_slots)
         if not is_a_standard_sent:
@@ -423,15 +421,6 @@ def divide_the_i_relation():
                 category = 13.5
 
     return category
-
-
-def get_decision_procedure(sent, num, abbreviations):
-    raw_pos = get_part_of_speech(sent[num], abbreviations)
-    category = dictionary[10].get(sent[num])
-    category = place_in_decision_procedure(category, slot, word, raw_pos)
-    sent[45].append(tuple([num, category]))
-    sent[45] = sorted(sent[45], key=operator.itemgetter(1))
-    return
 
 
 def place_in_decision_procedure(category, slot, word, raw_pos):
