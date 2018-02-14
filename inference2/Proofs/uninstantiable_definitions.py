@@ -109,7 +109,7 @@ def determine_which_function_to_use(antecedent, list1, m, slot, category, kind, 
     elif category == 1:
         consequent, rule = eliminate_determiners(list1[m], slot)
     elif category == 2:
-        consequent, rule = eliminate_pronouns(list1[m], slot, kind)
+        consequent, rule = eliminate_pronouns(list1[m], slot)
     elif category == 3:
         consequent, rule = eliminate_common_name_possessives(list1[m], slot)
     elif category == 4:
@@ -243,10 +243,12 @@ def eliminate_determiners(list1, slot):
     word = list1[slot]
     list1[slot] = ""
     consequent = []
-    sentences = copy.deepcopy(dictionary[9].get(word))
+    cls = get_word_info(word)
+    cls = cls[0]
+    def_constants = dictionary[18].get(word)
+    sentences = json.loads(json.dumps(cls.sentences))
     abbrev_dict = {}
-    sentences = sentences[0]
-    change_constants(abbrev_dict, output, sentences[9])
+    change_constants(abbrev_dict, output, def_constants)
     instance = None
     new_pos = determiner_dict.get(slot)
     if word == 'the':
@@ -255,12 +257,15 @@ def eliminate_determiners(list1, slot):
     if instance == None:
         if word == 'the':
             definite_assignments.update({list1[new_pos]:output[14][0]})
-
-        abbrev_dict.update({sentences[32][0]: list1[new_pos], sentences[30][0]: output[14][0]})
+        concept = cls.def_stats.concept
+        instance = cls.def_stats.instance
+        abbrev_dict.update({concept: list1[new_pos], instance[0]: output[14][0]})
         list1[new_pos] = output[14][0]
         del output[14][0]
     else:
-        abbrev_dict.update({sentences[32][0]: list1[new_pos], sentences[30][0]: instance})
+        old_concept = cls.def_stats.concept
+        old_instance = cls.def_stats.instance
+        abbrev_dict.update({old_concept: list1[new_pos], old_instance[0]: instance})
         list1[new_pos] = instance
 
     replace_variables2(abbrev_dict, consequent, list1, sentences)
@@ -272,36 +277,34 @@ def eliminate_determiners(list1, slot):
 
 
 def replace_variables2(abbrev_dict, consequent, list1, sentences):
-    sentences[10] = list1
-    m = 11
-    while sentences[m] != None:
-        if sentences[m][13] != "R":
-            for noun in sentences[m][42]:
-                if sentences[m][noun] != "i":
-                    var = abbrev_dict.get(sentences[m][noun])
+    sentences[0] = list1
+    for sentence in sentences[1:]:
+        if sentence[13] != "R":
+            for noun in sentence[42]:
+                if sentence[noun] != "i":
+                    var = abbrev_dict.get(sentence[noun])
                     if var == None:
-                        abbrev_dict.update({sentences[m][noun]: output[14][0]})
-                        sentences[m][noun] = output[14][0]
+                        abbrev_dict.update({sentence[noun]: output[14][0]})
+                        sentence[noun] = output[14][0]
                         del output[14][0]
                     else:
-                        sentences[m][noun] = var
-            consequent.append(sentences[m])
-        m += 1
+                        sentence[noun] = var
+            consequent.append(sentence)
 
 
-def eliminate_pronouns(list1, slot, kind=""):
+def eliminate_pronouns(list1, slot):
     word = list1[slot]
     consequent = []
-    sentences = copy.deepcopy(dictionary[9].get(word))
+    cls = get_word_info(word)
+    cls = cls[0]
+    sentences = json.loads(json.dumps(cls.sentences))
     abbrev_dict = {}
-    sentences = sentences[0]
-    change_constants(abbrev_dict, output, sentences[9])
+    def_constants = dictionary[18].get(word)
+    change_constants(abbrev_dict, output, def_constants)
     new_var = get_key(output[6], word)
-    abbrev_dict.update({sentences[30][0]: new_var})
+    abbrev_dict.update({cls.def_stats.instance[0]: new_var})
     list1[slot] = new_var
-
     replace_variables2(abbrev_dict, consequent, list1, sentences)
-
     consequent.append(list1)
     rule = "DE " + word
 

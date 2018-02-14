@@ -4,9 +4,6 @@ import pickle
 import copy
 import json
 import sys
-import time
-from standard_order import order_sentence
-
 from analyze_definition import process_sentences
 
 
@@ -117,7 +114,7 @@ def build_dictionary():
         embed = worksheet.cell(row=i, column=7).value
         easy_embed = worksheet.cell(row=i, column=8).value
 
-        if word == 'spies on' or abbrev_relat == 'OFG':
+        if word == 'spiesx on' or abbrev_relat == 'TV':
             bb = 8
 
         if not not_blank(word) and not not_blank(next_word) and i > 300:
@@ -324,6 +321,7 @@ def print_new_definitions():
 
 
 def reduce_definitions():
+    global dictionary
 
     for definiendum, definition in dictionary[1].items():
 
@@ -332,7 +330,7 @@ def reduce_definitions():
         if definiendum != "0":
             bb = 8
 
-        # print (definiendum)
+            # print (definiendum)
 
             if pos[1] not in ["s", "d", "b"]:
 
@@ -340,8 +338,9 @@ def reduce_definitions():
 
                 definition = definition.replace("|", "")
 
-                process_sentences(definition, definiendum, dictionary)
+                dictionary = process_sentences(definition, definiendum, dictionary)
 
+    return dictionary
 
 
 
@@ -359,22 +358,16 @@ def start_pickle():
     ws = wb4.worksheets[0]
     third_sheet = wb4.worksheets[2]
 
-    if kind == 5:
-        print("dictionary built")
-        build_dictionary()
+    pkl_file = open('z_dict_words.pkl', 'rb')
+    dictionary = pickle.load(pkl_file)
+    pkl_file.close()
 
-        output = open('z_dict_words.pkl', 'wb')
-        pickle.dump(dictionary, output)
-        output.close()
-
-    else:
-
-        print ('dictionary built and reduced')
-        build_dictionary()
-        reduce_definitions()
-        output = open('z_dict_words.pkl', 'wb')
-        pickle.dump(dictionary, output)
-        output.close()
+    print ('dictionary built and reduced')
+    build_dictionary()
+    reduce_definitions()
+    output = open('z_dict_words.pkl', 'wb')
+    pickle.dump(dictionary, output)
+    output.close()
 
     if kind == 7:
         wb4 = load_workbook('/Users/kylefoley/Desktop/inference_engine/dictionary5.xlsx')

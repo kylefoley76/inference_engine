@@ -1,15 +1,12 @@
-
 from settings import *
 from general_functions import add_to_tsent, \
     build_contradiction2, get_key, name_and_build, get_sn
 
 import copy
 
-
-
 exclusive_class = ['moment', 'relationship', 'point', 'number',
-            'imagination', 'concept' + un, "property" + un, 'property',
-            'possible world', 'letter', 'mind', 'matter', 'sensorium']
+                   'imagination', 'concept' + un, "property" + un, 'property',
+                   'possible world', 'letter', 'mind', 'matter', 'sensorium']
 
 atomic_dict1 = {}
 atomic_dict2 = {}
@@ -20,8 +17,8 @@ thing_sent = []
 lemma_name = ""
 build_rename = lambda x: " ".join(x)
 
-def use_basic_lemmas(output2, pos, sent, atomic_dict3, atomic_dict4):
 
+def use_basic_lemmas(output2, pos, sent, atomic_dict3, atomic_dict4):
     global atomic_dict1, atomic_dict2
     global output, second_sent
     output = output2
@@ -30,6 +27,7 @@ def use_basic_lemmas(output2, pos, sent, atomic_dict3, atomic_dict4):
     second_sent = sent
 
     return add_to_class(pos, sent, atomic_dict1, atomic_dict2)
+
 
 def add_to_class(pos, sent, atomic_dict1, atomic_dict2):
     global first_sent
@@ -48,7 +46,7 @@ def add_to_class(pos, sent, atomic_dict1, atomic_dict2):
 
 
 def add_basic_lemmas(abbrev):
-    global  cond1, cond2, thing_sent, lemma_name
+    global cond1, cond2, thing_sent, lemma_name
 
     obj_pos1 = 10 if first_sent[10] == abbrev else 14
     obj_pos2 = 10 if second_sent[10] == abbrev else 14
@@ -80,12 +78,12 @@ def add_basic_lemmas(abbrev):
     build_sentences(cond1, cond2, thing_sent, lemma_name)
     output[13].setdefault(lemma_name, []).append(output[0][-1])
 
-    #(b S c) & (d I e) ⊢ (d ~ B b) & (e=thing)
+    # (b S c) & (d I e) ⊢ (d ~ B b) & (e=thing)
 
     build_translated_lemma(name, cond1, cond2, thing_sent)
 
-def build_translated_lemma(name, cond1, cond2, thing_sent):
 
+def build_translated_lemma(name, cond1, cond2, thing_sent):
     old_var = ["b", "c", "d", "e"]
     new_var = [output[14][x] for x in range(3)]
     for x in range(3): del output[14][0]
@@ -95,7 +93,7 @@ def build_translated_lemma(name, cond1, cond2, thing_sent):
     implication_template(name, cond2, thing_sent, new_var[0], new_var[1], new_var[2])
     rename_template(old_var, new_var, "TR", idd)
 
-    #(b > w) (c > u) (d > v) (e > t)
+    # (b > w) (c > u) (d > v) (e > t)
 
     del new_var[-1]
     build_sentences(cond1, cond2, thing_sent, "SUBI")
@@ -106,13 +104,15 @@ def build_translated_lemma(name, cond1, cond2, thing_sent):
 
     return
 
+
 def build_instantiated_lemma(kind, new_var):
     var1, var2 = first_sent[10], first_sent[14]
 
-    if kind in ["SS", "OS"]: var3 = second_sent[14]
+    if kind in ["SS", "OS"]:
+        var3 = second_sent[14]
 
-    elif kind in ["SO", "OO"]: var3 = second_sent[10]
-
+    elif kind in ["SO", "OO"]:
+        var3 = second_sent[10]
 
     instantiated_var = [var1, var2, var3]
 
@@ -123,11 +123,10 @@ def build_instantiated_lemma(kind, new_var):
     output[0][-1][5] = anc1 - 1
     output[0][-1][6] = anc1 - 2
 
-
     sent1 = build_connection(second_sent[0], implies, thing_sent2[0])
     sent1p = build_connection(second_sent[2], implies, thing_sent2[2])
 
-    #(d B b) ⊢ (d I t)
+    # (d B b) ⊢ (d I t)
 
     add_to_tsent(output[0], sent1, sent1p, "", "LE ENT")
 
@@ -138,7 +137,7 @@ def build_instantiated_lemma(kind, new_var):
     conjunction = build_conjunction([first_sent[1], thing_sent2[1]])
     conjunctionp = build_conjunction([first_sent[2], thing_sent2[2]])
 
-    #(d B b) & (d I t)
+    # (d B b) & (d I t)
 
     add_to_tsent(output[0], conjunction, conjunctionp, "", "&I", get_sn(output[0]), first_sent[44])
 
@@ -147,7 +146,7 @@ def build_instantiated_lemma(kind, new_var):
     contradiction = build_contradiction2(second_sent[1])
     contradictionp = build_contradiction2(second_sent[2])
 
-    #(w > b) (u > c) (v > d)
+    # (w > b) (u > c) (v > d)
 
     rename_template(new_var, instantiated_var, "IN", mini_c)
 
@@ -163,7 +162,6 @@ def build_instantiated_lemma(kind, new_var):
     add_to_tsent(output[0], bottom, bottom, "", bottom + "I", get_sn(output[0]))
 
     return
-
 
 
 def get_concept_thing():
@@ -183,7 +181,6 @@ def rename_template(ovar, new_var, rule, sign):
     output[13].setdefault(lemma_name, []).append(output[0][-1])
 
 
-
 def implication_template(kind, cond2, thing_sent, var1, var2, var3):
     thing_sent[10] = var3
     if kind == "SS":
@@ -200,7 +197,6 @@ def implication_template(kind, cond2, thing_sent, var1, var2, var3):
 
 
 def build_sentences(cond1, cond2, thing_sent, rule):
-
     first = True if rule.startswith("LY") else False
     othing_sent = "(e = thing)"
     name_and_build(output, cond1)
@@ -208,7 +204,7 @@ def build_sentences(cond1, cond2, thing_sent, rule):
     name_and_build(output, thing_sent)
 
     conjunction = build_conjunction([cond1[0], thing_sent[0]])
-    implication =  build_connection(conjunction, implies, cond2[0])
+    implication = build_connection(conjunction, implies, cond2[0])
     implication = "(" + implication + ") & " + othing_sent if first else implication
 
     implicationp = ""
@@ -219,7 +215,6 @@ def build_sentences(cond1, cond2, thing_sent, rule):
     ## (b S c) & (d I e) ⊢ ~(d B b)
 
     add_to_tsent(output[0], implication, implicationp, "", rule)
-
 
 
 def get_class(sent, pos, property=""):
@@ -256,8 +251,6 @@ def get_class(sent, pos, property=""):
             kind = sent[14] + "-object"
     elif relat == "I" and pos == 14:
         kind = "concept" + un
-    elif relat == "H" and pos == 14:
-        kind = "property" + un
     elif relat == "J" and pos == 14:
         kind = "property"
     elif relat == "W" and pos == 10:
@@ -288,4 +281,3 @@ def get_class(sent, pos, property=""):
     kind = "thing" if kind == "" else kind
 
     return kind
-

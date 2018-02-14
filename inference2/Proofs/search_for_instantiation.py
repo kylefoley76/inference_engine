@@ -157,26 +157,29 @@ def reduce_hypotheticals_in_premises():
                 j -= 1
                 osent = sent
                 sent_class, old_prop = process_sentences(sent, quant_counter, dictionary, output)
-                # universal_negations(sentences, output)
                 sent_class = sent_class[0]
                 anc1 = ""
+                sentences = sent_class.sentences
+                definiendum, done = universal_negations(sent_class, output)
+
                 if quantifier:
+                    definiendum = "qu" + quant_counter
                     anc1 = find_counterpart_inlist(osent, output[0], 1, 0)
                     assert anc1 != None
 
                 asent_idx = name_connected_sent(osent, old_prop, sent_class, quantifier, anc1)
-                sentences = sent_class.sentences
                 lst = [x for x in range(len(sentences))]
                 skeleton = get_lesser_skeleton(lst, sentences)
                 output[4].append(skeleton)
                 output[5].setdefault(skeleton, []).append(asent_idx)
-
-        if quantifier:
-            add_to_gsent(sentences, "qu" + quant_counter)
-            output[15].update({"qu" + quant_counter: sentences})
-            for x in range(len_asent, len(output[1])):
-                raise Exception
-                do_not_instantiate.append([x, len(output[2]) - 1])
+                if quantifier or definiendum == 'thing':
+                    sent_class.def_stats.def_word = definiendum
+                    sent_class.def_stats.def_word_num = definiendum + "0"
+                    if quantifier: add_to_gsent([sent_class], output)
+                    output[15].update({definiendum + "0": sent_class})
+                    do_not_instantiate.append([j + 1, definiendum])
+                    for x in range(len_asent, len(output[1])):
+                        do_not_instantiate.append([x, definiendum])
 
     return
 
@@ -206,7 +209,7 @@ def name_connected_sent(osent, old_prop, sent_class, quantifier, anc1=""):
         else:
             output[1].append(sentence)
             asent_idx.append(len(output[1]) - 1)
-        greek_english.update({sentence[5]: sentence[3] + sentence[0]})
+        greek_english.update({sentence[5]: sentence[0]})
         greek_english_abb.update({sentence[5]: sentence[3] + sent_abb})
         if artificial:
             for o in sentence[42]:
@@ -228,7 +231,7 @@ def name_connected_sent(osent, old_prop, sent_class, quantifier, anc1=""):
         if quantifier:
             add_to_tsent(output[0], new_greek, new_greek_abb, "", "ASC", get_sn(output[0]))
         else:
-            add_to_tsent(output[0], new_greek, new_greek_abb, "", "ASC", anc1)
+            add_to_tsent(output[0], new_greek, new_greek_abb, "", "ASC", get_sn(output[0]))
 
     sent_class.def_stats.tot_sent_idx = get_sn(output[0])
 
@@ -335,14 +338,13 @@ def add_disjuncts2(tran_disjuncts, qn, definiendum, rn_list):
     for disjunct in tran_disjuncts:
         if disjunct != 0:
             output[13].setdefault(xorr + " " + definiendum, []).append(rn_list)
-            add_to_tsent(output[0], disjunct[1], "", "", "SUBI", qn -1, qn)
+            add_to_tsent(output[0], disjunct[1], "", "", "SUBI", qn - 1, qn)
             output[13].setdefault(xorr + " " + definiendum, []).append(output[0][-1])
-
 
 
 def translate_abbreviations(lst, definiendum):
     # in the map var the old output[14] are on the left and the new ones are ont he right
-    if definiendum == 'mind':
+    if definiendum == 'GN':
         bb = 8
     conjunctive_definition = False
     map_var = {}
@@ -354,7 +356,6 @@ def translate_abbreviations(lst, definiendum):
         conjunctive_definition = True
         add_to_tsent(output[0], dictionary[1].get(definiendum), "", "", "DF " + definiendum)
         anc1 = get_sn(output[0])
-        output[13].setdefault(definiendum, []).append(output[0][-1])
 
     for m, cls in enumerate(lst):
         def_stats = cls.def_stats
@@ -366,8 +367,8 @@ def translate_abbreviations(lst, definiendum):
             add_to_tsent(output[0], def_stats.natural_sent, "", "", "CE", anc1)
         else:
             add_to_tsent(output[0], def_stats.natural_sent, "", "", "DF " + definiendum)
-        def_stats.tot_sent_idx = get_sn(output[0])
         output[13].setdefault(definiendum + str(m), []).append(output[0][-1])
+        def_stats.tot_sent_idx = get_sn(output[0])
         pn = get_sn(output[0])
         add_disjuncts(cls, definiendum)
 
@@ -403,13 +404,13 @@ def translate_abbreviations(lst, definiendum):
             already_used_map = {**map_var, **already_used_map}
             map_var = {}
             qn = get_sn(output[0]) + 1
-            add_to_tsent(output[0], rn_sent, "", "", "TR")
+            add_to_tsent(output[0], rn_sent, "", "", "TR", "id")
             rn_list = output[0][-1]
             output[13].setdefault(definiendum + str(m), []).append(output[0][-1])
             add_to_tsent(output[0], greek_definition, "", "", "SUBI", pn, 0)
             output[13].setdefault(definiendum + str(m), []).append(output[0][-1])
-            add_disjuncts2(tran_disjuncts, qn, definiendum, rn_list)
             def_stats.tot_sent_idx = get_sn(output[0])
+            add_disjuncts2(tran_disjuncts, qn, definiendum, rn_list)
             def_stats.natural_sent = greek_definition
 
     return
@@ -428,6 +429,7 @@ def translate_greek_disjuncts(ogreek, sent, tran_disjuncts):
             tran_disjunct[1] = tran_disjunct[1].replace(ogreek, sent[0])
 
     return tran_disjuncts
+
 
 def build_trans_sent(map_var):
     list1 = []
@@ -463,13 +465,9 @@ def get_hypotheticals(start):
 
         if findposinmd("DF " + word, output[0], 4) == -1 and word not in done:
             if word in dictionary[9].keys():
-                with open("json_dict/" + word + ".json", "r") as fp:
-                    lst_sent = json.load(fp)
-                item1 = dictionary[9].get(word)
-                for x, y in zip(lst_sent, item1):
-                    y.sentences = x
+                item1 = get_word_info(word)
 
-                add_to_gsent(item1, output, word)
+                add_to_gsent(item1, output)
                 for j, itm in enumerate(item1):
                     output[15].update({word + str(j): itm})
                 translate_abbreviations(item1, word)
@@ -485,10 +483,9 @@ def try_instantiation(output2, artificial2):
     consistent = True
     identities = []
     do_not_instantiate = []
-    rel_abbrev = []
+    rel_abbrev = set()
     atomic_dict1 = {}
     atomic_dict2 = {}
-
     output = output2
     artificial = artificial2
 
@@ -520,7 +517,7 @@ def step_one():
 
     loop_through_gsent()
 
-    output = rearrange("last", output, consistent, artificial)
+    output = rearrange("last", output, consistent, artificial, rel_abbrev)
 
 
 def use_basic_lemmas2(begin, end):
@@ -548,16 +545,15 @@ def get_relevant_abbreviations(begin):
     if begin == 0:
         for k in output[6].keys():
             if isvariable(k):
-                rel_abbrev.append(k)  # todo this rule might contradict the one below
+                rel_abbrev.add(k)  # todo this rule might contradict the one below
 
     for sent in output[1][begin:]:
         for noun in sent[42]:
             if sent[noun] == 'x':
                 bb = 8
 
-            if sent[noun] not in rel_abbrev and not universal(sent, noun):
-                # and sent[7] == 'c':
-                rel_abbrev.append(sent[noun])
+            if not universal(sent, noun):
+                rel_abbrev.add(sent[noun])
 
     return
 
@@ -566,7 +562,14 @@ def delete_irrelevant_lsent(begin):
     list1 = []
     for e in range(begin, len(output[1])):
         sent = output[1][e]
-        if all(sent[x] not in rel_abbrev for x in sent[42]):
+        if sent[13] == 'I':
+            if any(sent2[10] in rel_abbrev and sent2[13] == 'H'
+                   and sent2[14] == sent[10] for sent2 in output[1]):
+                pass
+            else:
+                sent[0] = 'irrelevant'
+
+        elif all(sent[x] not in rel_abbrev for x in sent[42]):
             sent[0] = 'irrelevant'
             list1.append(e)
 
@@ -575,7 +578,7 @@ def delete_irrelevant_lsent(begin):
         for k, v in output[5].items():
             j = 0
             while j < len(v):
-                if v[j][0] in list1:
+                if v[j] in list1:
                     del v[j]
                     if v == []:
                         delete_this.append(k)
@@ -605,10 +608,19 @@ def is_exceptional(matrix, j):
     return False
 
 
+def instantiable(lconstant, gconstant):
+    lst = output[5].get(lconstant)
+    for num in lst:
+        if [num, gconstant] not in do_not_instantiate:
+            return True
+    return False
+
+
 def build_matrix(matrix, gstart, gstop, lstart, lend):
     for lconstant in output[4][lstart:lend]:
         for gconstant in output[2][gstart: gstop]:
-            matrix.append([lconstant, gconstant[0], gconstant[1], gconstant[2]])
+            if instantiable(lconstant, gconstant[0]):
+                matrix.append([lconstant, gconstant[0], gconstant[1], gconstant[2]])
 
     return
 
@@ -618,6 +630,7 @@ def loop_through_gsent():
     if not consistent: return
     for x in output[6].values(): assert not x.islower() or len(x) > 1
     matrix = []
+    prev_instant = []
     output[4] = sorted(list(set(output[4])))
     delete_irrelevant_lsent(0)
     build_matrix(matrix, 0, len(output[2]), 0, len(output[4]))
@@ -631,9 +644,6 @@ def loop_through_gsent():
         if z > 800: raise Exception("caught in infinite loop")
 
         word = matrix[j][3]
-        if word == "" or j == 28:
-            bb = 8
-
         len_gsent = len(output[2])
         len_lsent = len(output[4])
         len_asent = len(output[1])
@@ -642,18 +652,17 @@ def loop_through_gsent():
         if matrix[j][0] == matrix[j][1] or is_exceptional(matrix, j):
             # print(word)
 
-            if matrix[j][0] == "INM b" or j == 8 or word == 'natural' + ur:
+            if matrix[j][3] == "person0" or j == 100 or word == 'natural' + ur:
                 bb = 8
 
-            used_possibilities = loop_through_gsent2(possibilities, matrix, j)
+            used_possibilities = loop_through_gsent2(possibilities, matrix, prev_instant, j)
             if used_possibilities != []:
                 reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, used_possibilities)
                 if not consistent: return
 
         elif j == len(matrix) - 1:
-            last_resort_axioms(j, len_gsent, matrix)
+            last_resort_axioms(j, matrix)
             if not consistent: return
-
         j += 1
 
     if consistent:
@@ -662,7 +671,7 @@ def loop_through_gsent():
     return
 
 
-def reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, used_possibilities):
+def reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, used_possibilities, definiendum=""):
     global output
     use_basic_lemmas2(len_asent, len(output[1]))
     if not consistent: return
@@ -675,7 +684,9 @@ def reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, used_possibil
             do_not_instantiate.append([snum, matrix[j][3]])
         for possibility in used_possibilities:
             do_not_instantiate.append([possibility[0], matrix[j][3]])
-        ax_idt_no_inst(len_asent, do_not_instantiate)
+    else:
+        for snum in range(len_asent, len(output[1])):
+            do_not_instantiate.append([snum, definiendum + "0"])
     delete_irrelevant_lsent(len_asent)
     get_hypotheticals(len_asent)
     build_matrix(matrix, 0, len(output[2]), len_lsent, len(output[4]))
@@ -683,52 +694,63 @@ def reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, used_possibil
     return
 
 
-def ax_idt_no_inst(len_asent, do_not_instantiate):
-    m = len(output[0]) - 1
-    while output[0][m][4] == "&E":
-        m -= 1
-    if output[0][m][4] == 'AY IDT':
-        for snum in range(len_asent, len(output[1])):
-            do_not_instantiate.append([snum, len(output[2]) - 1])
+def eliminate_impossibilities(possibilities, ndefiniendum):
+    i = 0
+    while i < len(possibilities):
+        k = 0
+        while k < len(possibilities[i]):
+            if isinstance(possibilities[i][k], int):
+                if [possibilities[i][k], ndefiniendum] in do_not_instantiate:
+                    del possibilities[i][k]
+                    k -= 1
+            k += 1
+        i += 1
+
+    return
 
 
-def loop_through_gsent2(possibilities, matrix, j):
+def loop_through_gsent2(possibilities, matrix, prev_instant, j):
     ndefiniendum = matrix[j][3]
     detacher = matrix[j][2]
     fake_lsent = copy.deepcopy(output[5])
     cls = output[15].get(ndefiniendum)
+    disj_cls = ""
     if detacher == 0:
         cls.def_stats.detacher = 0
         remaining_conditions = cls.def_stats.ant_index
     elif detacher == 1:
         cls.def_stats.detacher = 1
         remaining_conditions = cls.def_stats.con_index
+    elif cls.def_stats.def_word == 'thing':
+        cls.def_stats.now_disjunctive = cls.disjuncts[detacher - 2]
+        remaining_conditions = cls.disjuncts[detacher - 2]
+        cls.def_stats.detacher = 0
+        detacher = 0
     else:
-        _ = list(cls.disjuncts)[detacher - 2].index1
-        remaining_conditions = _
+        disj_cls = cls.disjuncts[detacher - 2]
+        remaining_conditions = disj_cls.index1
 
     possibilities.append(fake_lsent.get(matrix[j][0]))
     gsent_pos = copy.deepcopy(remaining_conditions)
+    eliminate_impossibilities(possibilities, ndefiniendum)
 
-    if [possibilities[0][0], ndefiniendum] in do_not_instantiate:
+    if possibilities == [[]]:
         return []
     elif len(remaining_conditions) > 1:
-        b = 0
         comp_num = 0
         sentences = cls.sentences
         for gindex in remaining_conditions[1:]:
             if isinstance(gindex, list):
-                gconstant, comp_num = get_complex_constant(cls, comp_num)
+                gconstant, comp_num = get_complex_constant(cls, comp_num, detacher, disj_cls)
             else:
                 gconstant = sentences[gindex][58]
-            if gconstant == matrix[j][0]:
+            if gconstant == matrix[j][0] or gconstant == 'thing':
                 pass
             else:
                 lindexes = output[5].get(gconstant)
                 if lindexes != None:
                     for lst in lindexes:
                         if [lst, ndefiniendum] not in do_not_instantiate:
-                            b += 1
                             possibilities.append(lindexes)
                             break
                     else:
@@ -746,7 +768,7 @@ def loop_through_gsent2(possibilities, matrix, j):
                 i += 1
 
     cls.def_stats.detacher = detacher
-    return loop_through_gsent3(possibilities, cls, flatten_list(gsent_pos))
+    return loop_through_gsent3(possibilities, cls, prev_instant, flatten_list(gsent_pos))
 
 
 def flatten_list(lst):
@@ -760,26 +782,35 @@ def flatten_list(lst):
     return list2
 
 
-def get_complex_constant(cls, comp_num):
-    if cls.def_stats.detacher == 0:
+def get_complex_constant(cls, comp_num, detacher, disj_cls):
+    if detacher == 0:
         gconstant = list(cls.def_stats.ant_comp_const)[comp_num]
-    elif cls.def_stats.detacher == 1:
+    elif detacher == 1:
         gconstant = list(cls.def_stats.con_comp_const)[comp_num]
+    else:
+        gconstant = disj_cls.comp_const[comp_num]
     comp_num += 1
+
     return gconstant, comp_num
 
 
 def rearrange_matrix(matrix, j, detacher, remaining_conditions, gconstant, gindex):
     remaining_conditions.remove(gindex)
-    old_gconstant = matrix[j][1]
+    gsent = matrix[j][3]
     remaining_conditions.insert(0, gindex)
     for k in range(j + 1, len(matrix)):
-        if matrix[k][1] == old_gconstant and matrix[k][2] == detacher:
+        if matrix[k][3] == gsent and matrix[k][2] == detacher:
             matrix[k][1] = gconstant
+
+    for e, lst in enumerate(output[2]):
+        if lst[2] == gsent:
+            lst[0] = gconstant
+            break
+
     return
 
 
-def loop_through_gsent3(possibilities, cls, gsent_pos):
+def loop_through_gsent3(possibilities, cls, prev_instant, gsent_pos):
     global output, consistent
 
     dead_combinations = []
@@ -793,16 +824,17 @@ def loop_through_gsent3(possibilities, cls, gsent_pos):
         abbrev_dict, match_found = variables_match(gsent_pos, possibility, cls, dead_combinations)
         if match_found:
             if cls.def_stats.def_word == 'thing':
-                pos = universal_instantiation(abbrev_dict, possibility)
+                pos = universal_instantiation(abbrev_dict, possibility, cls)
                 conj_intro_pos[e] = pos
+            if [possibility, cls.def_stats.def_word_num] not in prev_instant:
+                consistent = change_abbrev(abbrev_dict, cls, conj_intro_pos[e], output)
+                prev_instant.append([possibility, cls.def_stats.def_word_num])
 
-            consistent = change_abbrev(abbrev_dict, cls, conj_intro_pos[e], output)
+                if not consistent:
+                    return used_possibilities.append(possibility)
 
-            if not consistent:
-                return used_possibilities.append(possibility)
-
-            else:
-                used_possibilities.append(possibility)
+                else:
+                    used_possibilities.append(possibility)
 
     return used_possibilities
 
@@ -904,65 +936,87 @@ def is_dead_combination(dead_detach, possibility):
     return False
 
 
-def universal_instantiation(abbrev_map, possibility):
-    if len(possibility) > 1: raise Exception('you havent coded for this yet')
+def get_detach_idx(possibility, k):
+    for num in possibility:
+        sent = output[1][num]
+        for noun in sent[42]:
+            if sent[noun] == k:
+                return num
+    raise Exception('you failed to find the thing sentence')
+
+
+def universal_instantiation(abbrev_map, possibility, cls):
+    # the thing conditional's remaining conditions always has the consq
+    # first, so for conj intro, we must use all of the nums in the possibility
+    # except the first one
     ant_set = []
     ant_setp = []
     ancestors = []
+    sentences = cls.sentences
+    thing_concept = get_key(output[6], 'thing')
 
     for k, v in abbrev_map.items():
-        str1 = "(" + k + " I " + get_key(output[6], 'thing') + ")"
-        str1p = name_sent(str1, output[8])
-        output[9][str1p] = str1
-        ant_set.append(str1)
-        ant_setp.append(str1p)
-        sent1 = output[1][possibility[0]][0] + " " + implies + " " + str1
-        sent1p = output[1][possibility[0]][2] + " " + implies + " " + str1p
-        add_to_tsent(output[0], sent1, sent1p, "", "LE ENT")
-        add_to_tsent(output[0], str1, str1p, "", "MP", 0, output[1][possibility[0]][44])
-        ancestors.append(str(get_sn(output[0])))
+        for sent in sentences:
+            if sent[10] == v and sent[13] == 'I' and sent[14] == thing_concept:
+                str1 = "(" + k + " I " + thing_concept + ")"
+                str1p = name_sent(str1, output[8])
+                output[9][str1p] = str1
+                ant_set.append(str1)
+                ant_setp.append(str1p)
+                if len(possibility) > 1:
+                    idx = get_detach_idx(possibility, k)
+                else:
+                    idx = possibility[0]
 
-    if len(abbrev_map.keys()) > 1:
-        antecedent = " & ".join(ant_set)
-        antecedentp = " & ".join(ant_setp)
-        add_to_tsent(output[0], antecedent, antecedentp, "", "&I", ",".join(ancestors))
+                sent1 = output[1][idx][0] + " " + implies + " " + str1
+                sent1p = output[1][idx][3] + output[1][idx][2] + " " + implies + " " + str1p
+                add_to_tsent(output[0], sent1, sent1p, "", "LE ENT")
+                add_to_tsent(output[0], str1, str1p, "", "MP", 0, output[1][possibility[0]][44])
+                ancestors.append(get_sn(output[0]))
 
-    return [get_sn(output[0])]
+    for num in possibility[1:]:
+        ancestors.append(output[1][num][44])
+
+    return ancestors
 
 
-def last_resort_axioms(j, len_gconst, matrix):
-    global output, consistent
+def last_resort_axioms(j, matrix):
+    global output, consistent, rel_abbrev
     len_gsent = len(output[2])
     len_lsent = len(output[4])
     len_asent = len(output[1])
-    found = False
-    for e, lst in enumerate(output[2]):
-        if lst[0].startswith("qu"):
-            v = output[15].get(lst[0])
-            k = lst[0]
-            if v[0][86] == None:
-                v[0][86] = 'instantiated'
-                abbrev_dict = {}
-                found = True
+    total_constants = list(output[6].keys()) + output[10]
+    for con in total_constants:
+        if isvariable(con):rel_abbrev.add(con)
 
-                sentences = copy.deepcopy(v[0])
-                _, pos = mainconn(v[0][2])
-
-                sentences[2] = sentences[2][:pos] + "&" + sentences[2][pos + 1:]
-                m = 10
-                while sentences[m] != None and sentences[m][7][-1] in ['a', 'b']:
-                    for var in sentences[m][42]:
-                        value = abbrev_dict.get(sentences[m][var])
-                        if value == None:
-                            abbrev_dict.update({output[14][0]: sentences[m][var]})
+    n = len(output[15])
+    for itm in range(n):
+        item1 = list(output[15])[itm]
+        cls = output[15].get(item1)
+        if not cls.def_stats.already_instantiated:
+            sentences = cls.sentences
+            definiendum = cls.def_stats.def_word
+            abbrev_dict = {}
+            relevant = False
+            for num in cls.def_stats.ant_index:
+                if isinstance(num, int):
+                    for idx in sentences[num][42]:
+                        if sentences[num][idx] not in total_constants and \
+                                sentences[num][idx] not in abbrev_dict.values():
+                            abbrev_dict.update({output[14][0]: sentences[num][idx]})
                             del output[14][0]
-                    m += 1
+                        if sentences[num][idx] in rel_abbrev:
+                            relevant = True
+                        elif sentences[num][58] not in output[4]:
+                            relevant = True
 
-                consistent = change_abbrev(abbrev_dict, k, [sentences[3]], output)
+            if relevant:
+                tot_idx = cls.def_stats.tot_sent_idx
+                consistent = change_abbrev(abbrev_dict, cls, [tot_idx], output, "ax ind tense")
+                get_relevant_abbreviations(len_asent)
+                reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, [], definiendum)
+                len_gsent = len(output[2])
+                len_lsent = len(output[4])
+                len_asent = len(output[1])
 
-                for num in range(len_asent, len(output[1])):
-                    do_not_instantiate.append([num, e])
-
-    if found:
-        get_relevant_abbreviations(len_asent)
-        reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, [])
+    return

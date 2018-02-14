@@ -1,12 +1,9 @@
-
-
 from general_functions import *
 from collections import defaultdict
 from uninstantiable_definitions import define_irregular_terms
 from search_for_instantiation import try_instantiation
 import sys, operator
 from put_words_in_slots import categorize_words, place_in_decision_procedure
-
 
 prop_var = [chr(122 - t) for t in range(26)]
 prop_var2 = [chr(122 - t) + "\u2081" for t in range(26)]
@@ -28,7 +25,6 @@ variables4.remove("l" + l2)
 variables5 = [chr(122 - t) + l3 for t in range(26)]
 variables5.remove("l" + l3)
 variables2 = variables + variables3 + variables4 + variables5
-
 
 inferences = []
 get_words_used = 0
@@ -120,11 +116,9 @@ def obtain_truth_value():
     sent = output[1][0]
     sent = sent.replace("!", "|")
     sentence = tran_str(sent)
-    add_to_tsent(output[0], "CLAIM " + str(sent[0]) + ": " + sentence)
-    add_to_tsent(output[0], "ABBREVIATIONS")
+    add_to_tsent(output[0], "CLAIM " + str(sent[0]) + ": " + sentence, "", "", "", "natural")
 
     if len(sentence) < 22:
-
         raise Exception(
             "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
 
@@ -153,8 +147,8 @@ def step_one(sent):
     inferences = []
     output = [[], [], [], [], [], {}, {}, [], {}, {}, [], [], [], {}, [], {}, []]
     words_used = []
-    output[14] = copy.deepcopy(variables2)
-    output[7] = copy.deepcopy(prop_var2)
+    output[14] = json.loads(json.dumps(variables2))
+    output[7] = json.loads(json.dumps(prop_var2))
     output[8] = defaultdict(lambda: output[7].pop(), {})
 
     if "(" in sent[0]:
@@ -193,11 +187,7 @@ def step_one(sent):
         shorten_sent()
 
     if consistent:
-
         output, consistent = try_instantiation(output, artificial)
-
-
-
 
     return truth_value == consistent, output[0]
 
@@ -217,7 +207,7 @@ def divide_sent():
         output[1][i][2] = sentp
         output[1][i][3] = ""
         for j in range(len(words_in_sent)): output[1][i][j + 4] = words_in_sent[j]
-        add_to_tsent(output[0], sent, sentp, "", "")
+        add_to_tsent(output[0], sent, sentp, "", "", "natural")
         output[1][i][44] = get_sn(output[0])
 
     return
@@ -255,7 +245,7 @@ def eliminate_redundant_words():
 
         if bool1:
             bool1 = False
-            sent[54] = [x for x in range(4,j)]
+            sent[54] = [x for x in range(4, j)]
             sent[1] = build_sent_pos(sent)
             sent[3] = ""
             sent[0] = sent[3] + sent[1]
@@ -304,7 +294,6 @@ def replace_determinative_nouns():
             add_to_tsent(output[0], definition, "", "", rule)
             inferences.append([sent[0], sent[2], "", "EF", ant_sentp, qn, is_standard(sent)])
 
-
     return
 
 
@@ -341,7 +330,6 @@ def replace_synonyms():
             if j == 6:
                 bb = 8
 
-
             if word_order[j][1] == 18:
                 i = word_order[j][0]
 
@@ -363,7 +351,8 @@ def replace_synonyms():
         if replacement_made:
             direct_equivalence(output, ant_sent, ant_sentp, output[1][m], "SUB")
             output[1][m][45] = sorted(output[1][m][45], key=operator.itemgetter(1))
-            inferences.append([output[1][m][0], output[1][m][2], "", "EF", ant_sentp, get_sn(output[0]), is_standard(output[1][m])])
+            inferences.append(
+                [output[1][m][0], output[1][m][2], "", "EF", ant_sentp, get_sn(output[0]), is_standard(output[1][m])])
 
     return
 
@@ -404,7 +393,8 @@ def replace_special_synonyms():
             j += 1
         if replacement_made:
             direct_equivalence(output, ant_sent, ant_sentp, output[1][m], rule)
-            inferences.append([output[1][m][0], output[1][m][2], "", "EF", ant_sentp, get_sn(output[0]), is_standard(output[1][m])])
+            inferences.append(
+                [output[1][m][0], output[1][m][2], "", "EF", ant_sentp, get_sn(output[0]), is_standard(output[1][m])])
 
     return
 
@@ -463,7 +453,7 @@ def word_sub():
                 if output[1][m][54].index(12) > output[1][m][54].index(13):
                     g = output[1][m][54].index(12)
                     del output[1][m][54][g]
-                    output[1][m][54].insert(g-1, 12)
+                    output[1][m][54].insert(g - 1, 12)
             except:
                 pass
 
@@ -480,7 +470,6 @@ def replace_word_w_variable(m, k, str2):
         if str3 == None:
             pos = dictionary[0].get(str2)
             if len(pos) > 1 and pos[1] == "u":
-
                 list1 = svo_sent(output, output[14][0], "=", str2)
                 add_to_tsent(output[0], list1[0], list1[2])
                 list1[44] = get_sn(output[0])
@@ -515,6 +504,3 @@ def shorten_sent():
                 del output[1][j][-1]
 
     return
-
-
-

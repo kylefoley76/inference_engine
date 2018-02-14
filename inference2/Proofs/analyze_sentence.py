@@ -5,6 +5,8 @@ from classes import *
 import collections
 
 import re
+
+
 # one_sentence = lambda x: not re.search(xorr + "|" + iff + "|" + idisj + "|" +
 #                                            conditional + "|&", x)
 # cond_r = chr(8835)
@@ -31,7 +33,10 @@ def replace_w_greek(sentence):
     list1 = [x for x in sentence]
     erase_next_parent = False
     for i, letter in enumerate(list1):
-        if i > 0 and list1[i - 1] == "(" and letter.islower():
+        if letter == "~":
+            bb = 8
+
+        if i > 0 and list1[i - 1] == "(" and (letter.islower() or letter == "~"):
             j += 1
             list1[i] = chr(j)
             list1[i - 1] = " "
@@ -47,7 +52,7 @@ def replace_w_greek(sentence):
     return sent
 
 
-def find_sentences(sentence, definiendum="", embed = False):
+def find_sentences(sentence, definiendum="", embed=False):
     if sentence == None:
         raise Exception("\n missing word in dictionary \n")
 
@@ -69,6 +74,10 @@ def find_sentences(sentence, definiendum="", embed = False):
 
     sentence = remove_extra_paren(sentence, embed)
     result = [None] * 9
+    tilde = False
+    if "~(" in sentence:
+        tilde = True
+        sentence = sentence.replace("~(", "(~")
     sentences = []
     greek_sent = replace_w_greek(sentence)
     greek_sentences = []
@@ -83,7 +92,6 @@ def find_sentences(sentence, definiendum="", embed = False):
     sentences.append(sentence)
     sent_numbers.append("1")
     idx_dict = {}
-    # sent_to_num = {"1": sentence}
     size_index = [0]
 
     for idx, letter in enumerate(sentence):
@@ -101,7 +109,7 @@ def find_sentences(sentence, definiendum="", embed = False):
 
             gener.append(str(gen))
             sent_num = ".".join(gener)
-            idx_dict.update({sent_num:idx})
+            idx_dict.update({sent_num: idx})
             add_sibling = False
 
         elif letter == ")":
@@ -128,14 +136,10 @@ def find_sentences(sentence, definiendum="", embed = False):
                 sentences.insert(b, sentence[begin: idx + 1])
                 greek_sentences.insert(b, greek_sent[begin: idx + 1])
 
-
-            # sent_to_num.update({sent_num: sentence[begin: idx + 1]})
-
     for sent_number in sent_numbers:
         if sent_number not in num_to_conn.keys():
             num_to_conn.update({sent_number: ""})
         mainc.append([sent_number, num_to_conn.get(sent_number)])
-
 
     result[0] = num_to_conn
     result[1] = split_numbers(sent_numbers)
@@ -145,13 +149,12 @@ def find_sentences(sentence, definiendum="", embed = False):
     result[6] = adjust_greek_sent(greek_sentences)
     result[5] = greek_sentences[0]
 
-    if "," in greek_sent[0]: check_that_paren_in_right_order(result)
+    if tilde:
+        for e, sent in enumerate(sentences):
+            sent = sent.replace("(~", "~(")
+            sentences[e] = sent
 
-    # greek_english = {}
-    # for sent, greek in zip(result[3], result[6]):
-    #     greek_english.update({greek: sent})
-    # # result[7] = greek_english
-    # result[8] = sent_to_num
+    if "," in greek_sent[0]: check_that_paren_in_right_order(result)
 
     return result
 
@@ -163,162 +166,6 @@ def get_sent_position(size_index, num_periods):
             return j
         j += 1
     raise Exception
-
-#
-# def find_sentences2(sentence, definiendum="", embed = False):
-#
-#     if sentence == None:
-#         raise Exception("\n missing word in dictionary \n")
-#
-#     if one_sentence(sentence):
-#         if definiendum != "":
-#             # raise Exception("\n you cannot reduce this word: " + "\n" + definiendum + "\n")
-#             raise ErrorWithCode(f"\n you cannot reduce {definiendum} \n  in {sentence} \n")
-#         else:
-#             raise ErrorWithCode(f"\n you cannot reduce {definiendum} \n  in {sentence} \n")
-#             # raise Exception("\n you cannot reduce this word: " + "\n" + sentence + "\n")
-#     if sentence.count('(') != sentence.count(')'):
-#         print("( paren = " + str(sentence.count("(")))
-#         print(") paren = " + str(sentence.count(")")))
-#
-#         raise Exception(" \nwrong number of parentheses in sentence: " + sentence + "\n ")
-#
-#     marker = False
-#     total = -1
-#     sentences = []
-#     result = [None] * 9
-#     sent_number = []
-#
-#     # sentence = remove_extra_paren(sentence, embed)
-#     # output = find_sentences2(sentence, definiendum, embed)
-#
-#     # ogreek = output[7]
-#
-#
-#     list1 = mainconn(sentence)
-#     sentence = sentence.strip()
-#     if sentence.startswith("(b LFT c)"):
-#         bb = 8
-#     greek_sent = replace_w_greek(sentence)
-#     if sentence.find("~(") > -1:
-#         sentence = sentence.replace("~(", "(!")
-#     greek_sentences = []
-#     greek_sentences.append(greek_sent)
-#     assert len(greek_sent) == len(sentence)
-#     main_connect = []
-#     sent_number.append("1")
-#     main_connect.append(["1", list1[0]])
-#     father_number = "1"
-#     v = 0
-#     conn_dict = {}
-#     sibling_number = 0
-#     connectives = ["&", idisj, iff, conditional, nonseq, implies, xorr, "#"]
-#     sentences.append(sentence)
-#
-#     j = 0
-#     n = 0
-#     for i in range(0, len(sentence)):
-#         str1 = sentence[i:(i + 1)]
-#         for o in connectives:
-#             if str1 == o:
-#                 j += 1
-#
-#     while n < j + 1:
-#
-#         l = len(sentence)
-#         x = -1
-#         while x < l - 1:
-#             x += 1
-#
-#             if sentence[x:x + 1] == "(":
-#
-#                 if marker == False:
-#                     z = x
-#                     marker = True
-#
-#                 total += 1
-#             elif sentence[x: x + 1] == ")":
-#                 total -= 1
-#                 if total == -1:
-#                     marker = False
-#                     temp_sent = sentence[z: x + 1]
-#                     temp_greek = greek_sent[z: x + 1]
-#
-#                     if (len(sentence) - len(temp_sent)) > 2:
-#                         if one_sentence(temp_sent): n += 1
-#                         sibling_number += 1
-#                         num3 = father_number + "." + str(sibling_number)
-#                         main_co = mainconn(temp_sent)
-#                         sentences.append(temp_sent)
-#                         main_connect.append([num3, main_co[0]])
-#                         conn_dict.update({num3: main_co[0]})
-#                         sent_number.append(num3)
-#                         greek_sentences.append(temp_greek)
-#                     else:
-#                         sentence = sentence[1:len(sentence) - 1]
-#                         greek_sent = greek_sent[1:len(greek_sent) - 1]
-#                         l = len(sentence)
-#                         x = -1
-#
-#         total = -1
-#         marker = False
-#
-#         if n < j + 1:
-#             if len(sentences) > v:
-#                 while v + 1 < len(sentences):
-#                     v += 1
-#                     father = sentences[v]
-#                     greek_father = greek_sentences[v]
-#                     father_number = sent_number[v]
-#                     sibling_number = 0
-#                     if not one_sentence(father):
-#                         sentence = father
-#                         greek_sent = greek_father
-#                         break
-#
-#     result[0] = conn_dict
-#     result[1] = split_numbers(sent_number)
-#     result[2] = sent_number
-#     result[3] = sentences
-#     result[4] = main_connect
-#     result[6] = adjust_greek_sent(greek_sentences)
-#     result[5] = greek_sentences[0]
-
-    # if "," in greek_sent[0]: check_that_paren_in_right_order(result)
-
-
-    # print (definiendum)
-    #
-    # for j, sentence in enumerate(result[3]):
-    #     sent_num = result[2][j]
-    #     greek = result[6][j]
-    #     mainc = result[4][j][1]
-    #
-    #     osent = output[8].get(sent_num)
-    #     omainc = output[0].get(sent_num)
-    #     o_index = output[2].index(sent_num)
-    #     ogreek = output[6][o_index]
-    #     osent_num = output[2][o_index]
-    #
-    #     assert greek == ogreek
-    #     assert mainc == omainc
-    #     assert osent == sentence
-    #     assert osent_num == sent_num
-
-
-
-
-
-
-
-    # for sent, num in zip(result[3], result[2]):
-    #     osent = sent_to_num.get(num)
-    #     if osent != sent and once:
-    #         print (definiendum)
-    #         once = False
-
-
-    # return result
 
 
 def split_numbers(sent_number):

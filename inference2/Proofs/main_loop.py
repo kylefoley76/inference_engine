@@ -1,9 +1,9 @@
 import time
-import copy
 import sys
-import pickle
+import pickle, json
 from natural_language import step_one
 from general_functions import parameters
+from classes import ErrorWithCode
 
 
 def calculate_time_statistics(num_proved, total_time):
@@ -15,7 +15,7 @@ def calculate_time_statistics(num_proved, total_time):
     print (num_proved)
 
 
-def get_result(one_sent, print_type = 4, order = [0], do_not_argue = []):
+def get_result(one_sent, print_type = 4, order = [0], do_not_argue = [], argue = []):
     total_time = time.time()
 
     if one_sent == 'a':
@@ -26,6 +26,8 @@ def get_result(one_sent, print_type = 4, order = [0], do_not_argue = []):
     elif one_sent != "":
         test_sent = [[one_sent]]
     else:
+        if argue != []:
+            order = argue
         pkl_file = open('zz_claims.pkl', 'rb')
         test_sent = pickle.load(pkl_file)
         pkl_file.close()
@@ -41,11 +43,13 @@ def get_result(one_sent, print_type = 4, order = [0], do_not_argue = []):
             num_proved += 1
             st1 = time.time()
 
-            if k == 208:
+            if k == 225:
                 bb = 7
-
-            consistent, total_sent = step_one(test_sent[k])
-            test_sent[k] = copy.deepcopy(total_sent)
+            try:
+                consistent, total_sent = step_one(test_sent[k])
+                test_sent[k] = json.loads(json.dumps(total_sent))
+            except ErrorWithCode:
+                print (str(j) + "infinite loop")
 
             if print_type != 4:
                 if not consistent:

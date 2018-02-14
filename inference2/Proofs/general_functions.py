@@ -2,9 +2,6 @@ import copy
 from settings import *
 
 
-# from classes import *
-
-
 ################ group: naming sentences
 
 def build_sent_pos(sent):
@@ -105,12 +102,13 @@ def check_consistency(output):
             return False
 
     for lst in output[11]:
-        for sent in lst[0]:
+        for sent in lst:
             if sent[0] == new_sent_abbr and sent[1] == tvalue:
                 del sent[0]
                 del sent[1]
                 lst[3].append(output[0][-1][0])
-                if lst[0] == []:
+                if lst == []:
+                    raise Exception
                     build_contradictory_conjunction(output, lst[3])
                     return False
 
@@ -222,6 +220,8 @@ def add_to_tsent(tsent, str1, str2="", tvalue="", rule="", anc1="", anc2="", anc
     list2[7] = anc3
     list2[8] = anc4
     tsent.append(list2)
+    if rule == xorr + "E":
+        bb = 8
 
 
 ######################group: miscellanious functions
@@ -239,13 +239,6 @@ def mainconn(str1):
     potential_error = False
     possibility = []
     for idx, letter in enumerate(str1):
-        try:
-            next_letter = str1[idx + 1]
-            previous_letter = str1[idx - 1]
-        except:
-            next_letter = ""
-            previous_letter = ""
-
         if letter == "(":
             num += 1
             if candidate_conn:
@@ -340,33 +333,39 @@ def is_standard(sent):
 
     return "standard"
 
+def get_word_info(word):
+    with open("json_dict/" + word + ".json", "r") as fp:
+        lst_sent = json.load(fp)
+    item1 = dictionary[9].get(word)
+    for x, y in zip(lst_sent, item1):
+        y.sentences = x
+    return item1
 
-def add_to_gsent(item1, output, word=""):
-    if word == 'INM':
-        bb = 8
 
+def add_to_gsent(item1, output):
     for e, cls in enumerate(item1):
         def_stats = cls.def_stats
         sentences = cls.sentences
+        def_stats.already_instantiated = False
         kind = def_stats.connection_type
-        definiendum = def_stats.def_word
+        definiendum = def_stats.def_word_num
         if kind != "x":
             first_ant = def_stats.ant_index[0]
             sent_constant = sentences[first_ant][58]
-            output[2].append([sent_constant, 0, definiendum + str(e)])
+            output[2].append([sent_constant, 0, definiendum])
             if kind == 'e' and cls.disjuncts == []:
                 first_con = def_stats.con_index[0]
                 if isinstance(first_con, int):
                     sent_constant = sentences[first_con][58]
                 else:
                     sent_constant = cls.def_stats.con_comp_const[0]
-                output[2].append([sent_constant, 1, definiendum + str(e)])
+                output[2].append([sent_constant, 1, definiendum])
 
             elif kind == 'e':
-                add_disjunct_to_gsent(cls, sentences, definiendum + str(e), output)
+                add_disjunct_to_gsent(cls, sentences, definiendum, output)
 
         else:
-            add_disjunct_to_gsent(cls, sentences, definiendum + str(e), output)
+            add_disjunct_to_gsent(cls, sentences, definiendum, output)
 
     return
 
@@ -415,20 +414,44 @@ def determine_constants(dict1, sentence):
     return neg
 
 
-def universal_negations(output, cls):
-    if 'thing' in cls.def_stats.def_word:
-        for sentence in cls.sentences:
-            if "q" in sentence[7]:
+def universal_negations(cls, output):
+    definiendum = ""
+    done = "not done"
+    if cls.def_stats.def_word == '':
+        for e, num in enumerate(cls.def_stats.ant_index):
+            if isinstance(num, int):
+                sentence = cls.sentences[num]
                 sent_constant = sentence[58]
-                if "~" not in sentence[58]:
-                    tvalue = "~ "
-                else:
-                    sent_constant = sent_constant.replace("~ ", "")
-                    tvalue = ""
+                if sent_constant == 'thing':
+                    done = "done"
+                    definiendum = 'thing'
+                    cls.def_stats.def_word = 'thing'
+                    disjuncts = cls.disjuncts
+                    new_ant_index = []
+                    for e, num in enumerate(cls.def_stats.ant_index):
+                        sentence = cls.sentences[num]
+                        sent_constant = sentence[58]
+                        if sent_constant != 'thing':
+                            new_ant_index.append(num)
 
-                output[2].append([tvalue + sent_constant, 0, "thing"])
-        return "done"
-    return 'not done'
+                    for e, num in enumerate(cls.def_stats.con_index):
+                        sentence = cls.sentences[num]
+                        sent_constant = sentence[58]
+                        new_con_index = []
+                        new_con_index.append(num)
+                        new_con_index += new_ant_index
+                        disjuncts.append(json.loads(json.dumps(new_con_index)))
+
+                        if "~" not in sent_constant:
+                            tvalue = "~ "
+                        else:
+                            sent_constant = sent_constant.replace("~ ", "")
+                            tvalue = ""
+                        sentence[58] = tvalue + sent_constant
+                        output[2].append([tvalue + sent_constant, 2 + e, "thing0"])
+
+
+    return definiendum, done
 
 
 def get_key(dict1, val):
@@ -439,18 +462,8 @@ def get_key(dict1, val):
         return None
 
 
-def list_set_default(list1, entity):
-    try:
-        g = findposinmd(entity[0], list1, 0)
-        if g > -1:
-            list1[g][1].append(entity[1])
-        else:
-            list1.append([entity[0], [entity[1]]])
-    except:
-        pass
-
-
 def change_constants(already_used_map, output, from_definitions):
+    if from_definitions == None: return
     for k, v in from_definitions.items():
         new_var = get_key(output[6], v)
         if new_var != None:
@@ -480,7 +493,7 @@ def parameters():
     return proof_type, print_type, get_words_used, order
 
 
-def remove_extra_paren(sentence, embed = False):
+def remove_extra_paren(sentence, embed=False):
     if embed:
         return sentence[1:-1]
 

@@ -17,12 +17,11 @@ order_of_definition = []
 def is_ad_hoc_sentence(list1):
     global ad_hoc_sentence
     if "concept" + ua in list1:
-        ad_hoc_sentence =  True
+        ad_hoc_sentence = True
 
 
 def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={}, oprop_name={}, sub_words=False,
                      recursive=False):
-
     global slot, category, relation_type, word, sentence_slots, is_a_standard_sent
     global subclause_counter, order_of_definition
     is_a_standard_sent = is_a_standard_sent2
@@ -39,6 +38,7 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
     noun_pos = []
     subclauses = {}
     is_ad_hoc_sentence(list1)
+    special_tilde = False
 
     i = 3
     while list1[i] != None:
@@ -46,11 +46,10 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
         if list1[i] == ',':
             del list1[i]
 
-
         word = list1[i]
         slot = 0
 
-        if word == 'at' + uc:
+        if word == 'TV':
             bb = 8
 
         if get_words_used == 1:
@@ -67,7 +66,7 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
 
             part_of_speech = parts_of_speech_dict.get(raw_pos[0])
 
-            insert_special_location = False
+            insert_tilde = False
 
             ################# the mini_e symbol ############
 
@@ -106,7 +105,7 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
 
             elif part_of_speech == 'negator':
 
-                insert_special_location = get_negation_positions()
+                insert_tilde, special_tilde = get_negation_positions()
                 if word == "~": sentence_slots[3] = "~"
 
             ########### nouns #############
@@ -135,16 +134,13 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
                 relation_type += 1
 
             if slot == 0:
-                print (list1)
+                print(list1)
                 raise Exception("our system does not have this grammatical syntax yet")
 
-
-            final_categories(insert_special_location, places_used, raw_pos, sub_words)
+            final_categories(insert_tilde, places_used, raw_pos, sub_words)
 
             if part_of_speech == 'relative pronoun':
-
                 i = build_subclause(list1, i, subclauses, abbreviations, places_used)
-
 
     sentence_slots[45] = sorted(order_of_definition, key=operator.itemgetter(1))
     sentence_slots[42] = noun_pos
@@ -154,22 +150,23 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
         sentence_slots[58] = determine_constants(abbreviations, sentence_slots)
         sentence_slots[1] = build_sent_pos(sentence_slots)
         sentence_slots[0] = nbuild_sent(sentence_slots, sentence_slots)
+        if special_tilde:
+            sentence_slots[0] = sentence_slots[0].replace("(~ ", "~(")
         if not is_a_standard_sent:
             sentence_slots[2] = name_sent(sentence_slots[1], prop_name)
             oprop_name[sentence_slots[1]] = sentence_slots[2]
 
-
     return sentence_slots
 
 
-def final_categories(insert_special_location, places_used, raw_pos, sub_words):
+def final_categories(insert_tilde, places_used, raw_pos, sub_words):
     global category
 
     if ad_hoc_sentence: raw_pos = exceptional_parts_of_speech(raw_pos)
 
     sentence_slots[slot] = word
 
-    if insert_special_location:
+    if insert_tilde:
         places_used.insert(-1, slot)
     else:
         places_used.append(slot)
@@ -193,7 +190,6 @@ def final_categories(insert_special_location, places_used, raw_pos, sub_words):
                 category not in [2, .5, 14, 19] and \
                 sub_words and \
                 raw_pos[:2] != "rs":
-
             order_of_definition.append((slot, 0))
 
 
@@ -209,39 +205,45 @@ def and_coordinator():
 
 def get_negation_positions():
     global slot
-    insert_special_location = False
+    insert_tilde = False
+    special_tilde = False
     slot = 0
+
     if sentence_slots[60] == None and sentence_slots[10] == None:
-        slot = 149
+        if word == "~":
+            slot = 3
+            special_tilde = True
+        else:
+            slot = 149
     elif relation_type == 0:
         slot = 12
     elif (relation_type == 1 and sentence_slots[14] == None and sentence_slots[108] == None):
         slot = 12
         # because 'not' in this location comes after the relation we must
         # insert to before the relation
-        insert_special_location = True
+        insert_tilde = True
     elif relation_type == 1:
         slot = 121
     elif relation_type == 2 and sentence_slots[20] in spec_rel:
         slot = 121
-        insert_special_location = True
+        insert_tilde = True
     elif relation_type == 2:
         slot = 122
     elif relation_type == 3 and sentence_slots[21] in spec_rel:
         slot = 122
-        insert_special_location = True
+        insert_tilde = True
     elif relation_type == 3:
         slot = 123
     elif relation_type == 4 and sentence_slots[23] in spec_rel:
         slot = 123
-        insert_special_location = True
+        insert_tilde = True
     elif relation_type == 4 or sentence_slots[26] in spec_rel:
         slot = 124
 
     if word == 'not':
-        insert_special_location = False
+        insert_tilde = False
 
-    return insert_special_location
+    return insert_tilde, special_tilde
 
 
 def get_adjective_positions():
@@ -249,7 +251,7 @@ def get_adjective_positions():
     if relation_type == 0:
         slot = 76 if sentence_slots[10] == None else 77
     else:
-        relevant_relation = relational_positions[relation_type -1]
+        relevant_relation = relational_positions[relation_type - 1]
         if sentence_slots[relevant_relation] not in the_is_of_adjective:
             if relation_type == 1:
                 slot = 78 if sentence_slots[14] == None else 79
@@ -298,8 +300,8 @@ def build_subclause(list1, i, subclauses, abbreviations, placed_used):
             num_of_relations += 1
 
         try:
-        # this is because words in the subclause have to be replaced with variables
-            if raw_pos[0] in ['n', 'a', 'r', 'o', 's'] and not isvariable(temp_word) and\
+            # this is because words in the subclause have to be replaced with variables
+            if raw_pos[0] in ['n', 'a', 'r', 'o', 's'] and not isvariable(temp_word) and \
                     not raw_pos[1] == 'y':
                 order_of_definition.append((subclause_counter, 0))
         except:
@@ -313,7 +315,7 @@ def build_subclause(list1, i, subclauses, abbreviations, placed_used):
 
     if relation_type == 0:
         if list2.count("r") == 1:
-            raise Exception ("grammatical error")
+            raise Exception("grammatical error")
         else:
             i -= 1
             while list2 != []:
@@ -336,7 +338,6 @@ def build_subclause(list1, i, subclauses, abbreviations, placed_used):
                     subclauses.update({slot: list3})
                     i -= 1
                     return i
-
 
         raise Exception("either ungrammatical or wrong syntax")
 
@@ -401,7 +402,7 @@ def get_standard_noun_positions(next_word):
     if relation_type == 0:
         slot = 10 if sentence_slots[10] == None else 11
     elif relation_type == 1:
-        for m in range(14,20):
+        for m in range(14, 20):
             if sentence_slots[m] == None:
                 slot = m
                 return
@@ -440,12 +441,11 @@ def get_part_of_speech(word, abbreviations):
         reference = abbreviations.get(word)
         pos = dictionary[0].get(reference)
         pos = 'ny' if pos == None or pos[0] != 'a' else 'ay'
-    else:
-        if word[-2:] == "'s":
-            remainder = dictionary[0].get(word[:-2])
-            pos = 's' if len(remainder) > 2 and remainder[2] == 'n' else 'o'
-        else:
-            if pos == None: pos = 'ny'
+    elif word[-2:] == "'s":
+        remainder = dictionary[0].get(word[:-2])
+        pos = 's' if len(remainder) > 2 and remainder[2] == 'n' else 'o'
+    elif pos == None:
+        raise Exception('you misspelled ' + word)
 
     return pos
 

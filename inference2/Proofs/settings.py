@@ -236,7 +236,7 @@ strip_sent = lambda x: re.sub(r'[()~ ]', "", x)
 
 name_sent = lambda x, y: y[strip_sent(x)]
 
-one_sentence = lambda x: not re.search(xorr + "|" + iff + "|" + idisj + "|" +
+one_sentence = lambda x: not re.search(xorr + "|" + implies + "|" + iff + "|" + idisj + "|" +
                                    conditional + "|&", x)
 
 # x and y are the same in the following:
