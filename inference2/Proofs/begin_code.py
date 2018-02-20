@@ -20,6 +20,7 @@ idisj = chr(8744)
 mini_e = chr(8703)
 nonseq = chr(8876)
 bottom = chr(8869)
+bb = 8
 special_connectives = [iff, conditional, xorr, idisj]
 all_connectives = special_connectives + [implies, nonseq, "&"]
 one_sentence = lambda x: not re.search(xorr + "|" + implies + "|" + iff + "|" + idisj + "|" +
