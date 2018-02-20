@@ -6,8 +6,8 @@ from lemmas import *
 
 arguments = sys.argv
 
-start = 151
-stop = 0
+start = 0
+stop = 1
 kind = 0
 end = 243
 print_type = 3

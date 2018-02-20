@@ -308,7 +308,7 @@ def start_pickle(user="", kind2=""):
     else:
         kind = 6
 
-    wb4 = load_workbook('/Users/kylefoley/Desktop/inference_engine/dictionary5.xlsx')
+    wb4 = load_workbook('/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/dictionary5.xlsx')
     ws = wb4.worksheets[0]
     third_sheet = wb4.worksheets[2]
 
@@ -318,7 +318,7 @@ def start_pickle(user="", kind2=""):
         dictionary = build_dictionary(kind2)
 
     elif kind == 7:
-        wb4 = load_workbook('/Users/kylefoley/Desktop/inference_engine/dictionary5.xlsx')
+        wb4 = load_workbook('/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/dictionary5.xlsx')
         ws = wb4.worksheets[0]
         dictionary = build_dictionary()
         for word in dictionary.easy_embed:
@@ -327,7 +327,7 @@ def start_pickle(user="", kind2=""):
             dictionary[1][word] = definition
 
         print_new_definitions()
-        wb4.save('/Users/kylefoley/Desktop/inference_engine/dictionary5.xlsx')
+        wb4.save('/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/dictionary5.xlsx')
 
     if user == "":
         save_dictionary(dictionary)

@@ -6,7 +6,7 @@ import copy
 
 
 
-wb = load_workbook('/Users/kylefoley/Desktop/inference_engine/inference engine new.xlsx')
+wb = load_workbook('/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/inference_engine_new.xlsx')
 ws = wb.worksheets[0]
 
 test_sent = []
