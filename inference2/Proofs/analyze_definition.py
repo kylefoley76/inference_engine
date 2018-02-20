@@ -11,9 +11,9 @@ def is_a_concept(sentences):
     for sentence in sentences:
         if sentence[6] in ['1.1', '1.1.1']:
             if sentence[13] == 'I':
-                dictionary[15].append(definiendum)
+                dictionary.kind.update({definiendum: "c"})
             elif sentence[13] == '=':
-                dictionary[6].append(definiendum)
+                dictionary.kind.update({definiendum: "i"})
 
     return
 
@@ -97,9 +97,9 @@ def name_conn_sent(output, reduced_def):
     greek = reduced_def[0].def_stats.tot_greek_sent
     greek_english_abb = {}
     for sentence in sentences:
-        sent_abb = name_sent(sentence[1], output[8])
+        sent_abb = name_sent(sentence[1], output.prop_name)
         sentence[2] = sent_abb
-        output[9][sent_abb] = sentence[1]
+        output.oprop_name[sent_abb] = sentence[1]
         greek_english_abb.update({sentence[5]: sentence[3] + sentence[2]})
 
     for k, v in greek_english_abb.items():
@@ -114,7 +114,7 @@ def process_sentences(definition, definiendum2, dictionary2, output=[]):
     definiendum = definiendum2
     dictionary = dictionary2
 
-    if definiendum == 'KN':
+    if definiendum == 'julius caesar':
         bb = 8
 
     def_info = find_sentences(definition, definiendum)
@@ -123,9 +123,9 @@ def process_sentences(definition, definiendum2, dictionary2, output=[]):
         premise = False
         abbreviations = get_abbreviations_from_definition(def_info)
         if abbreviations != {}:
-            dictionary[18].update({definiendum: abbreviations})
+            dictionary.def_constants.update({definiendum: abbreviations})
     else:
-        abbreviations = output[6]
+        abbreviations = output.abbreviations
 
     conjuncts = build_conjuncts(def_info)
 
@@ -135,7 +135,8 @@ def process_sentences(definition, definiendum2, dictionary2, output=[]):
 
     def_info = [find_sentences(conjunct, "", embed) for conjunct in conjuncts]
 
-    if len(conjuncts) > 1 and not premise: dictionary[16].update({definiendum: conjuncts})
+    if len(conjuncts) > 1 and not premise:
+        dictionary.conjunctive_definitions.update({definiendum: conjuncts})
 
     def_info, temp_definition = period_elimination(def_info, temp_definition)
 
@@ -156,25 +157,16 @@ def process_sentences(definition, definiendum2, dictionary2, output=[]):
 
     reduced_def = get_sets_of_conditions(def_info, reduced_def, sent_kind)
 
-    if not premise:
-
-        lst2 = [x.sentences for x in reduced_def]
-        with open("json_dict/" + definiendum + ".json", "w") as fp:
-            json.dump(lst2, fp)
-        for x in reduced_def: x.sentences = None
-
-        dictionary[9].update({definiendum: reduced_def})
-
-    if output != []:
+    if premise:
         return reduced_def, sent_abb
     else:
+        dictionary.categorized_sent.update({definiendum: reduced_def})
         return dictionary
-
 
 def order_sent(abbreviations, def_info, definiendum, output, reduced_def, temp_definition):
     sent_abb = ""
     if premise: sent_abb = name_conn_sent(output, reduced_def)
-    pos = dictionary[0].get(definiendum, "z")
+    pos = dictionary.pos.get(definiendum, "z")
     if pos[0] not in ["d", "p"]:
         _ = order_sentence(def_info, temp_definition, reduced_def, premise)
         temp_definition, ordered, renumber = _
@@ -238,7 +230,7 @@ def unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_de
                     k += 1
                     sentence = split_sentences(sentence)
                     tvalue, tvalue2 = get_tvalue(sentence)
-                    sentence = categorize_words(abbreviations, sentence, True)
+                    sentence = categorize_words(abbreviations, sentence, dictionary, [], "standard")
                     sentence[3] = tvalue
                     sentence[5] = greek
                     sentence[6] = hnum2

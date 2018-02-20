@@ -20,16 +20,22 @@ def is_ad_hoc_sentence(list1):
         ad_hoc_sentence = True
 
 
-def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={}, oprop_name={}, sub_words=False,
-                     recursive=False):
+def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
     global slot, category, relation_type, word, sentence_slots, is_a_standard_sent
-    global subclause_counter, order_of_definition
-    is_a_standard_sent = is_a_standard_sent2
+    global subclause_counter, order_of_definition, dictionary
+    dictionary = dictionary2
+    is_a_standard_sent = False if kind in ['not standard', "sub words", "recursive"] else True
+    sub_words = True if kind == 'sub words' else False
+    if output != []:
+        prop_name = output.prop_name
+        oprop_name = output.oprop_name
+        abbreviations = output.abbreviations
+
+
     list1 = [None] * 4 + list1 + [None]
     list1[3] = ""
     sentence_slots = [None] * 200
     for pos in negative_positions: sentence_slots[pos] = ""
-
     sentence_slots[3] = ""
     relation_type = 0
     subclause_counter = 164
@@ -52,15 +58,15 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
         if word == 'TV':
             bb = 8
 
-        if get_words_used == 1:
-            if word not in words_used and not isvariable(word):
-                words_used.append(word)
-
         if not_blank(word):
+
+            if output != []:
+                if not isvariable(word):
+                    output.words_used.add(word)
 
             i, word = determine_if_compound_word(word, i, list1)
 
-            category = dictionary[10].get(word)
+            category = dictionary.decision_procedure.get(word)
 
             raw_pos = get_part_of_speech(word, abbreviations)
 
@@ -146,7 +152,7 @@ def categorize_words(abbreviations, list1, is_a_standard_sent2=True, prop_name={
     sentence_slots[42] = noun_pos
     sentence_slots[54] = places_used
     sentence_slots[47] = subclauses
-    if not recursive:
+    if kind != "recursive":
         sentence_slots[58] = determine_constants(abbreviations, sentence_slots)
         sentence_slots[1] = build_sent_pos(sentence_slots)
         sentence_slots[0] = nbuild_sent(sentence_slots, sentence_slots)
@@ -436,14 +442,13 @@ def place_in_decision_procedure(category, slot, word, raw_pos):
 
 
 def get_part_of_speech(word, abbreviations):
-    pos = dictionary[0].get(word)
+    pos = dictionary.pos.get(word)
     if isvariable(word):
         reference = abbreviations.get(word)
-        pos = dictionary[0].get(reference)
+        pos = dictionary.pos.get(reference)
         pos = 'ny' if pos == None or pos[0] != 'a' else 'ay'
     elif word[-2:] == "'s":
-        remainder = dictionary[0].get(word[:-2])
-        pos = 's' if len(remainder) > 2 and remainder[2] == 'n' else 'o'
+        pos = 's' if dictionary.kind.get(word[:-2]) == 'i' else 'o'
     elif pos == None:
         raise Exception('you misspelled ' + word)
 
@@ -454,8 +459,8 @@ def determine_if_compound_word(word3, i, list1):
     if word3 == "not":
         bb = 8
 
-    double = dictionary[4].get(word3)
-    triple = dictionary[5].get(word3)
+    double = dictionary.doubles.get(word3)
+    triple = dictionary.triples.get(word3)
     triple_word = ""
 
     if triple != None:
@@ -466,7 +471,7 @@ def determine_if_compound_word(word3, i, list1):
             triple_word = word3 + " " + next_word + " " + after_next_word
             if triple_word in triple:
                 i += 2
-                word = triple_word
+                word3 = triple_word
             else:
                 triple_word = ""
         else:

@@ -52,9 +52,9 @@ def build_temp_total(new_numbers, pn, list1, temp_total_sent, sub_dict, heading)
 
 
 def rearrange_subst_sent(sub_dict, remainder, temp_total_sent):
-    if output[13] == {}: return
+    if output.substitutions == {}: return
     sub_sentences = []
-    for k, v in output[13].items():
+    for k, v in output.substitutions.items():
         if k == 'personhood':
             bb = 8
         rule_counter = collections.Counter([x[4] for x in v])
@@ -120,14 +120,16 @@ def rearrange_subst_sent(sub_dict, remainder, temp_total_sent):
     return sub_sentences
 
 
-def rearrange(kind, output2, consistent2, artificial2, rel_abbrev):
-    global consistent, output, artificial, constant_sent
+def rearrange(kind, output2, consistent2, proof_kind2, rel_abbrev):
+    global consistent, output, proof_kind, constant_sent
     global only_in_sub, subst_sent, intro_sent, uninstant_prem
     global uninstant_infer, stan_prem_sent, stan_infer_sent
 
+    if proof_kind2 == 'lemmas': return output2
+
     output = output2
     consistent = consistent2
-    artificial = artificial2
+    proof_kind = proof_kind2
     temp_total_sent = []
     new_numbers = {}
     sub_dict = {}
@@ -154,7 +156,7 @@ def rearrange(kind, output2, consistent2, artificial2, rel_abbrev):
 
     constant_list, pn = build_constant_sent2(pn, temp_total_sent)
 
-    if uninstant_prem != [] and not artificial:
+    if uninstant_prem != [] and not proof_kind:
 
         pn = build_temp_total(new_numbers, pn, uninstant_prem, temp_total_sent, sub_dict, "UNINSTANTIABLE PREMISES")
 
@@ -180,7 +182,7 @@ def rearrange(kind, output2, consistent2, artificial2, rel_abbrev):
 
         pn = build_temp_total(new_numbers, pn, artificial_sent, temp_total_sent, {}, "PREMISES")
 
-    heading = 'INFERENCES' if artificial else "INSTANTIABLE INFERENCES"
+    heading = 'INFERENCES' if proof_kind == 'artificial' else "INSTANTIABLE INFERENCES"
 
     pn = build_temp_total(new_numbers, pn, stan_infer_sent, temp_total_sent, {}, heading)
 
@@ -192,9 +194,11 @@ def rearrange(kind, output2, consistent2, artificial2, rel_abbrev):
 
     rearrange_subst_sent(sub_dict, remainder, temp_total_sent)
 
-    output[0] = temp_total_sent
 
-    assert isinstance(output[0][-1][0], int)
+
+    output.total_sent = temp_total_sent
+
+    assert isinstance(output.total_sent[-1][0], int)
 
     if kind == 'last':
 
@@ -206,11 +210,11 @@ def rearrange(kind, output2, consistent2, artificial2, rel_abbrev):
 
 
 def insert_quantifiers(output):
-    for k, v in output[13].items():
+    for k, v in output.substitutions.items():
         if k[:3] == 'qua':
             anc1 = v[1][5]
-            line = findposinmd(anc1, output[0], 0)
-            v.insert(0, output[0][line])
+            line = findposinmd(anc1, output.total_sent, 0)
+            v.insert(0, output.total_sent[line])
 
 
 def build_remainder(consistent, standard_premises):
@@ -231,8 +235,7 @@ def repeat_standard_premises(kind, standard_premises, temp_total_sent):
                 lst[7] = ""
         elif kind == 'last':
             lst[7] = ""
-        if lst[1].startswith("UNINST"):
-            break
+
 
 
 def build_intro_sent(new_numbers, temp_total_sent):
@@ -265,8 +268,8 @@ def build_rel_sent(temp_total_sent, rel_abbrev):
 def build_constant_sent(output):
     global constant_sent
     constan = []
-    if output[6] != {}:
-        for k, v in output[6].items():
+    if output.abbreviations != {}:
+        for k, v in output.abbreviations.items():
             sent = build_connection(k, "=", v)
             constan.append("(" + sent + ")")
         constant_sent = build_conjunction(constan)
@@ -275,7 +278,7 @@ def build_constant_sent(output):
 
 def categorize_by_rule(output):
     put_in_premise = put_def_in_premise(output)
-    for e, lst in enumerate(output[0]):
+    for e, lst in enumerate(output.total_sent):
         if lst[0] == 21:
             bb = 8
 
@@ -327,7 +330,7 @@ def categorize_by_rule(output):
 def put_def_in_premise(output):
     put_in_premise = True
     exceptions = []
-    for k, v in output[13].items():
+    for k, v in output.substitutions.items():
         for lst in v:
             if lst[4] == 'TR':
                 put_in_premise = False
@@ -389,7 +392,7 @@ def rearrange_sent_abbrev():
 
     abbrev_sent = []
 
-    for sent in output[0]:
+    for sent in output.total_sent:
         if sent[2] != "" and sent[4] not in ['SUY', "SUBI"]:
 
             list1 = [sent[0], sent[2], "", sent[3], sent[4], sent[5], sent[6], ""]
@@ -414,15 +417,15 @@ def rearrange_sent_abbrev():
             sent[4] = ""
 
 
-    output[0].append([""] * 8)
+    output.total_sent.append([""] * 8)
     sent_names = build_sent_name()
     for sent in sent_names:
         lst = [""] * 8
         lst[1] = sent
         lst[5] = 'id'
-        output[0].append(lst)
-    output[0].append([""] * 8)
-    for sent in abbrev_sent: output[0].append(sent)
+        output.total_sent.append(lst)
+    output.total_sent.append([""] * 8)
+    for sent in abbrev_sent: output.total_sent.append(sent)
 
     return
 
@@ -432,7 +435,7 @@ def build_sent_name():
     list1 = []
 
     i = 0
-    for k, v in output[9].items():
+    for k, v in output.oprop_name.items():
 
         v = remove_extra_paren(v)
         str1 = '(' + k + mini_e + v + ')'
@@ -441,14 +444,14 @@ def build_sent_name():
         elif (len(str2) + len(str1)) > 57:
             list1.append(str2)
             str2 = str1
-            if i + 1 == len(output[9]):
+            if i + 1 == len(output.oprop_name):
                 list1.append(str2)
         elif (len(str2) + len(str1)) <= 57:
             if len(str2) == 0:
                 str2 = str1
             else:
                 str2 = str2 + ' ' + str1
-            if i + 1 == len(output[9]):
+            if i + 1 == len(output.oprop_name):
                 list1.append(str2)
         i += 1
     return list1
@@ -456,34 +459,34 @@ def build_sent_name():
 
 def obtain_relevant_sentences():
     if not consistent:
-        relevant_sentences = [output[0][-2][5], output[0][-2][6]]
+        relevant_sentences = [output.total_sent[-2][5], output.total_sent[-2][6]]
         i = -1
         while i < len(relevant_sentences) - 1:
             i += 1
-            k = findposinmdlistint(relevant_sentences[i], output[0], 0)
-            output[0][k][8] = "*"
+            k = findposinmdlistint(relevant_sentences[i], output.total_sent, 0)
+            output.total_sent[k][8] = "*"
 
             for j in [5, 6]:
-                if output[0][k][j] != "":
-                    if isinstance(output[0][k][j], str):
-                        list1 = output[0][k][j].split(",")
+                if output.total_sent[k][j] != "":
+                    if isinstance(output.total_sent[k][j], str):
+                        list1 = output.total_sent[k][j].split(",")
                         list1 = [int(m) for m in list1]
                         for m in list1:
                             if m not in relevant_sentences:
                                 relevant_sentences.append(m)
                     else:
-                        if output[0][k][j] not in relevant_sentences:
-                            relevant_sentences.append(output[0][k][j])
+                        if output.total_sent[k][j] not in relevant_sentences:
+                            relevant_sentences.append(output.total_sent[k][j])
         relevant_sentences.sort()
         rel_sent_str = [str(m) for m in relevant_sentences]
         rel_sent = " ".join(rel_sent_str)
-        add_to_tsent(output[0], "RELEVANT SENTENCES: " + rel_sent)
+        add_to_tsent(output.total_sent, "RELEVANT SENTENCES: " + rel_sent)
 
     return
 
 
 def rename_rules():
-    for lst in output[0]:
+    for lst in output.total_sent:
 
         lst[4] = lst[4].replace('SUY', 'SUB')
         lst[4] = lst[4].replace('SUBI', 'SUB')

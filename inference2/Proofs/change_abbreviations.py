@@ -1,5 +1,7 @@
 from general_functions import *
 import copy, json
+from classes import ErrorWithCode
+
 
 def get_list_of_conjuncts(sentences):
     list1 = []
@@ -88,9 +90,10 @@ def translate_sentences(tvalue):
     if to_be_detached == 1:
         idx = cls.def_stats.con_index
     elif to_be_detached == 0 or detach_type == 'ax ind tense':
-        new_definition = change_connective()
-        def_prop = new_definition
         idx = cls.def_stats.ant_index
+        if detach_type == 'ax ind tense':
+            new_definition = change_connective()
+            def_prop = new_definition
 
     disjuncts = []
     disjuncts_abb = []
@@ -143,8 +146,8 @@ def get_inferences(ante_prop, con_prop, idx):
         else:
             tvalue = sentences[idx[0]][3]
             for x in sentences[idx[0]][42]:
-                if sentences[idx[0]][x] not in output[10]:
-                    output[10].append(sentences[idx[0]][x])
+                if sentences[idx[0]][x] not in output.constants:
+                    output.constants.add(sentences[idx[0]][x])
 
     elif to_be_detached == 0:
         to_be_detached = cls.def_stats.ant_index
@@ -152,8 +155,8 @@ def get_inferences(ante_prop, con_prop, idx):
         detacher_prop = con_prop
         if one_sentence(ante_prop) and len(idx) == 1:
             for x in sentences[idx[0]][42]:
-                if sentences[idx[0]][x] not in output[10]:
-                    output[10].append(sentences[idx[0]][x])
+                if sentences[idx[0]][x] not in output.constants:
+                    output.constants.add(sentences[idx[0]][x])
             tvalue = sentences[idx[0]][3]
         else:
             tvalue = ""
@@ -176,17 +179,18 @@ def replace_variables(sentences, dict1, first_time=True):
             has_propositional_variable = True
 
         for n in sentence[42]:
-            if sentence[n] not in output[10] and \
-                    sentence[n] not in output[6].values() and \
-                    sentence[n] not in output[6].keys():
+            if sentence[n] not in output.constants and \
+                    sentence[n] not in output.abbreviations.values() and \
+                    sentence[n] not in output.abbreviations.keys():
 
                 new_var = get_key(dict1, sentence[n])
                 if new_var == None and first_time:
 
-                    dict1.update({output[14][0]: sentence[n]})
-                    translations.update({sentence[n]: output[14][0]})
-                    sentence[n] = output[14][0]
-                    del output[14][0]
+                    dict1.update({output.variables[0]: sentence[n]})
+                    translations.update({sentence[n]: output.variables[0]})
+                    sentence[n] = output.variables[0]
+                    del output.variables[0]
+                    if output.variables == []: raise ErrorWithCode("caught in infinite loop")
                 elif new_var == None and not first_time:
                     pass
                 else:
@@ -206,7 +210,7 @@ def sub_prop_var(abbrev_dict):
             list1[8] = None
             list1[9] = None
             name_and_build(output, list1)
-            var = get_key(output[6], list1[2])
+            var = get_key(output.abbreviations, list1[2])
 
             if var != None:
                 new_abbrev_map.update({var: prop})
@@ -262,15 +266,16 @@ def get_to_be_detached_num():
     to_be_detached.remove(j)
 
 
-def change_abbrev(abbrev_dict, cls2, conj_intro_pos, output2, detach_type2 = ""):
+def change_abbrev(abbrev_dict, cls2, conj_intro_pos, output2, dictionary2, detach_type2=""):
     global translations, to_be_detached, detach_type, cls
     global detacher, sentences, definiendum, output, consistent
     global disjuncts, disjuncts_abb, greek_english_prop
-    global greek_english, irule, inference, detached_prop
+    global greek_english, irule, inference, detached_prop, dictionary
     global def_prop, detacher_prop, new_definition, natural_detacher
 
     cls = cls2
     output = output2
+    dictionary = dictionary2
     definiendum = cls.def_stats.def_word
     sentences = json.loads(json.dumps(cls.sentences))
     detacher = cls.def_stats.detacher
@@ -296,7 +301,7 @@ def change_abbrev(abbrev_dict, cls2, conj_intro_pos, output2, detach_type2 = "")
 
 def begin_module(abbrev_dict, conj_intro_pos):
     global consistent
-    if definiendum in ['INM', 'x']:
+    if definiendum in ['INE', 'x']:
         bb = 8
 
     definiendum2 = cls.def_stats.def_word_num
@@ -320,7 +325,7 @@ def begin_module(abbrev_dict, conj_intro_pos):
     if redundant(detached_prop, tvalue, definiendum2): return True
 
     if detach_type != 'ax ind tense':
-        add_to_tsent(output[0], inference, detached_prop, tvalue, irule, anc1, anc2)
+        add_to_tsent(output, inference, detached_prop, tvalue, irule, anc1, anc2)
 
     consistent = check_consistency(output)
 
@@ -337,13 +342,17 @@ def begin_module(abbrev_dict, conj_intro_pos):
     return consistent
 
 
+
+
+
+
 def append_to_excl_disj():
     if cls.def_stats.consequent_disjunct and detacher == 0:
         new_cls = cls.embeds.get("1.2")
         new_cls.sentences = sentences
-        new_cls.def_stats.tot_sent_idx = get_sn(output[0])
+        new_cls.def_stats.tot_sent_idx = output.tindex
         definiendum3 = "1.2" + "," + definiendum
-        output[15].update({definiendum3 + "0": new_cls})
+        output.trans_def.update({definiendum3 + "0": new_cls})
         add_to_gsent([new_cls], output)
         list1 = []
         for disjunct in cls.disjuncts:
@@ -358,23 +367,23 @@ def append_to_excl_disj():
                     abb = sentences[num][3] + sentences[num][2]
                     abb_sent = abb_sent.replace(sentences[num][5], abb)
             list1.append([nat_sent, abb_sent, list2, 0])
-        output[12].append(list1)
+        output.disj_elim.append(list1)
         check_initial_consist_excl_disj(output)
 
 
 # 0 disjunct with neg value
 # 1 abbreviate with neg value
-# 2 loop for adding to output[0]2 and for elimination
+# 2 loop for adding to output.total_sent2 and for elimination
 def check_initial_consist_excl_disj(output):
-    i = len(output[0])
+    i = len(output.total_sent)
     while i > -1:
         i -= 1
-        if "PREM" in output[0][i][1]:
+        if "PREM" in output.total_sent[i][1]:
             return
-        det_abb = output[0][i][2]
-        det_abb_tv = output[0][i][3]
+        det_abb = output.total_sent[i][2]
+        det_abb_tv = output.total_sent[i][3]
         if len(det_abb) < 3 and det_abb != "":
-            neg_excl_disj_elim(det_abb, det_abb_tv, output, i, len(output[12]) - 2, 0)
+            neg_excl_disj_elim(det_abb, det_abb_tv, output, i, len(output.disj_elim) - 2, 0)
             if not consistent:
                 return
 
@@ -382,7 +391,7 @@ def check_initial_consist_excl_disj(output):
 
 
 def adjust_conj_intro(conj_intro_pos, disjunct_abb):
-    for lst in output[0]:
+    for lst in output.total_sent:
         if lst[2] in disjunct_abb and xorr not in lst[2]:
             conj_intro_pos.remove(lst[0])
             break
@@ -396,37 +405,37 @@ def add_untran_sent_2_tot_sent(dict1, definiendum2, conj_intro_pos, ax_ind_tense
     anc4 = anc1 + 1
     rule = "SUBJ" if not ax_ind_tense else "AY IDT"
     assert anc1 != None
-    anc2 = get_sn(output[0])
+    anc2 = output.tindex
     if detach_type == 'disj intro':
         anc3 = anc1
         anc1 -= 1
         b = 0
         for disjunct, disjunct_abb in zip(disjuncts, disjuncts_abb):
             adjust_conj_intro(conj_intro_pos, disjunct_abb)
-            add_to_tsent(output[0], disjunct, disjunct_abb, "", "SUBJ", anc3 + b, anc2)
-            conj_intro_pos.append(get_sn(output[0]))
+            add_to_tsent(output, disjunct, disjunct_abb, "", "SUBJ", anc3 + b, anc2)
+            conj_intro_pos.append(output.tindex)
             b += 1
 
-    add_to_tsent(output[0], new_definition, def_prop, "", rule, anc1, anc2)
-    output[13].setdefault(definiendum2, []).append(output[0][-1])
-    anc1 = get_sn(output[0])
+    add_to_tsent(output, new_definition, def_prop, "", rule, anc1, anc2)
+    output.substitutions.setdefault(definiendum2, []).append(output.total_sent[-1])
+    anc1 = output.tindex
     if detach_type == 'whole disj intro':
-        add_to_tsent(output[0], natural_detacher, detacher_prop, "", rule, anc4, anc2)
-        output[13].setdefault(xorr + " " + definiendum, []).append(output[0][-1])
-        anc1 = get_sn(output[0]) - 1
+        add_to_tsent(output, natural_detacher, detacher_prop, "", rule, anc4, anc2)
+        output.substitutions.setdefault(xorr + " " + definiendum, []).append(output.total_sent[-1])
+        anc1 = output.tindex - 1
 
     return anc1
 
 
 def pos_excl_disj_elim():
-    for lst in output[12]:
+    for lst in output.disj_elim:
         next_disjunct = False
         for e, lst2 in enumerate(lst):
             temp_disjuncts = json.loads(json.dumps(lst2[2]))
             for sent in lst2[2]:
                 if next_disjunct:
                     break
-                for lst1 in output[0]:
+                for lst1 in output.total_sent:
                     if lst1[2] == sent[1] and sent[2] == lst1[3]:
                         del temp_disjuncts[0]
                         if temp_disjuncts == []:
@@ -441,18 +450,18 @@ def pos_excl_disj_elim():
 
 
 def detach_disjunct(lst2, e):
-    anc1 = get_sn(output[0])
+    anc1 = output.tindex
     anc2 = anc1 - 1
     for f, disjunct in enumerate(lst2):
         list1 = []
         if f != e:
-            add_to_tsent(output[0], disjunct[0], disjunct[1], "~", xorr + "E", anc1, anc2)
+            add_to_tsent(output, disjunct[0], disjunct[1], "~", xorr + "E", anc1, anc2)
             for conjunct in disjunct[2]:
-                list1.append([conjunct[1], conjunct[2], get_sn(output[0])])
+                list1.append([conjunct[1], conjunct[2], output.tindex])
             check_intitial_neg_conj_consist(list1, disjunct)
             if not consistent:
                 return
-            output[11].append(list1)
+            output.negated_conjunction.append(list1)
 
 
 def check_intitial_neg_conj_consist(list1, disjunct):
@@ -460,14 +469,14 @@ def check_intitial_neg_conj_consist(list1, disjunct):
     ancestors = []
     list2 = json.loads(json.dumps(list1))
     for e, lst in enumerate(list1):
-        for tot_sent in output[0]:
+        for tot_sent in output.total_sent:
             if tot_sent[2] == lst[0] and tot_sent[3] == lst[1]:
                 ancestors.append(str(tot_sent[0]))
                 del list2[0]
                 if list2 == []:
                     anc1 = ",".join(ancestors)
-                    add_to_tsent(output[0], disjunct[0][1:], disjunct[1][1:], "", "&I", anc1)
-                    build_contradiction(output, len(output[0]) - 2)
+                    add_to_tsent(output, disjunct[0][1:], disjunct[1][1:], "", "&I", anc1)
+                    build_contradiction(output, len(output.total_sent) - 2)
                     consistent = False
                     return
 
@@ -475,12 +484,12 @@ def check_intitial_neg_conj_consist(list1, disjunct):
 def build_rename_sent3(definiendum2, dict1):
     if dict1 == {}: return
     str2 = " ".join(["(" + build_connection(v, mini_c, k) + ")" for k, v in dict1.items()])
-    add_to_tsent(output[0], str2, "", "", "IN", "id")
+    add_to_tsent(output, str2, "", "", "IN", "id")
 
     if definiendum != "":
-        output[13].setdefault(definiendum2, []).append(output[0][-1])
+        output.substitutions.setdefault(definiendum2, []).append(output.total_sent[-1])
         if detach_type == 'whole disj intro':
-            output[13].setdefault(xorr + " " + definiendum, []).append(output[0][-1])
+            output.substitutions.setdefault(xorr + " " + definiendum, []).append(output.total_sent[-1])
 
 
 def conj_intro(conj_intro_pos):
@@ -489,8 +498,9 @@ def conj_intro(conj_intro_pos):
     if len(conj_intro_pos) > 1:
         list1 = ["", "", "", ""]
         for i, num in enumerate(conj_intro_pos):
-            tot_sent_pos = findposinmd(num, output[0], 0)
-            conjunct = output[0][tot_sent_pos][2]
+            tot_sent_pos = findposinmd(num, output.total_sent, 0)
+            assert tot_sent_pos != -1
+            conjunct = output.total_sent[tot_sent_pos][2]
             assert conjunct in detacher_prop
             if len(conj_intro_pos) < 3:
                 list1[i] = conj_intro_pos[i]
@@ -498,21 +508,21 @@ def conj_intro(conj_intro_pos):
         if len(conj_intro_pos) > 2:
             list2 = [str(x) for x in conj_intro_pos]
             str1 = ",".join(list2)
-            add_to_tsent(output[0], natural_detacher, detacher_prop, "", "&I", str1)
+            add_to_tsent(output, natural_detacher, detacher_prop, "", "&I", str1)
 
         else:
-            add_to_tsent(output[0], natural_detacher, detacher_prop, "", "&I", list1[0], list1[1])
-        qn = get_sn(output[0])
+            add_to_tsent(output, natural_detacher, detacher_prop, "", "&I", list1[0], list1[1])
+        qn = output.tindex
 
     if detach_type == 'whole disj intro':
-        qn = get_sn(output[0])
+        qn = output.tindex
 
     return qn
 
 
 def redundant(sent, tvalue, definiendum2, conj_elim=""):
     if detach_type == 'ax ind tense': return False
-    pos = find_2posinlist(sent, tvalue, output[0], 2, 3)
+    pos = find_2posinlist(sent, tvalue, output.total_sent, 2, 3)
     if pos > -1:
         if conj_elim == 'conj_elim':
             return True
@@ -521,15 +531,16 @@ def redundant(sent, tvalue, definiendum2, conj_elim=""):
                 definiendum3 = xorr + " " + definiendum
             else:
                 definiendum3 = definiendum2
-            del output[0][-1]
-            del output[0][-1]
-            lst = output[13].get(definiendum3)
+            del output.total_sent[-1]
+            del output.total_sent[-1]
+            lst = output.substitutions.get(definiendum3)
             del lst[-1]
             del lst[-1]
             if lst == []:
-                del output[13][definiendum3]
+                del output.substitutions[definiendum3]
 
             return True
+
 
 def change_connective():
     _, pos = mainconn(cls.def_stats.tot_greek_sent)
@@ -540,13 +551,14 @@ def change_connective():
 
 def add_new_sent_to_asent(definiendum2):
     if detach_type == 'ax ind tense':
-        ancestor = get_sn(output[0])
+        ancestor = output.tindex
+        b = 0
         for num in cls.def_stats.ant_index + cls.def_stats.con_index:
             if isinstance(num, int):
                 add_one_sent(ancestor, num, definiendum2)
                 if not consistent: return
             else:
-                raise Exception('you havent coded for this yet')
+                add_comp_sent(ancestor, b, num)
         return
 
     mainc, _ = mainconn(detached_prop[1:-1])
@@ -555,14 +567,14 @@ def add_new_sent_to_asent(definiendum2):
         conjunction_elimination(definiendum2)
     elif one_sentence(inference):
         sentence = sentences[to_be_detached[0]]
-        sentence[44] = get_sn(output[0])
+        sentence[44] = output.tindex
         sentence[7] = "c"
         if sentence[58] == "I":
-            sentence[58] = determine_constants(output[6], sentence)
+            sentence[58] = determine_constants(output.abbreviations, sentence)
 
-        output[1].append(sentence)
-        output[5].setdefault(sentence[58], []).append(len(output[1]) - 1)
-        output[4].append(sentence[58])
+        output.all_sent.append(sentence)
+        output.lsent_dict.setdefault(sentence[58], []).append(len(output.all_sent) - 1)
+        output.lsent_list.append(sentence[58])
         named_sentence(sentence)
     elif detach_type == "exclusive disjunct" and len(to_be_detached) > 1:
         pass
@@ -573,15 +585,16 @@ def add_new_sent_to_asent(definiendum2):
             embed_num = cls.def_stats.ant_hnum[0]
         embed = cls.embeds.get(embed_num)
         embed.sentences = sentences
-        embed.def_stats.tot_sent_idx = get_sn(output[0])
+        embed.def_stats.tot_sent_idx = output.tindex
         definiendum3, done = universal_negations(embed, output)
         if done == 'not done':
             definiendum3 = embed.def_stats.def_word_num
             definiendum3 + "0"
-        output[15].update({definiendum3: embed})
+        output.trans_def.update({definiendum3: embed})
         if done == 'not done':
             add_to_gsent([embed], output)
         exceptional_instantiation(sentences)
+
 
 def named_sentence(sent):
     global consistent
@@ -592,23 +605,23 @@ def named_sentence(sent):
         list1[42].remove(8)
         for x in [8, 9]: list1[x] = None
         name_and_build(output, list1)
-        add_to_tsent(output[0], list1[0], list1[2], list1[3], mini_e + "E", 0)
-        list1[44] = get_sn(output[0])
+        add_to_tsent(output, list1[0], list1[2], list1[3], mini_e + "E", 0)
+        list1[44] = output.tindex
         list1[7] = "c"
-        const = determine_constants(output[6], list1)
-        output[1].append(list1)
-        output[5].setdefault(const, []).append(len(output[1]) - 1)
-        output[4].append(const)
+        const = determine_constants(output.abbreviations, list1)
+        output.all_sent.append(list1)
+        output.lsent_dict.setdefault(const, []).append(len(output.all_sent) - 1)
+        output.lsent_list.append(const)
         consistent = check_consistency(output)
 
 
 def disjunction_elimination(neg_conj, inferences, definiendum2):
     if detach_type != 'exclusive disjunct': return
-    ancestor = get_sn(output[0])
+    ancestor = output.tindex
     for mem, sent in zip(neg_conj, inferences):
         if len(mem) > 1:
-            output[11].append(mem)
-            mem[0][2] = get_sn(output[0])
+            output.negated_conjunction.append(mem)
+            mem[0][2] = output.tindex
             check_intitial_neg_conj_consist(mem, sent)
 
         else:
@@ -618,40 +631,42 @@ def disjunction_elimination(neg_conj, inferences, definiendum2):
 
 
 def conjunction_elimination(definiendum2):
-    ancestor = get_sn(output[0])
+    ancestor = output.tindex
     b = 0
     for mem in to_be_detached:
         if isinstance(mem, int):
             add_one_sent(ancestor, mem, definiendum2)
             if not consistent: return
         else:
-            if detacher == 1:
-                nat_greek = cls.def_stats.ant_comp_greek[b]
-                hnum = cls.def_stats.ant_hnum[b]
-                lsent_key = cls.def_stats.ant_comp_const[b]
-            else:
-                nat_greek = cls.def_stats.con_comp_greek[b]
-                hnum = cls.def_stats.con_hnum[b]
-                lsent_key = cls.def_stats.con_comp_const[b]
-            b += 1
-            greek_abb = nat_greek
+            add_comp_sent(ancestor, b, mem)
 
-            for k, v in greek_english.items():
-                nat_greek = nat_greek.replace(k, v)
-            for k, v in greek_english_prop.items():
-                greek_abb = greek_abb.replace(k, v)
 
-            add_to_tsent(output[0], nat_greek, greek_abb, "", "&E", ancestor)
-            new_cls = cls.embeds.get(hnum)
-            new_cls.sentences = sentences
-            new_cls.def_stats.tot_sent_idx = get_sn(output[0])
-            gsent_key = new_cls.def_stats.def_word_num
-            output[15].update({gsent_key: new_cls})
-            add_to_gsent([new_cls], output)
-            output[4].append(lsent_key)
-            output[5].setdefault(lsent_key, []).append(mem)
-            universal_negations(new_cls, output)
-            exceptional_instantiation(sentences)
+def add_comp_sent(ancestor, b, mem):
+    if detacher == 1:
+        nat_greek = cls.def_stats.ant_comp_greek[b]
+        hnum = cls.def_stats.ant_hnum[b]
+        lsent_key = cls.def_stats.ant_comp_const[b]
+    else:
+        nat_greek = cls.def_stats.con_comp_greek[b]
+        hnum = cls.def_stats.con_hnum[b]
+        lsent_key = cls.def_stats.con_comp_const[b]
+    b += 1
+    greek_abb = nat_greek
+    for k, v in greek_english.items():
+        nat_greek = nat_greek.replace(k, v)
+    for k, v in greek_english_prop.items():
+        greek_abb = greek_abb.replace(k, v)
+    add_to_tsent(output, nat_greek, greek_abb, "", "&E", ancestor)
+    new_cls = cls.embeds.get(hnum)
+    new_cls.sentences = sentences
+    new_cls.def_stats.tot_sent_idx = output.tindex
+    gsent_key = new_cls.def_stats.def_word_num
+    output.trans_def.update({gsent_key: new_cls})
+    add_to_gsent([new_cls], output)
+    output.lsent_list.append(lsent_key)
+    output.lsent_dict.setdefault(lsent_key, []).append(mem)
+    universal_negations(new_cls, output)
+    exceptional_instantiation(sentences)
 
 
 def add_one_sent(ancestor, mem, definiendum2):
@@ -659,24 +674,24 @@ def add_one_sent(ancestor, mem, definiendum2):
     is_redundant = redundant(sentences[mem][2], sentences[mem][3], definiendum2, "conj_elim")
     if not is_redundant:
         anc2 = "ait" if detach_type == "ax ind tense" else ""
-        add_to_tsent(output[0], sentences[mem][1], sentences[mem][2],
+        add_to_tsent(output, sentences[mem][1], sentences[mem][2],
                      sentences[mem][3], "&E", ancestor, anc2)
         consistent = check_consistency(output)
         if not consistent: return
-        sentences[mem][44] = get_sn(output[0])
+        sentences[mem][44] = output.tindex
         for x in sentences[mem][42]:
-            if sentences[mem][x] not in output[10]:
-                output[10].append(sentences[mem][x])
+            if sentences[mem][x] not in output.constants:
+                output.constants.add(sentences[mem][x])
         sentences[mem][7] = "c"
-        const = determine_constants(output[6], sentences[mem])
+        const = determine_constants(output.abbreviations, sentences[mem])
         sentences[mem][58] = const
-        output[1].append(sentences[mem])
-        output[4].append(const)
-        output[5].setdefault(const, []).append(len(output[1]) - 1)
+        output.all_sent.append(sentences[mem])
+        output.lsent_list.append(const)
+        output.lsent_dict.setdefault(const, []).append(len(output.all_sent) - 1)
         named_sentence(sentences[mem])
 
 
 def exceptional_instantiation(sentences):
     for sentence in sentences:
         if sentence[13] == 'W' and sentence[7][0] == 'b':
-            output[10].append(sentence[10])
+            output.constants.add(sentence[10])

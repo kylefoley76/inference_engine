@@ -1,12 +1,9 @@
 
-# from classes import *
 import pickle, re
 import json
 
 
-pkl_file = open('z_dict_words.pkl', 'rb')
-dictionary = pickle.load(pkl_file)
-pkl_file.close()
+
 
 
 
