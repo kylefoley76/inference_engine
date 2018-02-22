@@ -14,13 +14,21 @@ import json
     # if the argument is completely artificial then we do not need a heading
     # saying 'natural language premises'
 
+# abbreviation sentences which are used as premises must have 'ABB' as
+# their fourth member, their ancestors are not renumbered because they
+# get their ancestor only in the rearrange function
+
+# standard sentences must have 'standard' as their seventh member
+
 # sentence names, translation sentences and instantiation sentences
 # must have an 'id' as their second member in order to print properly
+# SUZ sentences are subs by synonymys and belong in uninstant premises
+# no ancestor is placed on them except in renum abb conj elim
 
 subst_rules = ["DF", "TR", "LY", "SUB", "SUBI", "SUBJ", "IN", "AX", "CE", xorr]
-uninstant_prem_rules = ["DE", "SUY", "LY", "RD"]
+uninstant_prem_rules = ["DE", "SUY", "LY", "RD", "SUZ"]
 uninstant_infer_rules = ["EF", "IF", "AE"]
-stan_prem_rules = ["SUBI", "LE"]
+stan_prem_rules = ["SUBI", "LE", "ABB"]
 st_infer_rules = [iff + "E", "MP", "MT", "EN", "&I", "&E", idisj + "E", "ASC",
                   mini_e + "E", "~~E", bottom + "I", consist + "I", xorr + "E", "SUBJ",
                    "AY"]
@@ -104,6 +112,10 @@ def rearrange_subst_sent(sub_dict, remainder, temp_total_sent):
                         m += 1
                     m += 1
 
+        if k[-1] == '0' and v[0][4] == 'CE':
+            idx = findposinmd(v[0][5], output.total_sent, 0, 0, True)
+            v.insert(0, output.total_sent[idx])
+
         for lst in v: sub_sentences.append(lst)
 
     if consistent:
@@ -150,11 +162,13 @@ def rearrange(kind, output2, consistent2, proof_kind2, rel_abbrev):
 
     build_constant_sent(output)
 
-    put_in_premise = categorize_by_rule(output)
+    categorize_by_rule(output)
 
     pn = build_intro_sent(new_numbers, temp_total_sent)
 
     constant_list, pn = build_constant_sent2(pn, temp_total_sent)
+
+    abbreviation_index = pn
 
     if uninstant_prem != [] and not proof_kind:
 
@@ -169,6 +183,8 @@ def rearrange(kind, output2, consistent2, proof_kind2, rel_abbrev):
         temp_total_sent.append(constant_list)
 
         build_rel_sent(temp_total_sent, rel_abbrev)
+
+        renum_abb_conj_elim(abbreviation_index)
 
         standard_premises += stan_prem_sent
 
@@ -193,8 +209,6 @@ def rearrange(kind, output2, consistent2, proof_kind2, rel_abbrev):
     prelim_renumber(temp_total_sent, only_in_sub, new_numbers)
 
     rearrange_subst_sent(sub_dict, remainder, temp_total_sent)
-
-
 
     output.total_sent = temp_total_sent
 
@@ -225,6 +239,12 @@ def build_remainder(consistent, standard_premises):
             if one_sentence(x[1]) and x not in remainder:
                 remainder.append(x)
     return remainder
+
+
+def renum_abb_conj_elim(abbreviation_index):
+    for x in stan_prem_sent:
+        if x[4] == 'ABB':
+            x[5] = abbreviation_index
 
 
 def repeat_standard_premises(kind, standard_premises, temp_total_sent):
@@ -323,8 +343,7 @@ def categorize_by_rule(output):
             rule_prefix in only_in_substitutions:
             only_in_sub.append(lst)
 
-
-    return put_in_premise
+    return
 
 
 def put_def_in_premise(output):
@@ -369,7 +388,7 @@ def renumber_sentences(new_numbers, list2):
             if lst[1] == '(w I y)':
                 bb = 8
 
-            if lst[5] in ['id', 'natural']:
+            if lst[5] in ['id', 'natural'] or lst[4] == 'ABB':
                 pass
             elif isinstance(lst[5], str) and lst[5] != "":
                 list1 = lst[5].split(",")
@@ -393,7 +412,7 @@ def rearrange_sent_abbrev():
     abbrev_sent = []
 
     for sent in output.total_sent:
-        if sent[2] != "" and sent[4] not in ['SUY', "SUBI"]:
+        if sent[2] != "" and sent[4] not in ["SUBI"]:
 
             list1 = [sent[0], sent[2], "", sent[3], sent[4], sent[5], sent[6], ""]
             if list1 not in abbrev_sent:
@@ -416,15 +435,18 @@ def rearrange_sent_abbrev():
         else:
             sent[4] = ""
 
-
-    output.total_sent.append([""] * 8)
+    lst = [""] * 8
+    lst[1] = 'name sent start'
+    output.total_sent.append(lst)
     sent_names = build_sent_name()
     for sent in sent_names:
         lst = [""] * 8
         lst[1] = sent
         lst[5] = 'id'
         output.total_sent.append(lst)
-    output.total_sent.append([""] * 8)
+    lst = [""] * 8
+    lst[1] = 'name sent end'
+    output.total_sent.append(lst)
     for sent in abbrev_sent: output.total_sent.append(sent)
 
     return
@@ -433,20 +455,19 @@ def rearrange_sent_abbrev():
 def build_sent_name():
     str2 = ''
     list1 = []
-
     i = 0
     for k, v in output.oprop_name.items():
 
         v = remove_extra_paren(v)
-        str1 = '(' + k + mini_e + v + ')'
-        if len(str2) == 0 and len(str1) > 57:
+        str1 = '(' + k + " "  + mini_e + " " + v + ')'
+        if len(str2) == 0 and len(str1) > 65:
             list1.append(str1)
-        elif (len(str2) + len(str1)) > 57:
+        elif (len(str2) + len(str1)) > 65:
             list1.append(str2)
             str2 = str1
             if i + 1 == len(output.oprop_name):
                 list1.append(str2)
-        elif (len(str2) + len(str1)) <= 57:
+        elif (len(str2) + len(str1)) <= 65:
             if len(str2) == 0:
                 str2 = str1
             else:
@@ -489,10 +510,10 @@ def rename_rules():
     for lst in output.total_sent:
 
         lst[4] = lst[4].replace('SUY', 'SUB')
+        lst[4] = lst[4].replace('SUZ', 'SUB')
         lst[4] = lst[4].replace('SUBI', 'SUB')
         lst[4] = lst[4].replace('SUBJ', 'SUB')
         lst[4] = lst[4].replace('INJ', 'IN')
-        lst[4] = lst[4].replace('INJ,TR', 'IN,TR')
         lst[4] = lst[4].replace('AY', 'AX')
         lst[4] = lst[4].replace('DE', 'DF')
         lst[4] = lst[4].replace('NE', 'NC')
@@ -502,4 +523,5 @@ def rename_rules():
         lst[4] = lst[4].replace('IF', "MP")
         lst[4] = lst[4].replace('AE', '&E')
         lst[4] = lst[4].replace('CE', '&E')
+        lst[4] = lst[4].replace('ABB', '&E')
 

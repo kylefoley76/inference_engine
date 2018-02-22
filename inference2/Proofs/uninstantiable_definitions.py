@@ -230,7 +230,7 @@ def eliminate_determiners(list1, slot):
     word = list1[slot]
     list1[slot] = ""
     consequent = []
-    cls = get_word_info(dictionary, output.user, word)
+    cls = get_word_info(dictionary, word, output.user)
     cls = cls[0]
     def_constants = dictionary.def_constants.get(word)
     sentences = json.loads(json.dumps(cls.sentences))
@@ -282,7 +282,7 @@ def replace_variables2(abbrev_dict, consequent, list1, sentences):
 def eliminate_pronouns(list1, slot):
     word = list1[slot]
     consequent = []
-    cls = get_word_info(dictionary, output.user, word)
+    cls = get_word_info(dictionary, word, output.user)
     cls = cls[0]
     sentences = json.loads(json.dumps(cls.sentences))
     abbrev_dict = {}

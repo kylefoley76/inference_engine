@@ -17,11 +17,11 @@ def name_and_build(output, list1):
     list1[0] = list1[3] + list1[1]
 
 
-def direct_equivalence(output, ant_sent, ant_sentp, sent, rule):
+def direct_equivalence(output, ant_sent, ant_sentp, sent, rule, anc1 = ""):
     name_and_build(output, sent)
     sent1 = build_connection(ant_sent, iff, sent[0])
     sent1p = build_connection(ant_sentp, iff, sent[3] + sent[2])
-    add_to_tsent(output, sent1, sent1p, "", rule)
+    add_to_tsent(output, sent1, sent1p, "", rule, anc1)
     sent[44] = output.tindex
 
 
@@ -358,7 +358,7 @@ def get_prop_var():
     return prop_var2
 
 
-def get_word_info(dictionary, user, word):
+def get_word_info(dictionary, word, user = ""):
     with open(user + "json_dict/" + word + ".json", "r") as fp:
         lst_sent = json.load(fp)
     item1 = dictionary.categorized_sent.get(word)
@@ -589,40 +589,44 @@ def closest_to_max_size(word_str, max_size, sent_type):
                 raise Exception
 
 
-def space_sentences(num_str, word_str, largest_rule, space1, rule, sent_type):
-    third_column = largest_rule + 4
-    max_size = 75 - third_column
-    j = 0
-    k = 0
-    if " ," in word_str: word_str = word_str.replace(" ,", ",")
-    five_spaces = " " * 5
-    # the word_str always starts at position 5, there is always
-    # 3 spaces between the rule and the word_str
-
-    while 5 + third_column + len(word_str) > 75:
-        k += 1
-        if k > 10: raise Exception("printer caught in infinite loop")
-        location = closest_to_max_size(word_str, max_size - 5, sent_type)
-        remainder = word_str[location:]
-        word_str = word_str[:location]
-
-        if j == 0:
-            space2 = 75 - (4 + len(word_str) + largest_rule)
-            space2 = " " * space2
-            print(num_str + space1 + word_str + space2 + rule)
-        else:
-            print(five_spaces + word_str)
-        j += 1
-        word_str = remainder
+def space_sentences(num_str, word_str, largest_rule, space1, rule, name_sent, sent_type):
+    if name_sent:
+        print (word_str)
     else:
-        if all(x in ["", " "] for x in word_str) and j > 0:
-            pass
-        elif j > 0:
-            print(five_spaces + word_str)
+
+        third_column = largest_rule + 4
+        max_size = 75 - third_column
+        j = 0
+        k = 0
+        if " ," in word_str: word_str = word_str.replace(" ,", ",")
+        five_spaces = " " * 5
+        # the word_str always starts at position 5, there is always
+        # 3 spaces between the rule and the word_str
+
+        while 5 + third_column + len(word_str) > 75:
+            k += 1
+            if k > 10: raise Exception("printer caught in infinite loop")
+            location = closest_to_max_size(word_str, max_size - 5, sent_type)
+            remainder = word_str[location:]
+            word_str = word_str[:location]
+
+            if j == 0:
+                space2 = 75 - (4 + len(word_str) + largest_rule)
+                space2 = " " * space2
+                print(num_str + space1 + word_str + space2 + rule)
+            else:
+                print(five_spaces + word_str)
+            j += 1
+            word_str = remainder
         else:
-            space2 = 75 - (4 + len(word_str) + largest_rule)
-            space2 = " " * space2
-            print(num_str + space1 + word_str + space2 + rule)
+            if all(x in ["", " "] for x in word_str) and j > 0:
+                pass
+            elif j > 0:
+                print(five_spaces + word_str)
+            else:
+                space2 = 75 - (4 + len(word_str) + largest_rule)
+                space2 = " " * space2
+                print(num_str + space1 + word_str + space2 + rule)
 
     return
 
@@ -635,6 +639,7 @@ def print_sent(test_sent, order, print_type):
     largest_rule = 1
 
     for i in order:
+        name_sent_now = False
         if test_sent[i][0] != "pass":
             for j in range(len(test_sent[i])):
                 rule = ""
@@ -654,7 +659,14 @@ def print_sent(test_sent, order, print_type):
                     test_sent[i][j][4] = rule
 
             for j in range(len(test_sent[i])):
-                if print_type == 2:
+                if test_sent[i][j][1].startswith('name sent'):
+                    print ("")
+                    if test_sent[i][j][1] == 'name sent start':
+                        name_sent_now = True
+                    elif test_sent[i][j][1] == 'name sent end':
+                        name_sent_now = False
+
+                elif print_type == 2:
 
                     size_num = 5 - len(str(test_sent[i][j][0]))
                     space1 = " " * size_num
@@ -667,8 +679,8 @@ def print_sent(test_sent, order, print_type):
                     if test_sent[i][j][1].startswith("(a" + mini_e):
                         bb = 8
 
-                    space_sentences(str(test_sent[i][j][0]), word_str,
-                                    largest_rule, space1, test_sent[i][j][4], sent_type)
+                    space_sentences(str(test_sent[i][j][0]), word_str, largest_rule, space1, test_sent[i][j][4],
+                                    name_sent_now, sent_type)
 
 
                 elif print_type == 1:
@@ -678,12 +690,13 @@ def print_sent(test_sent, order, print_type):
                     if test_sent[i][j][1] == bottom:
                         w4.cell(row=row_number, column=5).value = 1
 
-                    # if len(test_sent[i][j]) > 8:
-                    #     if test_sent[i][j][8] == "*":
-                    #         xls_cell = w4.cell(row=row_number, column=3)
-                    #         xls_cell.font = xls_cell.font.copy(color='FFFF0000')
+                    if len(test_sent[i][j]) > 8:
+                        if test_sent[i][j][8] == "*":
+                            xls_cell = w4.cell(row=row_number, column=3)
+                            xls_cell.font = xls_cell.font.copy(color='FFFF0000')
 
                 row_number += 1
+        row_number += 2
 
     if print_type == 1:
         wb4.save('/Users/kylefoley/Desktop/inference_engine/temp_proof.xlsx')

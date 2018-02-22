@@ -128,24 +128,17 @@ def step_one(dictionary2, user, sent):
     output.prop_name = defaultdict(lambda: output.prop_var.pop(), {})
     output.user = user
 
-
-
-
     if "(" in sent[0]:
 
         proof_kind = "artificial"
 
         truth_value = artificial_sentence(sent)
 
-        # if truth_value == True: return True, 'skip', 0
-
     else:
 
         output.all_sent.append(sent[0])
 
         truth_value, output.all_sent[0] = obtain_truth_value()
-
-        # if truth_value == True: return True, 'skip', 0
 
         output.all_sent = eliminate_logical_connectives()
 
@@ -333,7 +326,7 @@ def replace_synonyms():
 
             j += 1
         if replacement_made:
-            direct_equivalence(output, ant_sent, ant_sentp, output.all_sent[m], "SUB")
+            direct_equivalence(output, ant_sent, ant_sentp, output.all_sent[m], "SUZ", output.tindex)
             output.all_sent[m][45] = sorted(output.all_sent[m][45], key=operator.itemgetter(1))
 
             inferences.append(
@@ -456,7 +449,7 @@ def replace_word_w_variable(m, k, word):
             pos = dictionary.pos.get(word)
             if len(pos) > 1 and dictionary.kind.get(word) == "i":
                 list1 = svo_sent(output, output.variables[0], "=", word)
-                add_to_tsent(output, list1[0], list1[2], "", "", "", "","standard")
+                add_to_tsent(output, list1[0], list1[2], "", "ABB", "", "","standard")
                 list1[44] = output.tindex
                 output.all_sent.append(list1)
             if k == 134 or k == 135:

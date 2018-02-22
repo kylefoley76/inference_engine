@@ -29,6 +29,7 @@ class def_stats(object):
         self.concept = ""
         self.connection_type = ""
         self.natural_sent = ""
+        self.translated_sent = ""
         self.consequent_disjunct = ""
         self.user = ""
         self.natural_disjuncts = []

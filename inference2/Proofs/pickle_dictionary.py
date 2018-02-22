@@ -299,18 +299,20 @@ def save_dictionary(dictionary):
 def start_pickle(user="", kind2=""):
     global dictionary, wb4, ws, third_sheet, kind
 
-    if kind2 != "":
-        kind = kind2
+    if user == "":
 
-    arguments = sys.argv
-    if len(arguments) > 1:
-        kind = int(arguments[1])
-    else:
-        kind = 6
+        if kind2 != "":
+            kind = kind2
 
-    wb4 = load_workbook('/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/dictionary5.xlsx')
-    ws = wb4.worksheets[0]
-    third_sheet = wb4.worksheets[2]
+        arguments = sys.argv
+        if len(arguments) > 1:
+            kind = int(arguments[1])
+        else:
+            kind = 6
+
+        wb4 = load_workbook('/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/dictionary5.xlsx')
+        ws = wb4.worksheets[0]
+        third_sheet = wb4.worksheets[2]
 
     if kind == 6:
 
