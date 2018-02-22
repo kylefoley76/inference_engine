@@ -18,6 +18,7 @@ from .models import Define3, Archives
 import openpyxl
 from openpyxl.cell import get_column_letter
 from django.contrib import messages
+from .main_loop import get_result
 
 DEFAULT_ROWS = 40000
 
@@ -146,10 +147,13 @@ def try_input(request, archive=None):
             # input = "It is|a contradictory that I do not have many|n points"
             input = request.POST.get('try_input')
             Output.objects.all().delete()
-            prove_algorithm = importlib.import_module('.' + archive.test_machine.split('.py')[0],
-                                                      package='inference2.Proofs')
-            post_data, result_string = prove_algorithm.get_result_from_views(
-                request.POST.copy(), archive.id, request, input)
+            # prove_algorithm = importlib.import_module('.' + archive.test_machine.split('.py')[0],
+            #                                           package='inference2.Proofs')
+            result_string = get_result(input)
+            # result_string = prove_algorithm.get_result_from_views(
+            #     request.POST.copy(), archive.id, request, input)
+            print_output(result_string)
+
             template_args['result'] = result_string
             print(post_data)
             if post_data:
