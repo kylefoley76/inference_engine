@@ -378,7 +378,7 @@ def make_groups_definite(sentences, output):
                 pass
 
 
-def add_to_gsent(item1, output, proof_kind=""):
+def add_to_gsent(item1, output, proof_kind="", asent_idx = []):
     for e, cls in enumerate(item1):
         def_stats = cls.def_stats
         if proof_kind == "":
@@ -397,14 +397,14 @@ def add_to_gsent(item1, output, proof_kind=""):
                 del def_stats.ant_index[0]
                 def_stats.ant_index.append(idx)
                 sent_constant = sentences[first_ant][58]
-            output.gsent.append([sent_constant, 0, definiendum])
+            output.gsent.append([sent_constant, 0, definiendum, asent_idx])
             if kind == 'e' and cls.disjuncts == []:
                 first_con = def_stats.con_index[0]
                 if isinstance(first_con, int):
                     sent_constant = sentences[first_con][58]
                 else:
                     sent_constant = cls.def_stats.con_comp_const[0]
-                output.gsent.append([sent_constant, 1, definiendum])
+                output.gsent.append([sent_constant, 1, definiendum, asent_idx])
 
             elif kind == 'e':
                 add_disjunct_to_gsent(cls, sentences, definiendum, output)
@@ -422,7 +422,7 @@ def add_disjunct_to_gsent(cls, sentences, definiendum, output):
         first_con = disjunction.index1[0]
         if isinstance(first_con, int):
             sent_constant = sentences[first_con][58]
-            output.gsent.append([sent_constant, j + 2, definiendum])
+            output.gsent.append([sent_constant, j + 2, definiendum, []])
         else:
             raise Exception
 
@@ -495,7 +495,7 @@ def universal_negations(cls, output):
                             sent_constant = sent_constant.replace("~ ", "")
                             tvalue = ""
                         sentence[58] = tvalue + sent_constant
-                        output.gsent.append([tvalue + sent_constant, 2 + e, "thing0"])
+                        output.gsent.append([tvalue + sent_constant, 2 + e, "thing0", []])
 
     return definiendum, done
 

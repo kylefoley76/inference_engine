@@ -5,7 +5,7 @@ import copy
 import json
 import sys
 from analyze_definition import process_sentences
-from classes import get_dictionary
+from classes import get_dictionary, row_class
 
 
 def update_synonyms(definition):
@@ -58,74 +58,92 @@ def get_prepositional_relations():
     dictionary.non_spatio_temporal_relations = non_spatio_temporal
 
 
+# ex!fill_row,build_dictionary
+def fill_row(i, rw, worksheet):
+    rw.row_num = worksheet.cell(row=i, column=1).value
+    rw.pos = worksheet.cell(row=i, column=3).value
+    rw.word = worksheet.cell(row=i, column=4).value
+    rw.next_word = worksheet.cell(row=i + 1, column=4).value
+    rw.abbrev_relat = worksheet.cell(row=i, column=5).value
+    rw.defin = worksheet.cell(row=i, column=6).value
+    rw.next_defin = worksheet.cell(row=i + 1, column=6).value
+    rw.edisj = worksheet.cell(row=i, column=13).value
+    rw.embed = worksheet.cell(row=i, column=10).value
+    rw.easy_embed = worksheet.cell(row=i, column=11).value
+
+    return rw
+
+
 def build_dictionary(kind2):
     global ws, wsar, third_sheet, dictionary
     dictionary = get_dictionary()
-    worksheet = ws
-    get_prepositional_relations()
+    if kind2 == "":
+        get_prepositional_relations()
+        worksheet = ws
 
     i = 25
     while i < 3000:
 
         i += 1
-        row_num = worksheet.cell(row=i, column=1).value
-        pos = worksheet.cell(row=i, column=3).value
-        word = worksheet.cell(row=i, column=4).value
-        next_word = worksheet.cell(row=i + 1, column=4).value
-        abbrev_relat = worksheet.cell(row=i, column=5).value
-        defin = worksheet.cell(row=i, column=6).value
-        next_defin = worksheet.cell(row=i + 1, column=6).value
-        edisj = worksheet.cell(row=i, column=13).value
-        embed = worksheet.cell(row=i, column=10).value
-        easy_embed = worksheet.cell(row=i, column=11).value
+        rw = row_class()
+        if kind2 == "":
+            rw = fill_row(i, rw, worksheet)
+        elif kind2 == 'mysql':
+            rw = fill_mysql_row(i, rw, worksheet)
 
-        if word == 'spiesx on' or abbrev_relat == 'INM':
+        if rw.word == 'spiesx on' or rw.abbrev_relat == 'INM':
             bb = 8
 
-        if not not_blank(word) and not not_blank(next_word) and i > 300:
+        if not not_blank(rw.word) and not not_blank(rw.next_word) and i > 300:
             break
 
-        if not_blank(pos):
-            if easy_embed in [1, 6]: embed = False
-            if embed == 'done': embed = False
-            if not isinstance(pos, int): pos = pos.strip()
-            if isinstance(word, int): word = str(word)
-            if word == "true*": word = "true"
-            if word == "false*": word = "false"
-            word = cut_word(word)
-            next_word = cut_word(next_word)
+        if not_blank(rw.pos):
+            if rw.easy_embed in [1, 6]: rw.embed = False
+            if rw.embed == 'done': rw.embed = False
+            if not isinstance(rw.pos, int): rw.pos = rw.pos.strip()
+            if isinstance(rw.word, int): rw.word = str(rw.word)
+            if rw.word == "true*": rw.word = "true"
+            if rw.word == "false*": rw.word = "false"
+            rw.word = cut_word(rw.word)
+            rw.next_word = cut_word(rw.next_word)
             # print (word)
 
-            fir_let, sec_let = put_in_categories(abbrev_relat, pos, row_num, word, defin)
+            fir_let, sec_let = put_in_categories(rw)
 
             # universals are not defined, synonyms and determinative nouns are already done
-            if sec_let not in ['a', 'b', 's', 'd'] and not embed and not_blank(defin):
+            if sec_let not in ['a', 'b', 's', 'd'] and not rw.embed and not_blank(rw.defin):
 
-                defin = defin.strip()
+                rw.defin = rw.defin.strip()
 
-                if next_word == word and "e.g." not in next_defin:
+                if rw.next_word == rw.word and "e.g." not in rw.next_defin:
                     while is_a_definition(worksheet.cell(row=i + 1, column=6).value) \
-                            and next_word == word:
+                            and rw.next_word == rw.word:
                         i += 1
-                        defin += "| " + worksheet.cell(row=i, column=6).value.strip()
-                        next_word = worksheet.cell(row=i + 1, column=4).value
-                        next_word = cut_word(next_word)
+                        rw.defin += "| " + worksheet.cell(row=i, column=6).value.strip()
+                        rw.next_word = worksheet.cell(row=i + 1, column=4).value
+                        rw.next_word = cut_word(rw.next_word)
 
                 if fir_let == "r":
-                    dictionary.definitions.update({abbrev_relat: defin})
-                    if easy_embed in [1, 6] and fir_let == 'd':
-                        dictionary.easy_embed.append(abbrev_relat)
-                        dictionary.embed_type.update({abbrev_relat: easy_embed})
+                    dictionary.definitions.update({rw.abbrev_relat: rw.defin})
+                    if rw.easy_embed in [1, 6] and fir_let == 'd':
+                        dictionary.easy_embed.append(rw.abbrev_relat)
+                        dictionary.embed_type.update({rw.abbrev_relat: rw.easy_embed})
 
                 else:
-                    if easy_embed in [1, 6] and fir_let == 'd':
-                        dictionary.easy_embed.append(word)
-                    dictionary.definitions.update({word: defin})
+                    if rw.easy_embed in [1, 6] and fir_let == 'd':
+                        dictionary.easy_embed.append(rw.word)
+                    dictionary.definitions.update({rw.word: rw.defin})
 
     return reduce_definitions(dictionary)
 
 
-def put_in_categories(abbrev_relat, pos, row_num, word, defin):
+def put_in_categories(rw):
+    abbrev_relat = rw.abbrev_relat
+    pos = rw.pos
+    word = rw.word
+    defin = rw.defin
+    row_num = rw.row_num
+
     if len(pos) == 1: pos += "z"
     dictionary.pos.update({word: pos})
     fir_let = pos[0]

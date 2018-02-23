@@ -49,6 +49,22 @@ class disjunction:
         self.tot_greek = ""
 
 
+class row_class:
+    def __init__(self):
+        self.row_num = 0
+        self.pos = ""
+        self.word = ""
+        self.next_word = ""
+        self.abbrev_relat = ""
+        self.defin = ""
+        self.next_defin = ""
+        self.edisj = ""
+        self.embed = ""
+        self.easy_embed = ""
+
+
+
+
 class ErrorWithCode(Exception):
     def __init__(self, code):
         self.code = code

@@ -154,13 +154,15 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
     sentence_slots[47] = subclauses
     if kind != "recursive":
         sentence_slots[58] = determine_constants(abbreviations, sentence_slots)
-        sentence_slots[1] = build_sent_pos(sentence_slots)
-        sentence_slots[0] = nbuild_sent(sentence_slots, sentence_slots)
+
+        if output != []:
+            name_and_build(output, sentence_slots)
+        else:
+            sentence_slots[1] = build_sent_pos(sentence_slots)
+            sentence_slots[0] = nbuild_sent(sentence_slots, sentence_slots)
         if special_tilde:
             sentence_slots[0] = sentence_slots[0].replace("(~ ", "~(")
-        if not is_a_standard_sent:
-            sentence_slots[2] = name_sent(sentence_slots[1], prop_name)
-            oprop_name[sentence_slots[1]] = sentence_slots[2]
+
 
     return sentence_slots
 

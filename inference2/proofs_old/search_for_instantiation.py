@@ -191,7 +191,7 @@ def name_connected_sent(osent, old_prop, sent_class, quantifier, anc1=""):
     greek_english = {}
     greek_english_abb = {}
     for sentence in sentences:
-        if osent != sent_class.def_stats.natural_sent:
+        if osent != sent_class.def_stats.translated_sent:
             sentence[44] = output.tindex + 2
         else:
             sentence[44] = output.tindex + 1
@@ -223,7 +223,7 @@ def name_connected_sent(osent, old_prop, sent_class, quantifier, anc1=""):
 
     add_to_tsent(output, osent, old_prop)
 
-    if osent != sent_class.def_stats.natural_sent:
+    if osent != sent_class.def_stats.translated_sent:
         if quantifier:
             add_to_tsent(output, new_greek, new_greek_abb, "", "ASC", output.tindex)
         else:
@@ -407,7 +407,10 @@ def translate_abbreviations(lst, definiendum):
             output.substitutions.setdefault(definiendum + str(m), []).append(output.total_sent[-1])
             def_stats.tot_sent_idx = output.tindex
             add_disjuncts2(tran_disjuncts, qn, definiendum, rn_list)
-            def_stats.natural_sent = greek_definition
+            def_stats.translated_sent = greek_definition
+        else:
+            def_stats.translated_sent = def_stats.natural_sent
+
 
     return
 
@@ -470,7 +473,7 @@ def get_hypotheticals(start):
         if findposinmd("DF " + word, output.total_sent, 4) == -1 and word not in done:
             if word in dictionary.categorized_sent.keys() and \
                     not is_exceptional2(output, word, m):
-                item1 = get_word_info(dictionary, output.user, word)
+                item1 = get_word_info(dictionary, word, output.user)
 
                 add_to_gsent(item1, output)
                 for j, itm in enumerate(item1):
@@ -556,6 +559,24 @@ def use_basic_lemmas2(begin, end):
 ######## group: loop until instantiation is done ##############
 
 
+def prepare_from_lemmas(output2, proof_kind2, dictionary2):
+    global consistent, identities, proof_kind, output, reduced
+    global do_not_instantiate, rel_abbrev, atomic_dict1, atomic_dict2
+    global dictionary
+
+    proof_kind = proof_kind2
+    output = output2
+    dictionary = dictionary2
+    identities = []
+    consistent = True
+    reduced = False
+    rel_abbrev = output.main_var
+    atomic_dict1 = {}
+    atomic_dict2 = {}
+    do_not_instantiate = output.disj_elim
+    output.disj_elim = []
+
+
 def get_relevant_abbreviations(begin):
     universal = lambda x, y: x[13] in ["I", "J", "V", "OFW"] and y == 14
     if begin == 0:
@@ -575,7 +596,7 @@ def get_relevant_abbreviations(begin):
 
 
 def delete_irrelevant_lsent(begin):
-    if proof_kind == 'lemmas': return
+    if proof_kind in ['lemmas', "lemmas2"]: return
     list1 = []
     for e in range(begin, len(output.all_sent)):
         sent = output.all_sent[e]
@@ -633,8 +654,6 @@ def instantiable(lconstant, gconstant):
         if [num, gconstant[0]] not in do_not_instantiate:
             return True
 
-
-
     return False
 
 
@@ -647,21 +666,16 @@ def build_matrix(matrix, gstart, gstop, lstart, lend):
     return
 
 
-def lemma_non_instantiation():
-    global do_not_instantiate
-    if proof_kind == 'lemmas2':
-        do_not_instantiate = output.disj_elim
-        output.disj_elim = []
+def loop_through_gsent(output2="", proof_kind2="", dictionary2=""):
+    global reduced
+    if proof_kind2 == 'lemmas2':
+        prepare_from_lemmas(output2, proof_kind2, dictionary2)
 
-
-def loop_through_gsent():
-    global output, reduced
     if not consistent: return
     for x in output.abbreviations.values(): assert not x.islower() or len(x) > 1
     matrix = []
     prev_instant = []
     output.lsent_list = sorted(list(set(output.lsent_list)))
-    lemma_non_instantiation()
     delete_irrelevant_lsent(0)
     build_matrix(matrix, 0, len(output.gsent), 0, len(output.lsent_list))
     # in the matrix, the 2nd member is the index in the output.gsent, the 3rd member

@@ -652,19 +652,22 @@ def add_comp_sent(ancestor, b, mem):
         lsent_key = cls.def_stats.con_comp_const[b]
     b += 1
     greek_abb = nat_greek
-    for k, v in greek_english.items():
-        nat_greek = nat_greek.replace(k, v)
-    for k, v in greek_english_prop.items():
-        greek_abb = greek_abb.replace(k, v)
+    for k, v in greek_english.items(): nat_greek = nat_greek.replace(k, v)
+    for k, v in greek_english_prop.items(): greek_abb = greek_abb.replace(k, v)
     add_to_tsent(output, nat_greek, greek_abb, "", "&E", ancestor)
     new_cls = cls.embeds.get(hnum)
     new_cls.sentences = sentences
     new_cls.def_stats.tot_sent_idx = output.tindex
     gsent_key = new_cls.def_stats.def_word_num
+    o_index = copy.deepcopy(mem)
+    for e, num in enumerate(mem):
+        output.all_sent.append(sentences[num])
+        sentences[num][7] = sentences[num][56]
+        o_index[e] = len(output.all_sent) - 1
     output.trans_def.update({gsent_key: new_cls})
     add_to_gsent([new_cls], output)
     output.lsent_list.append(lsent_key)
-    output.lsent_dict.setdefault(lsent_key, []).append(mem)
+    output.lsent_dict.setdefault(lsent_key, []).append(o_index)
     universal_negations(new_cls, output)
     exceptional_instantiation(sentences)
 

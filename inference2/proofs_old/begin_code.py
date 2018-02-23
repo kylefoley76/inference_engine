@@ -1,36 +1,20 @@
 from main_loop import get_result
-from openpyxl import load_workbook
-import sys, re
-from general_functions import print_sent
+import sys
 from lemmas import *
 
 arguments = sys.argv
 
-start = 138
+start = 0
 stop = 0
 kind = 0
 end = 243
-print_type = 3
+print_type = 2
 get_words_used = 0
-iff = chr(8801)
-implies = chr(8866)
-conditional = chr(8594)
-xorr = chr(8891)
-idisj = chr(8744)
-mini_e = chr(8703)
-nonseq = chr(8876)
-bottom = chr(8869)
-special_connectives = [iff, conditional, xorr, idisj]
-all_connectives = special_connectives + [implies, nonseq, "&"]
-one_sentence = lambda x: not re.search(xorr + "|" + implies + "|" + iff + "|" + idisj + "|" +
-                                   conditional + "|&", x)
-
+size = "large"
 do_not_argue = [28]
 order = []
 
-# all arguments fit the relevance rule except for 180
-# 80, 178, 233 get caught in infinite loops without relevance rule
-#done, 241, 200, 208, 209 - 215, 242
+# in 85.13 the ancestor should be 10 not 11
 
 if len(arguments) > 1:
 
@@ -38,6 +22,11 @@ if len(arguments) > 1:
         print_type = 2
     elif arguments[1] in ["mm", "dc", "mm2"]:
         kind = arguments[1]
+        if len(arguments) > 2: print_type = arguments[2]
+
+        if kind == 'dc':
+            size = 'small' if len(arguments) > 2 else 'large'
+
     else:
         start = int(arguments[1])
 
@@ -61,11 +50,7 @@ if len(arguments) > 1:
     # 4 do not print individual times, do not stop if false
 
 
-    # proof type
-    # 0 break if false sentence
-    # 1 ignore false sentence
-    # 3 terminal input box
-    # 4 test spelling errors
+
 
 
 
@@ -84,11 +69,11 @@ elif kind == "mm":
 elif kind == "mm2":
     make_matrix2("")
 elif kind == "dc":
-    determine_class("")
+    determine_class("", size)
 
 if print_type == 2:
     print_sent(output, order, print_type)
 elif print_type == 1:
 
-    print_sent(output, order)
+    print_sent(output, order, print_type)
 

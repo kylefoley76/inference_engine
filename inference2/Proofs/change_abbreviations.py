@@ -638,7 +638,34 @@ def conjunction_elimination(definiendum2):
             add_one_sent(ancestor, mem, definiendum2)
             if not consistent: return
         else:
-            add_comp_sent(ancestor, b, mem)
+            b = add_comp_sent(ancestor, b, mem)
+
+
+# def adjust_index4(output, new_sent, list1):
+#     sentences = output.all_sent
+#     new_index = []
+#     for e, num in enumerate(list1):
+#         if isinstance(num, int):
+#             new_sent.append(sentences[num])
+#             new_index.append(len(new_sent) - 1)
+#         else:
+#             list2 = []
+#             for f, cnum in enumerate(num):
+#                 new_sent.append(sentences[cnum])
+#                 list2.append(len(new_sent) - 1)
+#             new_index.append(list2)
+#
+#     return new_index
+#
+#
+# def adjust_index3(sentences, new_cls):
+#     for k, v in output.trans_def.items():
+#         new_sent = []
+#         new_index = adjust_index4(output, new_sent, v.def_stats.ant_index)
+#         v.def_stats.ant_index = new_index
+#         new_index = adjust_index4(output, new_sent, v.def_stats.con_index)
+#         v.def_stats.con_index = new_index
+#         v.sentences = json.loads(json.dumps(new_sent))
 
 
 def add_comp_sent(ancestor, b, mem):
@@ -652,21 +679,26 @@ def add_comp_sent(ancestor, b, mem):
         lsent_key = cls.def_stats.con_comp_const[b]
     b += 1
     greek_abb = nat_greek
-    for k, v in greek_english.items():
-        nat_greek = nat_greek.replace(k, v)
-    for k, v in greek_english_prop.items():
-        greek_abb = greek_abb.replace(k, v)
+    for k, v in greek_english.items(): nat_greek = nat_greek.replace(k, v)
+    for k, v in greek_english_prop.items(): greek_abb = greek_abb.replace(k, v)
     add_to_tsent(output, nat_greek, greek_abb, "", "&E", ancestor)
     new_cls = cls.embeds.get(hnum)
-    new_cls.sentences = sentences
+    new_cls.sentences = cls.sentences
     new_cls.def_stats.tot_sent_idx = output.tindex
     gsent_key = new_cls.def_stats.def_word_num
+    asent_idx = copy.deepcopy(mem)
+    for e, num in enumerate(mem):
+        output.all_sent.append(sentences[num])
+        sentences[num][7] = sentences[num][56]
+        asent_idx[e] = len(output.all_sent) - 1
     output.trans_def.update({gsent_key: new_cls})
-    add_to_gsent([new_cls], output)
-    output.lsent_list.append(lsent_key)
-    output.lsent_dict.setdefault(lsent_key, []).append(mem)
+    add_to_gsent([new_cls], output, "", asent_idx)
+    if lsent_key not in output.lsent_list:
+        output.lsent_list.append(lsent_key)
+    output.lsent_dict.setdefault(lsent_key, []).append(asent_idx)
     universal_negations(new_cls, output)
     exceptional_instantiation(sentences)
+    return b
 
 
 def add_one_sent(ancestor, mem, definiendum2):

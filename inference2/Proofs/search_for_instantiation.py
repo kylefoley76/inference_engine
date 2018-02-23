@@ -467,19 +467,20 @@ def get_hypotheticals(start):
     if proof_kind == 'lemmas2': return
     done = []
     for m in range(start, len(output.all_sent)):
-        word = definition_constant(output.all_sent[m])
-        assert word != None
+        if output.all_sent[m][43] != 'do not define':
+            word = definition_constant(output.all_sent[m])
+            assert word != None
 
-        if findposinmd("DF " + word, output.total_sent, 4) == -1 and word not in done:
-            if word in dictionary.categorized_sent.keys() and \
-                    not is_exceptional2(output, word, m):
-                item1 = get_word_info(dictionary, word, output.user)
+            if findposinmd("DF " + word, output.total_sent, 4) == -1 and word not in done:
+                if word in dictionary.categorized_sent.keys() and \
+                        not is_exceptional2(output, word, m):
+                    item1 = get_word_info(dictionary, word, output.user)
 
-                add_to_gsent(item1, output)
-                for j, itm in enumerate(item1):
-                    output.trans_def.update({word + str(j): itm})
-                translate_abbreviations(item1, word)
-                done.append(word)
+                    add_to_gsent(item1, output)
+                    for j, itm in enumerate(item1):
+                        output.trans_def.update({word + str(j): itm})
+                    translate_abbreviations(item1, word)
+                    done.append(word)
 
     return
 
@@ -650,8 +651,10 @@ def is_exceptional(matrix, j):
 
 def instantiable(lconstant, gconstant):
     lst = output.lsent_dict.get(lconstant)
+
     for num in lst:
-        if [num, gconstant[0]] not in do_not_instantiate:
+        if [num, gconstant[0]] not in do_not_instantiate or \
+            gconstant[3] != lst[0]:
             return True
 
     return False

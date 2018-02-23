@@ -1,7 +1,7 @@
 from settings import *
 from general_functions import *
 from classes import get_output
-from search_for_instantiation import try_instantiation
+from search_for_instantiation import loop_through_gsent, try_instantiation
 from use_lemmas import get_class
 from collections import defaultdict
 import json, operator
@@ -66,12 +66,13 @@ def get_basic_sent(tword):
         return json.load(fp)
 
 
-def reload_sentences(output):
+def reload_sentences(output, anc):
     for k, v in output.trans_def.items():
         list2 = []
         list1 = output.lemma_embed.get(k)
         v.def_stats.ant_index = list1[0]
         v.def_stats.con_index = list1[1]
+        v.def_stats.tot_sent_idx = anc
 
         for e, idx in enumerate(list1[0] + list1[1]):
             list2.append(output.all_sent[idx])
@@ -133,26 +134,22 @@ def do_not_instantiate(xoutput, youtput, len_asent):
             xoutput.disj_elim.append([e, v.def_stats.def_word_num])
 
 
-
-
-
-
 def make_matrix2(user):
     global dictionary
     pkl_file = open(user + 'z_dict_words.pkl', 'rb')
     dictionary = pickle.load(pkl_file)
     pkl_file.close()
-    xword = "man"
-    yword = "INM"
+    xword = "whole"
+    yword = "moment"
     youtput = dictionary.basic_output.get(yword)
     youtput.all_sent = get_basic_sent(yword)
-    reload_sentences(youtput)
+    reload_sentences(youtput, 2)
     xoutput = dictionary.basic_output.get(xword)
     xoutput.all_sent = get_basic_sent(xword)
     xoutput.prop_var = get_prop_var()
     xoutput.prop_name = defaultdict(lambda: xoutput.prop_var.pop(), {})
     name_xsent(xoutput)
-    reload_sentences(xoutput)
+    reload_sentences(xoutput, 1)
     modify_variables(youtput, xoutput)
     consistent = quick_contradiction(xoutput, youtput)
     if not consistent:
@@ -164,12 +161,31 @@ def make_matrix2(user):
     xoutput.all_sent = xoutput.all_sent + youtput.all_sent
     do_not_instantiate(xoutput, youtput, len_asent)
     xoutput.trans_def = {**xoutput.trans_def, **youtput.trans_def}
-    for k, v in xoutput.trans_def.items(): add_to_gsent([v], xoutput, "lemmas")
+    for k, v in xoutput.trans_def.items(): add_to_gsent([v], xoutput)
     if xoutput.gsent != []:
-        output, consistent, _ = try_instantiation(xoutput, dictionary, "lemmas2")
-        bb = 8
+        fill_tsent(xoutput, xword, yword, len_asent)
+        loop_through_gsent(xoutput, "lemmas2", dictionary)
+        consistent = True if xoutput.total_sent[-1][1] == consist else False
+        rearrange("last", xoutput, consistent, "lemmas2", xoutput.main_var)
 
     return
+
+
+def fill_tsent(xoutput, xword, yword, len_asent):
+    xoutput.tindex = 0
+    basic_defintion = dictionary.basic_definitions.get(xword)
+    add_to_tsent(xoutput, basic_defintion)
+    basic_defintion = dictionary.basic_definitions.get(yword)
+    add_to_tsent(xoutput, basic_defintion)
+    for sent in xoutput.all_sent[:len_asent]:
+        if sent[7] == 'c':
+            add_to_tsent(xoutput, sent[1], "", sent[3], "&E", 1)
+    for sent in xoutput.all_sent[len_asent:]:
+        if sent[7] == 'c':
+            add_to_tsent(xoutput, sent[1], "", sent[3], "&E", 2)
+    for k, v in xoutput.trans_def.items():
+        anc1 = v.def_stats.tot_sent_idx
+        add_to_tsent(xoutput, v.def_stats.natural_sent, "", "", "&E", anc1)
 
 
 def adjust_prop_name(output):
@@ -213,7 +229,7 @@ def save_output(output):
     return
 
 
-def print_to_excel():
+def print_to_excel(proof_type):
     if proof_type != 5:
         wb5 = load_workbook('/Users/kylefoley/Desktop/inference_engine/dictionary5.xlsx')
         w5 = wb5.worksheets[4]
@@ -223,7 +239,7 @@ def print_to_excel():
             w5.cell(row=row_number, column=2).value = v
             row_number += 1
 
-        wb5.save('/Users/kylefoley/Desktop/inference_engine/dictionary5.xlsx')
+        wb5.save('/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/dictionary5.xlsx')
 
 
 def get_from_all_sent(num, output, sentences, list2):
@@ -304,18 +320,18 @@ def determine_class2(output, vars):
     dictionary.groups.update({word: abbrev_to_group})
 
 
-def determine_class(user):
+def determine_class(user, size = "small"):
     global word, dictionary
     pkl_file = open(user + 'z_dict_words.pkl', 'rb')
     dictionary = pickle.load(pkl_file)
     pkl_file.close()
     kind = 1
-    kind2 = 2
     proof_type = 5
     dictionary.basic_definitions = {}
-    if kind2 == 2:
+    if size == 'small':
         list1 = words_used
-    elif kind2 == 3:
+        list1.append('whole')
+    elif size == 'large':
         list1 = dictionary.categorized_sent.keys()
 
     for word in list1:
@@ -324,7 +340,7 @@ def determine_class(user):
         if word in dictionary.categorized_sent.keys() and \
                 pos[0] in ['n', 'r', 'a']:
             # print (word)
-            if word != '0':
+            if word == 'imagination':
                 if word == 'INM':
                     bb = 8
 
@@ -350,15 +366,14 @@ def determine_class(user):
                     determine_class2(output, vars)
                     build_basic_definition(output, reduced, word)
                     save_output(output)
-        print_to_excel()
-
+        print_to_excel(proof_type)
         result = open('z_dict_words.pkl', 'wb')
         pickle.dump(dictionary, result)
         result.close()
 
 
 def prepare_output(word):
-    reduced_def = get_word_info(dictionary, user, word)
+    reduced_def = get_word_info(dictionary, word, "")
     sent = []
     ant_sent = []
     vars = set()
@@ -377,10 +392,13 @@ def prepare_output(word):
     for tsent in sent:
         tsent[2] = name_sent(tsent[1], output.prop_name)
         output.oprop_name[tsent[2]] = tsent[1]
+    if cls.embeds != {}:
+        raise Exception
+
     output.all_sent = sent
     output.abbreviations = json.loads(json.dumps(dictionary.def_constants.get(word, {})))
     output.variables = get_variables()
-    output.tindex = 1
+    output.user = ""
     for k in output.abbreviations.keys(): output.variables.remove(k)
     for var in vars | cvars:
         if var in output.variables: output.variables.remove(var)
@@ -392,10 +410,17 @@ def adjust_ant_index(ant_sent, cls, sent, sentences, vars):
         if isinstance(num, int):
             ant_sent.append(sentences[num])
             for noun in sentences[num][42]: vars.add(sentences[num][noun])
+            # try:
+            #     idx = findposinmd(sentences[num][0], sent, 0)
+            # except:
+            #     idx = -1
+            # if idx == -1 and sentences[num][56] == "c":
+            #     sent.append(sentences[num])
         else:
             for cnum in num:
                 for noun in sentences[cnum][42]: vars.add(sentences[cnum][noun])
                 ant_sent.append(sentences[cnum])
+            if sentences[num][56] == "c":
                 sent.append(sentences[cnum])
 
 
@@ -417,7 +442,3 @@ def adjust_con_index(cls, cvars, output, sent, sentences):
             for cnum in num:
                 sent.append(sentences[cnum])
                 for noun in sentences[cnum][42]: cvars.add(sentences[cnum][noun])
-
-
-
-

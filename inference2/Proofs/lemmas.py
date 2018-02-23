@@ -139,8 +139,8 @@ def make_matrix2(user):
     pkl_file = open(user + 'z_dict_words.pkl', 'rb')
     dictionary = pickle.load(pkl_file)
     pkl_file.close()
-    xword = "whole"
-    yword = "moment"
+    xword = "man"
+    yword = "woman"
     youtput = dictionary.basic_output.get(yword)
     youtput.all_sent = get_basic_sent(yword)
     reload_sentences(youtput, 2)
@@ -151,22 +151,22 @@ def make_matrix2(user):
     name_xsent(xoutput)
     reload_sentences(xoutput, 1)
     modify_variables(youtput, xoutput)
-    consistent = quick_contradiction(xoutput, youtput)
-    if not consistent:
-        pass
-    adjust_index(xoutput)
-    adjust_index(youtput)
-    do_not_instantiate(xoutput, [], 0)
-    len_asent = len(xoutput.all_sent)
-    xoutput.all_sent = xoutput.all_sent + youtput.all_sent
-    do_not_instantiate(xoutput, youtput, len_asent)
-    xoutput.trans_def = {**xoutput.trans_def, **youtput.trans_def}
-    for k, v in xoutput.trans_def.items(): add_to_gsent([v], xoutput)
-    if xoutput.gsent != []:
-        fill_tsent(xoutput, xword, yword, len_asent)
-        loop_through_gsent(xoutput, "lemmas2", dictionary)
-        consistent = True if xoutput.total_sent[-1][1] == consist else False
-        rearrange("last", xoutput, consistent, "lemmas2", xoutput.main_var)
+    if not quick_contradiction(xoutput, youtput):
+        print ('contradiction found')
+    else:
+        adjust_index(xoutput)
+        adjust_index(youtput)
+        do_not_instantiate(xoutput, [], 0)
+        len_asent = len(xoutput.all_sent)
+        xoutput.all_sent = xoutput.all_sent + youtput.all_sent
+        do_not_instantiate(xoutput, youtput, len_asent)
+        xoutput.trans_def = {**xoutput.trans_def, **youtput.trans_def}
+        for k, v in xoutput.trans_def.items(): add_to_gsent([v], xoutput)
+        if xoutput.gsent != []:
+            fill_tsent(xoutput, xword, yword, len_asent)
+            loop_through_gsent(xoutput, "lemmas2", dictionary)
+            consistent = True if xoutput.total_sent[-1][1] == consist else False
+            rearrange("last", xoutput, consistent, "lemmas2", xoutput.main_var)
 
     return
 
@@ -304,7 +304,7 @@ def make_matrix(user):
                     xpos = dictionary.pos.get(xword)
                     ypos = dictionary.pos.get(yword)
                     if xpos[0] in ['n', 'a', 'r'] and ypos[0] in ['n', 'a', 'r']:
-                        pass
+                        pos_neg(xword, yword)
 
 
 def determine_class2(output, vars):
@@ -339,8 +339,8 @@ def determine_class(user, size = "small"):
 
         if word in dictionary.categorized_sent.keys() and \
                 pos[0] in ['n', 'r', 'a']:
-            # print (word)
-            if word == 'imagination':
+            print (word)
+            if word != '0':
                 if word == 'INM':
                     bb = 8
 
@@ -367,10 +367,9 @@ def determine_class(user, size = "small"):
                     build_basic_definition(output, reduced, word)
                     save_output(output)
         print_to_excel(proof_type)
-
-        result = open('z_dict_words.pkl', 'wb')
-        pickle.dump(dictionary, result)
-        result.close()
+    result = open('z_dict_words.pkl', 'wb')
+    pickle.dump(dictionary, result)
+    result.close()
 
 
 def prepare_output(word):
@@ -393,10 +392,10 @@ def prepare_output(word):
     for tsent in sent:
         tsent[2] = name_sent(tsent[1], output.prop_name)
         output.oprop_name[tsent[2]] = tsent[1]
+
     output.all_sent = sent
     output.abbreviations = json.loads(json.dumps(dictionary.def_constants.get(word, {})))
     output.variables = get_variables()
-    output.tindex = 1
     output.user = ""
     for k in output.abbreviations.keys(): output.variables.remove(k)
     for var in vars | cvars:
@@ -409,11 +408,21 @@ def adjust_ant_index(ant_sent, cls, sent, sentences, vars):
         if isinstance(num, int):
             ant_sent.append(sentences[num])
             for noun in sentences[num][42]: vars.add(sentences[num][noun])
+            try:
+                idx = findposinmd(sentences[num][0], sent, 0)
+            except:
+                idx = -1
+            if idx == -1 and sentences[num][56] == "c":
+                sentences[num][7] = sentences[num][56]
+                sentences[num][43] = 'do not define'
+                sent.append(sentences[num])
         else:
             for cnum in num:
                 for noun in sentences[cnum][42]: vars.add(sentences[cnum][noun])
                 ant_sent.append(sentences[cnum])
-                sent.append(sentences[cnum])
+                sentences[cnum][7] = sentences[cnum][56]
+
+
 
 
 def adjust_con_index(cls, cvars, output, sent, sentences):

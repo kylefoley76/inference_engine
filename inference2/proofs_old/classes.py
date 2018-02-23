@@ -29,6 +29,7 @@ class def_stats(object):
         self.concept = ""
         self.connection_type = ""
         self.natural_sent = ""
+        self.translated_sent = ""
         self.consequent_disjunct = ""
         self.user = ""
         self.natural_disjuncts = []
@@ -46,6 +47,22 @@ class disjunction:
         self.comp_greek = []
         self.hnum = []
         self.tot_greek = ""
+
+
+class row_class:
+    def __init__(self):
+        self.row_num = 0
+        self.pos = ""
+        self.word = ""
+        self.next_word = ""
+        self.abbrev_relat = ""
+        self.defin = ""
+        self.next_defin = ""
+        self.edisj = ""
+        self.embed = ""
+        self.easy_embed = ""
+
+
 
 
 class ErrorWithCode(Exception):

@@ -4,13 +4,13 @@ from lemmas import *
 
 arguments = sys.argv
 
-start = 85
-stop = 86
-kind = 0
+start = 203
+stop = 0
+kind = "dc"
 end = 243
-print_type = 2
+print_type = 4
 get_words_used = 0
-size = "large"
+size = "small"
 do_not_argue = [28]
 order = []
 
@@ -24,8 +24,6 @@ if len(arguments) > 1:
         kind = arguments[1]
         if len(arguments) > 2: print_type = arguments[2]
 
-        if kind == 'dc':
-            size = 'small' if len(arguments) > 2 else 'large'
 
     else:
         start = int(arguments[1])
