@@ -142,6 +142,7 @@ def try_input(request, archive=None):
     url_path = '/'
     if request.method == 'POST':
         try:
+
             # input = "It is|a contradictory that I do not have many|n points"
             user_input = request.POST.get('try_input')
             Output.objects.all().delete()
