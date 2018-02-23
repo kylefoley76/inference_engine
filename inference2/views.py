@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from django.conf import settings
 import time
 
+from inference2.Proofs.main_loop import get_result
 from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary
 import importlib
 from inference2.models import Input
@@ -138,18 +139,13 @@ def try_input(request, archive=None):
     output = []
     template_args = {}
     template_args['success'] = 'Right'
-    if not archive:
-        archive = current_archive()
-        url_path = '/'
+    url_path = '/'
     if request.method == 'POST':
         try:
             # input = "It is|a contradictory that I do not have many|n points"
-            input = request.POST.get('try_input')
+            user_input = request.POST.get('try_input')
             Output.objects.all().delete()
-            prove_algorithm = importlib.import_module('.' + archive.test_machine.split('.py')[0],
-                                                      package='inference2.Proofs')
-            post_data, result_string = prove_algorithm.get_result_from_views(
-                request.POST.copy(), archive.id, request, input)
+            post_data, result_string = get_result(user_input, user='')
             template_args['result'] = result_string
             print(post_data)
             if post_data:
@@ -163,8 +159,6 @@ def try_input(request, archive=None):
             template_args['success'] = 'Wrong'
             template_args['result'] = 'Wrong'
 
-    algo = Algorithm.objects.all().order_by('id')
-    template_args['notes'] = algo[0].try_input_notes if algo else ''
     template_args['url_path'] = url_path
     template_args['output'] = output
     template_args['archive'] = archive
@@ -261,7 +255,7 @@ def dictionary(request, archive=None):
     notes = Define3Notes.objects.all().order_by('id')
     return render(request, "inference2/dict.html",
                   {'result': large_dict, 'url_path': '/', 'output': outputs,
-                   'notes': notes[0].notes if notes else '', })
+                   'notes': notes[0].notes if notes else '',})
 
 
 def tested_dict(request, archive=None):
