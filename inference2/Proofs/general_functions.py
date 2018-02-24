@@ -1,5 +1,10 @@
-from settings import *
 from openpyxl import load_workbook
+try:
+    from settings import *
+except:
+    from .settings import *
+
+
 
 
 ################ group: naming sentences

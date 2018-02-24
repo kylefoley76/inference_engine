@@ -102,6 +102,7 @@ class get_dictionary:
         self.pos = {}
         self.definitions = {}
         self.rel_abbrev = {}
+        self.ontology = []
         self.synonyms = {}
         self.doubles = {}
         self.triples = {}
@@ -121,3 +122,4 @@ class get_dictionary:
         self.basic_definitions = {}
         self.basic_output = {}
         self.groups = {}
+        self.arity = {}

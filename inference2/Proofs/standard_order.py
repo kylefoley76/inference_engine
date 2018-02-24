@@ -1,8 +1,12 @@
 import copy
-from settings import *
-from general_functions import *
-from analyze_sentence import find_sentences
 import operator
+try:
+    from settings import *
+    from general_functions import *
+except:
+    from .settings import *
+    from .general_functions import *
+
 
 premise = False
 def_info = []

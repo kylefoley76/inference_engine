@@ -241,6 +241,8 @@ def unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_de
                     if tvalue == "~" and "~" not in sentence[58]:
                         sentence[58] = tvalue2 + sentence[58]
                     tsentences.append(sentence)
+                    if hnum2 in ["1.1", "1.1.1"]:
+                        dictionary.arity.update({definiendum: sentence[42]})
 
             if kind == "": get_connection_type(result, def_stats1)
             def_stats1.natural_sent = result[3][0]

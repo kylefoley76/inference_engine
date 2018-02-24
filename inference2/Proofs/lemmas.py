@@ -1,17 +1,52 @@
-from settings import *
-from general_functions import *
-from classes import get_output
-from search_for_instantiation import loop_through_gsent, try_instantiation
-from use_lemmas import get_class
 from collections import defaultdict
 import json, operator
 from openpyxl import load_workbook
-from prepare_for_print import rearrange
+
+try:
+    from settings import *
+    from general_functions import *
+    from classes import get_output
+    from search_for_instantiation import loop_through_gsent, try_instantiation
+    from use_lemmas import get_class
+    from prepare_for_print import rearrange
+except:
+    from .settings import *
+    from .general_functions import *
+    from .classes import get_output
+    from .search_for_instantiation import loop_through_gsent, try_instantiation
+    from .use_lemmas import get_class
+    from .prepare_for_print import rearrange
 
 pkl_file = open('words_used.pkl', 'rb')
 words_used = pickle.load(pkl_file)
 words_used = sorted(words_used)
 pkl_file.close()
+
+
+def all_true(xword, yword, lemmata):
+    tilde1 = ["", "", "~", "~"]
+    tilde2 = ["", "~", "", "~"]
+    for til1, til2 in zip(tilde1, tilde2):
+        for str1 in ["SS", "SO", "OS", "OO"]:
+            key = xword + til1 + "." + yword + til2 + "." + str1
+            lemmata.update({key: True})
+
+
+
+
+def consistent_classes(xword, yword, xtv, ytv, fonto, lemmata, ronto):
+    if dictionary.categorized_sent.get(xword) == None or \
+            dictionary.categorized_sent.get(yword) == None:
+
+        all_true(xword, yword, lemmata)
+
+        return "no definition"
+    else:
+
+        xclass = dictionary.groups.get(xword, "thing")
+        yclass = dictionary.groups.get(xword, "thing")
+
+
 
 
 def modify_abbreviations(youtput, xoutput, xvar, abbrev_dict):
@@ -134,39 +169,37 @@ def do_not_instantiate(xoutput, youtput, len_asent):
             xoutput.disj_elim.append([e, v.def_stats.def_word_num])
 
 
-def make_matrix2(user):
-    global dictionary
-    pkl_file = open(user + 'z_dict_words.pkl', 'rb')
-    dictionary = pickle.load(pkl_file)
-    pkl_file.close()
-    xword = "man"
-    yword = "woman"
-    youtput = dictionary.basic_output.get(yword)
-    youtput.all_sent = get_basic_sent(yword)
-    reload_sentences(youtput, 2)
-    xoutput = dictionary.basic_output.get(xword)
-    xoutput.all_sent = get_basic_sent(xword)
-    xoutput.prop_var = get_prop_var()
-    xoutput.prop_name = defaultdict(lambda: xoutput.prop_var.pop(), {})
-    name_xsent(xoutput)
-    reload_sentences(xoutput, 1)
-    modify_variables(youtput, xoutput)
-    if not quick_contradiction(xoutput, youtput):
-        print ('contradiction found')
+def make_matrix2(fonto, ronto, xword, yword, xtv, ytv, lemmata, user):
+    kind = consistent_classes(xword, yword, xtv, ytv, fonto, lemmata, ronto)
+    if kind == 'no definition':
+        pass
     else:
-        adjust_index(xoutput)
-        adjust_index(youtput)
-        do_not_instantiate(xoutput, [], 0)
-        len_asent = len(xoutput.all_sent)
-        xoutput.all_sent = xoutput.all_sent + youtput.all_sent
-        do_not_instantiate(xoutput, youtput, len_asent)
-        xoutput.trans_def = {**xoutput.trans_def, **youtput.trans_def}
-        for k, v in xoutput.trans_def.items(): add_to_gsent([v], xoutput)
-        if xoutput.gsent != []:
-            fill_tsent(xoutput, xword, yword, len_asent)
-            loop_through_gsent(xoutput, "lemmas2", dictionary)
-            consistent = True if xoutput.total_sent[-1][1] == consist else False
-            rearrange("last", xoutput, consistent, "lemmas2", xoutput.main_var)
+        youtput = dictionary.basic_output.get(yword)
+        youtput.all_sent = get_basic_sent(yword)
+        reload_sentences(youtput, 2)
+        xoutput = dictionary.basic_output.get(xword)
+        xoutput.all_sent = get_basic_sent(xword)
+        xoutput.prop_var = get_prop_var()
+        xoutput.prop_name = defaultdict(lambda: xoutput.prop_var.pop(), {})
+        name_xsent(xoutput)
+        reload_sentences(xoutput, 1)
+        modify_variables(youtput, xoutput)
+        if not quick_contradiction(xoutput, youtput):
+            print ('contradiction found')
+        else:
+            adjust_index(xoutput)
+            adjust_index(youtput)
+            do_not_instantiate(xoutput, [], 0)
+            len_asent = len(xoutput.all_sent)
+            xoutput.all_sent = xoutput.all_sent + youtput.all_sent
+            do_not_instantiate(xoutput, youtput, len_asent)
+            xoutput.trans_def = {**xoutput.trans_def, **youtput.trans_def}
+            for k, v in xoutput.trans_def.items(): add_to_gsent([v], xoutput)
+            if xoutput.gsent != []:
+                fill_tsent(xoutput, xword, yword, len_asent)
+                loop_through_gsent(xoutput, "lemmas2", dictionary)
+                consistent = True if xoutput.total_sent[-1][1] == consist else False
+                rearrange("last", xoutput, consistent, "lemmas2", xoutput.main_var)
 
     return
 
@@ -294,17 +327,26 @@ def make_matrix(user):
     pkl_file = open(user + 'z_dict_words.pkl', 'rb')
     dictionary = pickle.load(pkl_file)
     pkl_file.close()
+    fonto = dictionary.ontology[0]  # forward ontology
+    ronto = dictionary.ontology[1]  # reverse ontology
+    lemmata = {}
     word_list = []
     for xword in words_used:
         for yword in words_used:
             if xword != yword:
-                list1 = ([xword, yword])
+                list1 = [xword, yword]
                 list1.sort()
-                if list1 not in word_list:
-                    xpos = dictionary.pos.get(xword)
-                    ypos = dictionary.pos.get(yword)
-                    if xpos[0] in ['n', 'a', 'r'] and ypos[0] in ['n', 'a', 'r']:
-                        pos_neg(xword, yword)
+                if list1 != ['o', 'o']:
+                    if list1 not in word_list:
+                        xpos = dictionary.pos.get(xword)
+                        ypos = dictionary.pos.get(yword)
+                        if xpos[0] in ['n', 'a', 'r'] and ypos[0] in ['n', 'a', 'r']:
+                            make_matrix2(fonto, ronto, xword, yword, True, True, lemmata, user)
+                            make_matrix2(fonto, ronto, xword, yword, True, False, lemmata, user)
+                            make_matrix2(fonto, ronto, xword, yword, False, True, lemmata, user)
+                            make_matrix2(fonto, ronto, xword, yword, False, False, lemmata, user)
+
+
 
 
 def determine_class2(output, vars):
@@ -320,7 +362,7 @@ def determine_class2(output, vars):
     dictionary.groups.update({word: abbrev_to_group})
 
 
-def determine_class(user, size = "small"):
+def determine_class(user, size="small"):
     global word, dictionary
     pkl_file = open(user + 'z_dict_words.pkl', 'rb')
     dictionary = pickle.load(pkl_file)
@@ -421,8 +463,6 @@ def adjust_ant_index(ant_sent, cls, sent, sentences, vars):
                 for noun in sentences[cnum][42]: vars.add(sentences[cnum][noun])
                 ant_sent.append(sentences[cnum])
                 sentences[cnum][7] = sentences[cnum][56]
-
-
 
 
 def adjust_con_index(cls, cvars, output, sent, sentences):

@@ -1,6 +1,10 @@
-from settings import *
-from general_functions import add_to_tsent, \
-    build_contradiction2, get_key, name_and_build
+try:
+    from settings import *
+    from general_functions import add_to_tsent, \
+        build_contradiction2, get_key, name_and_build
+except:
+    from .settings import *
+    from .general_functions import *
 
 import copy
 
@@ -270,6 +274,5 @@ def get_class(sent, pos, property="", from_lemmas = False):
     else:
         kind = ""
     kind = "thing" if kind == "" else kind
-    kind = "" if from_lemmas and kind in ['thing', ""] else kind
 
     return kind

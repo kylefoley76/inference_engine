@@ -1,11 +1,16 @@
-from settings import *
 from openpyxl import load_workbook
 import pickle
 import copy
 import json
 import sys
-from analyze_definition import process_sentences
-from classes import get_dictionary, row_class
+try:
+    from settings import *
+    from analyze_definition import process_sentences
+    from classes import get_dictionary, row_class
+except:
+    from .settings import *
+    from .analyze_definition import process_sentences
+    from .classes import get_dictionary, row_class
 
 
 def update_synonyms(definition):
@@ -43,6 +48,27 @@ def is_a_definition(str1):
     return False
 
 
+def build_ontology(i, worksheet):
+    i += 2
+    j = i
+    list1 = []
+    reverse_dict = {}
+    while True:
+        i += 1
+        if i > j + 25: raise Exception
+        rw = row_class()
+        rw = fill_row(i, rw, worksheet)
+        if rw.defin == None:
+            dictionary.ontology = [list1, reverse_dict]
+            return i + 4, rw
+        elif xorr in rw.defin:
+            list2 = rw.defin.split(iff)
+            list3 = list2[1].split(xorr)
+            list3 = [x.strip() for x in list3]
+            list1.append({list2[0].strip(): list3})
+            for str1 in list3: reverse_dict.update({str1: list2[0]})
+
+
 def get_prepositional_relations():
     str1 = third_sheet.cell(row=2, column=5).value
     str1a = third_sheet.cell(row=3, column=5).value
@@ -58,7 +84,6 @@ def get_prepositional_relations():
     dictionary.non_spatio_temporal_relations = non_spatio_temporal
 
 
-# ex!fill_row,build_dictionary
 def fill_row(i, rw, worksheet):
     rw.row_num = worksheet.cell(row=i, column=1).value
     rw.pos = worksheet.cell(row=i, column=3).value
@@ -96,6 +121,9 @@ def build_dictionary(kind2):
 
         if not not_blank(rw.word) and not not_blank(rw.next_word) and i > 300:
             break
+
+        if rw.defin == 'Ontology':
+            i, rw = build_ontology(i, worksheet)
 
         if not_blank(rw.pos):
             if rw.easy_embed in [1, 6]: rw.embed = False
@@ -287,6 +315,7 @@ def print_new_definitions():
 
 
 def reduce_definitions(dictionary):
+    j = 0
     for definiendum, definition in dictionary.definitions.items():
 
         pos = dictionary.pos.get(definiendum)
@@ -297,12 +326,14 @@ def reduce_definitions(dictionary):
             # print (definiendum)
 
             if pos[1] not in ["s", "d", "b"]:
+                j += 1
                 definition = dictionary.definitions.get(definiendum)
 
                 definition = definition.replace("|", "")
 
                 dictionary = process_sentences(definition, definiendum, dictionary)
 
+    print (str(j) + " definitions processed")
     return dictionary
 
 

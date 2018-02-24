@@ -1,13 +1,22 @@
 import itertools
-
-from general_functions import *
-from change_abbreviations import change_abbrev
-from use_lemmas import use_basic_lemmas
-from analyze_definition import process_sentences, get_lesser_skeleton
-from put_words_in_slots import categorize_words, determine_constants
-from prepare_for_print import rearrange
-from classes import ErrorWithCode
 import copy
+try:
+    from general_functions import *
+    from change_abbreviations import change_abbrev
+    from use_lemmas import use_basic_lemmas
+    from analyze_definition import process_sentences, get_lesser_skeleton
+    from put_words_in_slots import categorize_words, determine_constants
+    from prepare_for_print import rearrange
+    from classes import ErrorWithCode
+except:
+    from .general_functions import *
+    from .change_abbreviations import change_abbrev
+    from .use_lemmas import use_basic_lemmas
+    from .analyze_definition import process_sentences, get_lesser_skeleton
+    from .put_words_in_slots import categorize_words, determine_constants
+    from .prepare_for_print import rearrange
+    from .classes import ErrorWithCode
+
 
 
 ############### THE FOLLOWING FUNCTIONS ARE RELATED TO THE USE OF IDENTITY

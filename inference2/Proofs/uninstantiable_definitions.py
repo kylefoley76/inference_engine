@@ -1,6 +1,11 @@
-from general_functions import *
-from put_words_in_slots import categorize_words
+
 import copy
+try:
+    from general_functions import *
+    from put_words_in_slots import categorize_words
+except:
+    from .general_functions import *
+    from .put_words_in_slots import categorize_words
 
 first_person_pronoun = lambda x: x != 'i' or not i_defined
 

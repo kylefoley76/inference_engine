@@ -1,32 +1,14 @@
-from settings import *
-from general_functions import *
 import copy
-from classes import *
-import collections
 
-import re
+try:
+    from settings import *
+    from general_functions import *
+    from classes import *
+except:
+    from .settings import *
+    from .general_functions import *
+    from .classes import *
 
-
-# one_sentence = lambda x: not re.search(xorr + "|" + iff + "|" + idisj + "|" +
-#                                            conditional + "|&", x)
-# cond_r = chr(8835)
-# consist = "\u2102"  # consistency
-# top = chr(8868)
-# bottom = chr(8869)
-# neg = chr(172)
-# idd = chr(8781)  # translation symbol
-# iff = chr(8801)
-# mini_c = chr(8658)
-# mini_e = chr(8703)
-# implies = chr(8866)
-# conditional = chr(8594)
-# nonseq = chr(8876)
-# xorr = chr(8891)
-# idisj = chr(8744)
-# cj = chr(8896)
-# aid = chr(8776)
-# disj = chr(8855)
-# equi = chr(8660)
 
 def replace_w_greek(sentence):
     j = 947

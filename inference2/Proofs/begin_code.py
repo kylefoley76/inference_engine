@@ -1,12 +1,18 @@
-from main_loop import get_result
 import sys
-from lemmas import *
+
+try:
+    from main_loop import get_result
+    from lemmas import *
+except:
+    from .main_loop import get_result
+    from .lemmas import *
+
 
 arguments = sys.argv
 
 start = 203
 stop = 0
-kind = "dc"
+kind = 0
 end = 243
 print_type = 4
 get_words_used = 0
@@ -64,8 +70,6 @@ if kind == 0:
     output = get_result("", "", print_type, order, get_words_used)
 elif kind == "mm":
     make_matrix("")
-elif kind == "mm2":
-    make_matrix2("")
 elif kind == "dc":
     determine_class("", size)
 

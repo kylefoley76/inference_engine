@@ -1,10 +1,18 @@
 import time
 import sys
-from natural_language import step_one
-from general_functions import parameters
-from classes import ErrorWithCode
-from settings import *
 from openpyxl import load_workbook
+
+try:
+    from natural_language import step_one
+    from general_functions import parameters
+    from classes import ErrorWithCode
+    from settings import *
+except:
+    from .natural_language import step_one
+    from .general_functions import parameters
+    from .classes import ErrorWithCode
+    from .settings import *
+
 
 def calculate_time_statistics(num_proved, total_time):
     total_time = time.time() - total_time
@@ -67,6 +75,7 @@ def get_result(one_sent, user = "", print_type=4, order=[0], get_words_used=0):
 
             if k == 182:
                 bb = 7
+            # print (k)
             try:
                 _ = step_one(dictionary, user, test_sent[k])
                 consistent, total_sent, twords_used = _

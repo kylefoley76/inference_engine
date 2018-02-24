@@ -1,6 +1,11 @@
-from general_functions import *
+
 import copy, json
-from classes import ErrorWithCode
+try:
+    from classes import ErrorWithCode
+    from general_functions import *
+except:
+    from .classes import ErrorWithCode
+    from .general_functions import *
 
 
 def get_list_of_conjuncts(sentences):

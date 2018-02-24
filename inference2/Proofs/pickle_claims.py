@@ -1,7 +1,6 @@
 
 from openpyxl import load_workbook
 import pickle
-# from start_and_stop import info2
 import copy
 
 

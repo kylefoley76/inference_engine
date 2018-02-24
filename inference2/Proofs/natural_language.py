@@ -1,10 +1,19 @@
-from general_functions import *
+
 from collections import defaultdict
-from uninstantiable_definitions import define_irregular_terms
-from search_for_instantiation import try_instantiation
 import operator
-from put_words_in_slots import categorize_words, place_in_decision_procedure
-from classes import get_output
+
+try:
+    from put_words_in_slots import categorize_words, place_in_decision_procedure
+    from classes import get_output
+    from general_functions import *
+    from uninstantiable_definitions import define_irregular_terms
+    from search_for_instantiation import try_instantiation
+except:
+    from .put_words_in_slots import categorize_words, place_in_decision_procedure
+    from .classes import get_output
+    from .general_functions import *
+    from .uninstantiable_definitions import define_irregular_terms
+    from .search_for_instantiation import try_instantiation
 
 
 

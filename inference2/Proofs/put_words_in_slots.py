@@ -1,7 +1,11 @@
-from settings import *
-from general_functions import *
-# from general_functions import isvariable, build_sent_pos, determine_constants
 import operator
+try:
+    from settings import *
+    from general_functions import *
+except:
+    from .settings import *
+    from .general_functions import *
+
 
 category = 0
 sentence_slots = []
@@ -27,8 +31,6 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
     is_a_standard_sent = False if kind in ['not standard', "sub words", "recursive"] else True
     sub_words = True if kind == 'sub words' else False
     if output != []:
-        prop_name = output.prop_name
-        oprop_name = output.oprop_name
         abbreviations = output.abbreviations
 
 
