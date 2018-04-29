@@ -357,10 +357,8 @@
             <a class="btn btn-primary" href="{% url 'try_input' %}">Test Machine</a>
 
 
-
             <a class="btn btn-primary" href="{% url 'clear-result' %}" name="clear" id="clear">Clear Result</a>
-            <a class="btn btn-primary" href="{{ url_path }}dictionary" target="_blank">Show Dictionary</a>
-        <a class="btn btn-primary" href="{{ url_path }}tested_dictionary" target="_blank">Show Tested Dictionary</a>
+            <a class="btn btn-primary" href="{{ url_path }}tested_dictionary" target="_blank">Show Tested Dictionary</a>
             {#            <a class="btn btn-primary" target="_blank" href="/tested_dict">Show Tested Dictionary</a>#}
 
 
@@ -373,24 +371,6 @@
 
             {% endif %}
 
-            {% if download_dict_file %}
-                {% if download_dict_pdf %}
-                    <a class="btn btn-primary" href="{{ download_dict_file }}" target="_blank">Download Dictionary</a>
-                {% else %}
-                    <a class="btn btn-primary" href="{{ download_dict_file }}">Download Dictionary</a>
-                {% endif %}
-
-            {% endif %}
-
-
-            {% if rules_in_brief_file %}
-                {% if is_rules_in_bried_pdf_file %}
-                    <a class="btn btn-primary" href="{{ rules_in_brief_file }}" target="_blank">Rules In Brief</a>
-                {% else %}
-                    <a class="btn btn-primary" href="{{ rules_in_brief_file }}">Rules In Brief</a>
-                {% endif %}
-            {% endif %}
-
 
             {% if argument_file %}
                 {% if is_arguments_pdf_file %}
@@ -400,12 +380,6 @@
                 {% endif %}
             {% endif %}
 
-
-
-
-
-            {#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}">Download Dictionary</a>#}
-            {#            <a class="btn btn-primary" href="/export_xlsx/{{ archive.id }}?only_output=1">Download Arguments</a>#}
 
         </div>
     </form>
