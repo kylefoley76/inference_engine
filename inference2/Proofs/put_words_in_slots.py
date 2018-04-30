@@ -1,11 +1,20 @@
 import operator
+
 try:
     from settings import *
     from general_functions import *
+    from grammar import check_grammar
+    from disambiguation import disambiguate_pos, eliminate_particles
 except:
     from .settings import *
     from .general_functions import *
+    from .grammar import check_grammar
+    from .disambiguation import disambiguate_pos, eliminate_particles
 
+from settings import *
+from general_functions import *
+from grammar import check_grammar
+from disambiguation import disambiguate_pos, eliminate_particles
 
 category = 0
 sentence_slots = []
@@ -16,6 +25,9 @@ word = ""
 ad_hoc_sentence = False
 is_a_standard_sent = True
 order_of_definition = []
+
+
+
 
 
 def is_ad_hoc_sentence(list1):
@@ -33,9 +45,6 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
     if output != []:
         abbreviations = output.abbreviations
 
-
-    list1 = [None] * 4 + list1 + [None]
-    list1[3] = ""
     sentence_slots = [None] * 200
     for pos in negative_positions: sentence_slots[pos] = ""
     sentence_slots[3] = ""
@@ -46,10 +55,16 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
     noun_pos = []
     subclauses = {}
     is_ad_hoc_sentence(list1)
-    special_tilde = False
+    if is_a_standard_sent:
+        list1 = eliminate_blanks(list1)
+        list1 = determine_if_compound_word(list1, dictionary)
 
-    i = 3
-    while list1[i] != None:
+    special_tilde = False
+    am_dict = {}
+    current_arity = 0
+
+    i = -1
+    while i < len(list1) - 1:
         i += 1
         if list1[i] == ',':
             del list1[i]
@@ -57,103 +72,110 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
         word = list1[i]
         slot = 0
 
-        if word == 'TV':
-            bb = 8
+        if word == '&':
+            return
 
-        if not_blank(word):
+        if output != []:
+            if not isvariable(word):
+                output.words_used.add(word)
 
-            if output != []:
-                if not isvariable(word):
-                    output.words_used.add(word)
+        category = dictionary.decision_procedure.get(word)
 
-            i, word = determine_if_compound_word(word, i, list1)
+        raw_pos, word = get_part_of_speech(word, dictionary, abbreviations, output)
 
-            category = dictionary.decision_procedure.get(word)
+        part_of_speech = parts_of_speech_dict.get(raw_pos[0])
 
-            raw_pos = get_part_of_speech(word, abbreviations)
+        insert_tilde = False
 
-            part_of_speech = parts_of_speech_dict.get(raw_pos[0])
+        ################# the mini_e symbol ############
 
-            insert_tilde = False
+        if word == mini_e:
+            slot = 9
 
-            ################# the mini_e symbol ############
+        ############### determiners #################
 
-            if word == mini_e:
-                slot = 9
+        elif part_of_speech == "determiner":
 
-            ############### determiners #################
-
-            elif part_of_speech == "determiner":
-
-                d_dict = {0: 61, 1: 63, 2: 65, 3: 66, 4: 67, 5: 68, 6: 69}
+            d_dict = {0: 61, 2: 65, 3: 66, 4: 67, 5: 68, 6: 69}
+            if relation_type == 1:
+                get_determiner_positions()
+            else:
                 slot = d_dict.get(relation_type)
 
-            ################ possessives ############
+        ################ possessives ############
 
-            elif part_of_speech == 'possessor':
+        elif part_of_speech == 'possessor':
 
-                if relation_type == 0 and sentence_slots[10] == None:
-                    slot = 134
-                elif relation_type == 1 and sentence_slots[14] == None:
-                    slot = 135
+            if relation_type == 0 and sentence_slots[10] == None:
+                slot = 134
+            elif relation_type == 1 and sentence_slots[14] == None:
+                slot = 135
 
-            ########## adjectives #########
+        ########## adjectives #########
 
-            elif part_of_speech == 'adjective':
+        elif part_of_speech == 'adjective':
 
-                str1 = get_adjective_positions()
-                if str1 != "":
-                    get_noun_positions(noun_pos, list1, i)
-                else:
-                    if category == 18:
-                        order_of_definition.append((slot, category))
-                    category = 6
+            str1 = get_adjective_positions()
+            if str1 != "":
+                get_noun_positions(noun_pos, list1, i, current_arity)
+            else:
+                if category == 18:
+                    order_of_definition.append((slot, category))
+                category = 6
 
-            ######### negations ###########
+        ######### negations ###########
 
-            elif part_of_speech == 'negator':
+        elif part_of_speech == 'negator':
 
-                insert_tilde, special_tilde = get_negation_positions()
-                if word == "~": sentence_slots[3] = "~"
+            insert_tilde, special_tilde = get_negation_positions()
+            if word == "~": sentence_slots[3] = "~"
 
-            ########### nouns #############
+        ########### nouns #############
 
-            elif part_of_speech == 'noun':
+        elif part_of_speech == 'noun':
 
-                get_noun_positions(noun_pos, list1, i)
+            get_noun_positions(noun_pos, list1, i, current_arity)
 
-            ######### and coordinator ###########
+        ######### and coordinator ###########
 
-            elif part_of_speech == 'and coordinator':
+        elif part_of_speech == 'and coordinator':
 
-                and_coordinator()
+            and_coordinator()
 
-            ########### relative pronouns ##########
+        ########### relative pronouns ##########
 
-            elif part_of_speech == 'relative pronoun':
+        elif part_of_speech == 'relative pronoun':
 
-                get_relative_pronoun_positions()
+            get_relative_pronoun_positions()
 
-            ################## relations #############
+        ################## relations #############
 
-            elif part_of_speech == 'relation':
+        elif part_of_speech == 'relation':
+            current_arity = dictionary.arity.get(word)
+            slot = relational_positions[relation_type]
+            relation_type += 1
 
-                slot = relational_positions[relation_type]
-                relation_type += 1
+        if slot == 0:
+            print(list1)
+            raise Exception("our system does not have this grammatical syntax yet")
 
-            if slot == 0:
-                print(list1)
-                raise Exception("our system does not have this grammatical syntax yet")
+        final_categories(insert_tilde, places_used, raw_pos, sub_words)
 
-            final_categories(insert_tilde, places_used, raw_pos, sub_words)
+        if part_of_speech == 'relative pronoun':
+            i = build_subclause(list1, i, subclauses, abbreviations, places_used)
 
-            if part_of_speech == 'relative pronoun':
-                i = build_subclause(list1, i, subclauses, abbreviations, places_used)
+        last_pos = raw_pos
 
     sentence_slots[45] = sorted(order_of_definition, key=operator.itemgetter(1))
     sentence_slots[42] = noun_pos
     sentence_slots[54] = places_used
     sentence_slots[47] = subclauses
+
+    if output != []:
+        str1 = check_grammar(sentence_slots)
+        if str1 != "":
+            return str1
+
     if kind != "recursive":
         sentence_slots[58] = determine_constants(abbreviations, sentence_slots)
 
@@ -162,9 +184,10 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
         else:
             sentence_slots[1] = build_sent_pos(sentence_slots)
             sentence_slots[0] = nbuild_sent(sentence_slots, sentence_slots)
+        if am_dict != {}:
+            sentence_slots[46] = am_dict
         if special_tilde:
             sentence_slots[0] = sentence_slots[0].replace("(~ ", "~(")
-
 
     return sentence_slots
 
@@ -291,13 +314,12 @@ def build_subclause(list1, i, subclauses, abbreviations, placed_used):
     list2 = []
     list3 = []
     num_of_relations = 0
-    while list1[i] != None:
+    while i < len(list1):
         temp_word = list1[i]
         if temp_word == ',':
             subclauses.update({slot: list3})
             return i - 1
-        i, temp_word = determine_if_compound_word(temp_word, i, list1)
-        raw_pos = get_part_of_speech(temp_word, abbreviations)
+        raw_pos, temp_word = get_part_of_speech(temp_word, dictionary, abbreviations)
         list2.append(raw_pos[0])
         subclause_counter += 1
         sentence_slots[subclause_counter] = temp_word
@@ -356,7 +378,15 @@ def build_subclause(list1, i, subclauses, abbreviations, placed_used):
         return i - 1
 
 
-def get_noun_positions(noun_pos, list1, i):
+def get_determiner_positions():
+    global slot
+    if sentence_slots[14] == None:
+        slot = 63
+    else:
+        slot = 64
+
+
+def get_noun_positions(noun_pos, list1, i, current_arity):
     global slot
     slot = 0
     try:
@@ -365,7 +395,7 @@ def get_noun_positions(noun_pos, list1, i):
         next_word = ""
 
     if is_a_standard_sent:
-        get_standard_noun_positions(next_word)
+        get_standard_noun_positions(next_word, current_arity)
     else:
 
         if relation_type == 0:
@@ -385,11 +415,12 @@ def get_noun_positions(noun_pos, list1, i):
         elif relation_type == 1:
             if sentence_slots[14] == None:
                 slot = 14
-            elif sentence_slots[133] != None:
+            elif sentence_slots[133] != None or current_arity == 3:
                 if sentence_slots[15] == None:
                     slot = 15
                 else:
                     slot = 94
+
             else:
                 slot = 93
 
@@ -404,7 +435,7 @@ def get_noun_positions(noun_pos, list1, i):
     return
 
 
-def get_standard_noun_positions(next_word):
+def get_standard_noun_positions(next_word, current_arity):
     global slot
     if next_word == mini_e:
         slot = 8
@@ -445,51 +476,7 @@ def place_in_decision_procedure(category, slot, word, raw_pos):
     return category
 
 
-def get_part_of_speech(word, abbreviations):
-    pos = dictionary.pos.get(word)
-    if isvariable(word):
-        reference = abbreviations.get(word)
-        pos = dictionary.pos.get(reference)
-        pos = 'ny' if pos == None or pos[0] != 'a' else 'ay'
-    elif word[-2:] == "'s":
-        pos = 's' if dictionary.kind.get(word[:-2]) == 'i' else 'o'
-    elif pos == None:
-        raise Exception('you misspelled ' + word)
 
-    return pos
-
-
-def determine_if_compound_word(word3, i, list1):
-    if word3 == "not":
-        bb = 8
-
-    double = dictionary.doubles.get(word3)
-    triple = dictionary.triples.get(word3)
-    triple_word = ""
-
-    if triple != None:
-        if list1[i + 1] != None and list1[i + 2] != None:
-
-            after_next_word = list1[i + 2]
-            next_word = list1[i + 1]
-            triple_word = word3 + " " + next_word + " " + after_next_word
-            if triple_word in triple:
-                i += 2
-                word3 = triple_word
-            else:
-                triple_word = ""
-        else:
-            triple_word = ""
-
-    if triple_word == "" and double != None:
-        if list1[i + 1] != None:
-            next_word = list1[i + 1]
-            double_word = word3 + " " + next_word
-            if double_word in double:
-                i += 1
-                word3 = double_word
-
-    return i, word3
 
 
 def exceptional_parts_of_speech(raw_pos):

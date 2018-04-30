@@ -5,14 +5,16 @@ list1 = ["json_dict", "main_loop","pickle_dictionary","pickle_claims","general_f
         "settings", "change_abbreviations", "standard_order", "begin_code", "use_lemmas",
          "analyze_sentence", "uninstantiable_definitions", 'natural_language',
          "put_words_in_slots", "prepare_for_print", "analyze_definition",
-         "z_dict_words", "zz_claims", "search_for_instantiation", "classes", "lemmas", "words_used"]
+         "z_dict_words", "zz_claims", "search_for_instantiation", "classes", "lemmas",
+         "words_used", "search_for_instantiation2", "lemmata", "disambiguation",
+         "lemmas2", "grammar", "useful_tools"]
 
 
 
 
 
 list2 = ["json_dict"]
-list3 = ["words_used"]
+list3 = ["words_used", "lemmata"]
 
 base_directory = "/Users/kylefoley/PycharmProjects/inference_engine2/inference2/Proofs/"
 old_directory = "/Users/kylefoley/PycharmProjects/inference_engine2/inference2/proofs_old/"

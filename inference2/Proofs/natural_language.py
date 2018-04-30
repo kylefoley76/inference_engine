@@ -2,140 +2,88 @@
 from collections import defaultdict
 import operator
 
+
+
 try:
     from put_words_in_slots import categorize_words, place_in_decision_procedure
     from classes import get_output
     from general_functions import *
     from uninstantiable_definitions import define_irregular_terms
-    from search_for_instantiation import try_instantiation
+    from search_for_instantiation2 import try_instantiation
+    from disambiguation import disambiguate_sentence
 except:
     from .put_words_in_slots import categorize_words, place_in_decision_procedure
     from .classes import get_output
     from .general_functions import *
     from .uninstantiable_definitions import define_irregular_terms
     from .search_for_instantiation import try_instantiation
+    from .disambiguation import disambiguate_sentence
+
+
+
+# from put_words_in_slots import categorize_words, place_in_decision_procedure
+# from classes import get_output
+# from general_functions import *
+# from uninstantiable_definitions import define_irregular_terms
+# from search_for_instantiation2 import try_instantiation
+# from disambiguation import disambiguate_sentence, build_ambig_sent
 
 
 
 ######### group: eliminate uninstantiable words part one
 
-def get_super(str1):
-    if str1 == "a":
-        return "\u1d43"
-    elif str1 == "b":
-        return "\u1d47"
-    elif str1 == "c":
-        return "\u1d9c"
-    elif str1 == "d":
-        return "\u1d48"
-    elif str1 == "e":
-        return "\u1d49"
-    elif str1 == "f":
-        return "\u1da0"
-    elif str1 == "g":
-        return "\u1d4d"
-    elif str1 == "h":
-        return "\u02b0"
-    elif str1 == "i":
-        return "\u2071"
-    elif str1 == "j":
-        return "\u02B2"
-    elif str1 == "k":
-        return "\u1d4f"
-    elif str1 == "l":
-        return "\u02E1"
-    elif str1 == "m":
-        return "\u1d50"
-    elif str1 == "n":
-        return "\u207f"
-    elif str1 == "o":
-        return "\u1d52"
-    elif str1 == "p":
-        return "\u1d56"
-    elif str1 == "r":
-        return "\u02b3"
-    elif str1 == "s":
-        return "\u02e2"
-    elif str1 == "t":
-        return "\u1d57"
-    elif str1 == "u":
-        return "\u1d58"
-    elif str1 == "v":
-        return "\u1d5b"
-    elif str1 == "w":
-        return "\u02b7"
-    elif str1 == "y":
-        return "\u02b8"
 
-
-def tran_str(str1, has_sentence_connectives=False):
-    if str1 == "":
-        return str1
-    if "|" in str1:
-        for i in range(len(str1)):
-            if str1[i:i + 1] == "|":
-                str3 = str1[i + 1:i + 2]
-                str4 = get_super(str3)
-                str1 = str1[:i] + str4 + str1[i + 2:]
-
-    if has_sentence_connectives:
-
-        if "t^" in str1:
-            str1 = str1.replace("t^", conditional)
-        if "nt+" in str1:
-            str1 = str1.replace("nt+", neg)
-        if "x^" in str1:
-            str1 = str1.replace("x^", iff)
-        if "b^" in str1:
-            str1 = str1.replace("b^", mini_e)
-        if "c^" in str1:
-            str1 = str1.replace("c^", mini_c)
-        if "ed^" in str1:
-            str1 = str1.replace("ed^", xorr)
-        if "v+" in str1:
-            str1 = str1.replace("v+", idisj)
-
-    return str1
 
 
 def obtain_truth_value():
     sent = output.all_sent[0]
+    sent = sent.strip()
+    if sent[-1] == ".":
+        sent = sent[:-1]
+    sent = sent.lower()
     sent = sent.replace("!", "|")
     sentence = tran_str(sent)
+    if sentence.startswith("1"):
+        sentence = sentence.replace("1", "it is consistent that")
+    elif sentence.startswith("0"):
+        sentence = sentence.replace("0", "it is contradictory that")
+
+
     add_to_tsent(output, "CLAIM " + str(sent[0]) + ": " + sentence, "", "", "", "natural")
 
     if len(sentence) < 22:
         raise Exception(
-            "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+            "Each sentence must begin with either 'it is consistent that' or 'it is contradictory that")
 
     else:
-        if sentence[7:12] == 'consi':
-            return True, sentence[len("It isa consistent that "):]
-        elif sentence[7:12] == 'contr':
-            return False, sentence[len("It isa contradictory that "):]
+        if sentence.startswith("it is consistent"):
+            return True, sentence[len("It is consistent that "):]
+        elif sentence.startswith("it is contradictory"):
+            return False, sentence[len("It is contradictory that "):]
         else:
             raise Exception(
-                "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+                "Each sentence must begin with either 'it is consistent that' or 'it is contradictory that")
 
 
 def eliminate_logical_connectives():
     list1 = output.all_sent[0].split(" and ")
     return list1
 
-def step_one(dictionary2, user, sent):
-    global definite_assignments, inferences
+def step_one(dictionary2, user, sent, lemmata, cat_num):
+    global definite_assignments
     global prop_var2, dictionary
     global consistent, output
 
     proof_kind = ""
+    sent = sent[cat_num]
     consistent = True
     dictionary = dictionary2
-    inferences = []
     output = get_output()
     output.variables = get_variables()
     output.prop_var = get_prop_var()
     output.prop_name = defaultdict(lambda: output.prop_var.pop(), {})
     output.user = user
+    output.catalogue_num = cat_num
 
     if "(" in sent[0]:
 
@@ -157,7 +105,11 @@ def step_one(dictionary2, user, sent):
 
         replace_determinative_nouns()
 
+        disambiguate_sentence(output, dictionary)
+
         categorize_words2()
+
+        if not consistent: return False, output.total_sent, output.words_used
 
         replace_synonyms()
 
@@ -167,21 +119,20 @@ def step_one(dictionary2, user, sent):
 
         output.all_sent = remove_duplicates(output.all_sent, 0)
 
-        output, consistent = define_irregular_terms(output, dictionary, inferences)
+        output, consistent = define_irregular_terms(output, dictionary)
 
         output.all_sent = remove_duplicates(output.all_sent, 0)
 
         shorten_sent()
 
     if consistent:
-        output, consistent, _ = try_instantiation(output, dictionary, proof_kind)
+        output, consistent, _ = try_instantiation(output, dictionary, lemmata, proof_kind)
 
     return truth_value == consistent, output.total_sent, output.words_used
 
 
 def divide_sent():
     for i, sent in enumerate(output.all_sent):
-        sent = sent.lower()
         sent = sent.strip()
         if "'s" not in sent: sent = sent.replace("'", "")
         if "," in sent: sent = sent.replace(",", " ,")
@@ -238,7 +189,7 @@ def eliminate_redundant_words():
             sent[2] = name_sent(sent[46], output.prop_name)
 
             direct_equivalence(output, ant_sent, ant_sentp, sent, rule)
-            inferences.append([sent[0], sent[2], "", "EF", anc1, output.tindex, is_standard(sent)])
+            output.inferences.append([sent[0], sent[2], "", "EF", anc1, output.tindex, is_standard(sent)])
 
 
 def replace_determinative_nouns():
@@ -278,28 +229,34 @@ def replace_determinative_nouns():
             qn = output.tindex
             add_to_tsent(output, implication, implicationp, "", rule)
             add_to_tsent(output, definition, "", "", rule)
-            inferences.append([sent[0], sent[2], "", "EF", ant_sentp, qn, is_standard(sent)])
+            output.inferences.append([sent[0], sent[2], "", "EF", ant_sentp, qn, is_standard(sent)])
 
     return
 
 
 def categorize_words2():
+    global consistent
     for i, sent in enumerate(output.all_sent):
         comma_elimination = False
-        if "," in sent[0]:
-            ant_sent = sent[0]
-            ant_sentp = sent[2]
-            anc1 = sent[44]
-            rule = "CME"
-            comma_elimination = True
-        b = sent[4:].index(None) + 4
-        sent_num = sent[44]
-        output.all_sent[i] = categorize_words({}, sent[4:b], dictionary, output, "sub words")
-        output.all_sent[i][44] = sent_num
+        # if "," in sent[0]:
+        #     ant_sent = sent[0]
+        #     ant_sentp = sent[2]
+        #     anc1 = sent[44]
+        #     rule = "CME"
+        #     comma_elimination = True
+        categorized = categorize_words({}, sent, dictionary, output, "sub words")
+        if isinstance(categorized, str):
+            print (categorized)
+            consistent = False
+            return
+        else:
+            output.all_sent[i] = categorized
+
         if comma_elimination:
             direct_equivalence(output, ant_sent, ant_sentp, output.all_sent[i], rule)
-            inferences.append([output.all_sent[i][0], output.all_sent[i][2], "", "EF", anc1,
+            output.inferences.append([output.all_sent[i][0], output.all_sent[i][2], "", "EF", anc1,
                                output.tindex, is_standard(output.all_sent[i])])
+
 
     return
 
@@ -338,7 +295,7 @@ def replace_synonyms():
             direct_equivalence(output, ant_sent, ant_sentp, output.all_sent[m], "SUZ", output.tindex)
             output.all_sent[m][45] = sorted(output.all_sent[m][45], key=operator.itemgetter(1))
 
-            inferences.append(
+            output.inferences.append(
                 [output.all_sent[m][0], output.all_sent[m][2], "", "EF", ant_sentp, output.tindex, is_standard(output.all_sent[m])])
 
     return
@@ -380,7 +337,7 @@ def replace_special_synonyms():
             j += 1
         if replacement_made:
             direct_equivalence(output, ant_sent, ant_sentp, output.all_sent[m], rule)
-            inferences.append(
+            output.inferences.append(
                 [output.all_sent[m][0], output.all_sent[m][2], "", "EF", ant_sentp, output.tindex, is_standard(output.all_sent[m])])
 
     return
@@ -408,8 +365,10 @@ def word_sub():
                 word = output.all_sent[m][k]
                 if word == 'which':
                     bb = 8
+                if isvariable(word):
+                    pass
 
-                if word == "not":
+                elif word == "not":
                     output.all_sent[m][k] = "~"
                     output.all_sent[m][3] = "~"
                     replacement_made = True
@@ -445,7 +404,7 @@ def word_sub():
                 pass
 
             direct_equivalence(output, ant_sent, ant_sentp, output.all_sent[m], "SUY")
-            inferences.append([output.all_sent[m][1], output.all_sent[m][2], output.all_sent[m][3], "EF", ant_sentp,
+            output.inferences.append([output.all_sent[m][1], output.all_sent[m][2], output.all_sent[m][3], "EF", ant_sentp,
                                output.tindex, is_standard(output.all_sent[m])])
 
     return
@@ -456,7 +415,7 @@ def replace_word_w_variable(m, k, word):
         str3 = get_key(output.abbreviations, word)
         if str3 == None:
             pos = dictionary.pos.get(word)
-            if len(pos) > 1 and dictionary.kind.get(word) == "i":
+            if dictionary.kind.get(word) == "i":
                 list1 = svo_sent(output, output.variables[0], "=", word)
                 add_to_tsent(output, list1[0], list1[2], "", "ABB", "", "","standard")
                 list1[44] = output.tindex

@@ -1,10 +1,32 @@
-from settings import *
-from general_functions import *
-from put_words_in_slots import categorize_words
-from analyze_sentence import period_elimination, find_sentences
-from standard_order import order_sentence
 import copy
-from classes import *
+
+try:
+    from settings import *
+    from general_functions import *
+    from put_words_in_slots import categorize_words
+    from analyze_sentence import period_elimination, find_sentences
+    from standard_order import order_sentence
+    from classes import *
+except:
+    from .settings import *
+    from .general_functions import *
+    from .put_words_in_slots import categorize_words
+    from .analyze_sentence import period_elimination, find_sentences
+    from .standard_order import order_sentence
+    from .classes import *
+
+
+#
+# from settings import *
+# from general_functions import *
+# from put_words_in_slots import categorize_words
+# from analyze_sentence import period_elimination, find_sentences
+# from standard_order import order_sentence
+# import copy
+# from classes import *
+
+
+
 
 
 def is_a_concept(sentences):
@@ -14,6 +36,14 @@ def is_a_concept(sentences):
                 dictionary.kind.update({definiendum: "c"})
             elif sentence[13] == '=':
                 dictionary.kind.update({definiendum: "i"})
+            elif sentence[13] == 'J':
+                dictionary.kind.update({definiendum: "p"})
+            elif sentence[13] == 'V':
+                dictionary.kind.update({definiendum: "a"})
+            elif sentence[13] == 'H':
+                dictionary.kind.update({definiendum: "h"})
+            else:
+                dictionary.kind.update({definiendum: "r"})
 
     return
 
@@ -40,15 +70,16 @@ def get_sent_type(sent_num, def_info):
         str1 = ".".join(num_list)
         connective = def_info[4][def_info[2].index(str1)][1]
         temp_type = convert_con_to_letter(connective, current_num)
+        assert temp_type != None
         sent_type += temp_type
 
     return sent_type
 
 
 def convert_con_to_letter(str1, str2):
-    if str1 == iff and str2 == '1':
+    if str1 in [iff, "#"] and str2 == '1':
         return 'b'
-    elif str1 == iff and str2 == '2':
+    elif str1 in [iff, "#"] and str2 == '2':
         return 'f'
     elif str1 == conditional and str2 == '1':
         return 'a'
@@ -60,6 +91,7 @@ def convert_con_to_letter(str1, str2):
         return 'd'
     elif str1 == "&":
         return "c"
+
 
 
 def split_sentences(sent):
@@ -74,20 +106,49 @@ def split_sentences(sent):
     return sent.split(" ")
 
 
-def get_abbreviations_from_definition(def_info):
-    # this function picks out that variables in the id sentences of the
-    # definition
+def is_math(sent):
+    if "+" in sent or " - " in sent or " DI " in sent or "*" in sent:
+        return True
+    return False
 
+
+def get_abbreviations_from_definition(definiendum, def_info):
     abbreviations = {}
     for i in range(len(def_info[3])):
-        if one_sentence(def_info[3][i]) and "=" in def_info[3][i]:
+        if one_sentence(def_info[3][i]) and "=" in def_info[3][i] \
+                and "~=" not in def_info[3][i] and not is_math(def_info[3][i]):
             str1 = def_info[3][i]
             g = str1.find("=")
             var = str1[1:g]
+            var = var.strip()
             word = str1[g + 1:-1]
+            word = word.strip()
+            if word.startswith("now") and word[-1] in [l1, l2, l3, l4]:
+                pass
+            elif not isvariable(word):
+                if word not in dictionary.pos.keys():
+                    print (f"you mispelled {word}")
+                    raise Exception
+
             if isvariable(var):
                 if not isvariable(word):
                     abbreviations.update({var: word})
+
+    if definiendum == 'pear':
+        bb = 8
+
+    pos = dictionary.pos.get(definiendum)
+    if pos[0] in ["n", "a", "e"]:
+        if pos[1] in ['h', 'w']:
+            tdefiniendum = definiendum[1:]
+        else:
+            tdefiniendum = definiendum
+
+        if tdefiniendum not in abbreviations.values():
+            print (f"{definiendum} does not appear in its definition")
+            raise Exception
+    elif dictionary.pos.get(definiendum)[0] == 'r':
+        pass
 
     return abbreviations
 
@@ -106,6 +167,41 @@ def name_conn_sent(output, reduced_def):
         greek = greek.replace(k, v)
     return greek
 
+def find_sentences_prelim(definiendum, definition, dictionary, output):
+    global premise
+
+    z = 0
+    while True:
+        z + 1
+        if z > 10: raise Exception
+        def_info, redo = find_sentences(definition, definiendum)
+        if redo:
+            definition = def_info[7]
+        else:
+            break
+
+    if output == []:
+        if def_info[7] != None:
+            dictionary.bad_paren.update({definiendum: def_info})
+        premise = False
+        abbreviations = get_abbreviations_from_definition(definiendum, def_info)
+        if abbreviations != {}:
+            dictionary.def_constants.update({definiendum: abbreviations})
+    else:
+        if def_info[7] != None:
+            raise Exception("wrong number of parentheses, use this" + def_info[7])
+        abbreviations = output.abbreviations
+
+    return abbreviations, def_info
+
+
+def parse_conjuncts(conjuncts, embed):
+    def_info = []
+    for conjunct in conjuncts:
+        result, _ = find_sentences(conjunct, "", embed)
+        def_info.append(result)
+    return def_info
+
 
 def process_sentences(definition, definiendum2, dictionary2, output=[]):
     global premise, embeds, is_embedded, definiendum, dictionary
@@ -114,18 +210,10 @@ def process_sentences(definition, definiendum2, dictionary2, output=[]):
     definiendum = definiendum2
     dictionary = dictionary2
 
-    if definiendum == 'julius caesar':
+    if definiendum == 'DM':
         bb = 8
 
-    def_info = find_sentences(definition, definiendum)
-
-    if output == []:
-        premise = False
-        abbreviations = get_abbreviations_from_definition(def_info)
-        if abbreviations != {}:
-            dictionary.def_constants.update({definiendum: abbreviations})
-    else:
-        abbreviations = output.abbreviations
+    abbreviations, def_info = find_sentences_prelim(definiendum, definition, dictionary, output)
 
     conjuncts = build_conjuncts(def_info)
 
@@ -133,18 +221,19 @@ def process_sentences(definition, definiendum2, dictionary2, output=[]):
 
     embed = True if len(conjuncts) > 1 else False
 
-    def_info = [find_sentences(conjunct, "", embed) for conjunct in conjuncts]
+    def_info = parse_conjuncts(conjuncts, embed)
 
     if len(conjuncts) > 1 and not premise:
         dictionary.conjunctive_definitions.update({definiendum: conjuncts})
 
-    def_info, temp_definition = period_elimination(def_info, temp_definition)
+    def_info, temp_definition = period_elimination(def_info, temp_definition, definiendum)
 
     renumber = [1 for x in range(len(def_info))]
 
     reduced_def = [[] for x in range(len(def_info))]
 
-    reduced_def = unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_def)
+    reduced_def = unpack_definition(abbreviations, def_info, renumber,
+                                    definiendum, reduced_def, "", premise)
 
     reduced_def, sent_abb = order_sent(abbreviations, def_info,
                                        definiendum, output, reduced_def, temp_definition)
@@ -157,25 +246,31 @@ def process_sentences(definition, definiendum2, dictionary2, output=[]):
 
     reduced_def = get_sets_of_conditions(def_info, reduced_def, sent_kind)
 
+    check_relata(definiendum, reduced_def, dictionary)
+
     if premise:
         return reduced_def, sent_abb
     else:
         dictionary.categorized_sent.update({definiendum: reduced_def})
         return dictionary
 
+
+
+
+
 def order_sent(abbreviations, def_info, definiendum, output, reduced_def, temp_definition):
     sent_abb = ""
     if premise: sent_abb = name_conn_sent(output, reduced_def)
     pos = dictionary.pos.get(definiendum, "z")
     if pos[0] not in ["d", "p"]:
-        _ = order_sentence(def_info, temp_definition, reduced_def, premise)
+        _ = order_sentence(def_info, temp_definition, reduced_def, definiendum, premise)
         temp_definition, ordered, renumber = _
         if ordered:
             if premise:
                 sent_abb = name_conn_sent(output, reduced_def)
 
-            renumber_sentences(renumber, def_info)
-            reduced_def = unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_def)
+            renumber_sentences(renumber, def_info, definiendum)
+            reduced_def = unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_def, "", premise)
     else:
         get_determiner_info(reduced_def)
     return reduced_def, sent_abb
@@ -192,14 +287,14 @@ def build_conjuncts(result):
     return conjuncts
 
 
-def renumber_sentences(renumber, def_info):
+def renumber_sentences(renumber, def_info, definiendum):
     for e, conjunct in enumerate(renumber):
         if conjunct != 0:
-            new_result = find_sentences(conjunct)
+            new_result, _ = find_sentences(conjunct, definiendum)
             def_info[e] = new_result
 
 
-def unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_def=[], kind=""):
+def unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_def=[], kind="", premise=False):
     if kind in ["detach disjunct", "embed"]:
         renumber = [1 for x in range(len(reduced_def))]
     for j, num in enumerate(renumber):
@@ -221,37 +316,67 @@ def unpack_definition(abbreviations, def_info, renumber, definiendum, reduced_de
                 hnum2 = result[2][i]
                 connect = result[4][i]
                 if len(hnum) > 1 and len(hnum) == 2 and kind != "detach disjunct":
-                    if hnum[1] == "1":
+                    if hnum[1] == "1" and def_stats1.ant_greek == "":
                         def_stats1.ant_greek = greek
-                    else:
+                        def_stats1.natural_antecedent = sentence
+                    elif hnum[1] == '2' and def_stats1.con_greek == "":
                         def_stats1.con_greek = greek
 
                 if connect[1] == "" and kind == "":
                     k += 1
                     sentence = split_sentences(sentence)
                     tvalue, tvalue2 = get_tvalue(sentence)
+                    if "&" in sentence:
+                        bb = 8
+
                     sentence = categorize_words(abbreviations, sentence, dictionary, [], "standard")
                     sentence[3] = tvalue
                     sentence[5] = greek
                     sentence[6] = hnum2
+                    sentence[48] = hnum2
                     sentence[4] = definiendum + str(j)
                     greek_to_num.update({greek: k})
                     sentence[7] = get_sent_type(hnum2, result)
                     sentence[56] = get_match_type(sentence[7])
-                    if tvalue == "~" and "~" not in sentence[58]:
-                        sentence[58] = tvalue2 + sentence[58]
+                    sentence[50] = sentence[56]
                     tsentences.append(sentence)
-                    if hnum2 in ["1.1", "1.1.1"]:
-                        dictionary.arity.update({definiendum: sentence[42]})
+                    if hnum2 in ["1.1", "1.1.1"] and not premise:
+                        if dictionary.pos.get(definiendum)[0] == 'r':
+                            for num in sentence[42]:
+                                def_stats1.arity.append([sentence[num], num])
+                        else:
+                            def_stats1.arity.append([sentence[10], 10])
 
+            def_stats1.embedded_conditionals = result[9]
+            rebuild_hconstant(tsentences, abbreviations, definiendum)
             if kind == "": get_connection_type(result, def_stats1)
             def_stats1.natural_sent = result[3][0]
             def_stats1.def_number = j
+            if (def_stats1.con_greek == "" or def_stats1.ant_greek == "") \
+                    and kind != 'detach disjunct':
+                raise Exception
             mem_reduced_def = mem_reduced_def1(tsentences, def_stats1)
+            relation_defined(tsentences, definiendum)
             reduced_def[j] = mem_reduced_def
             result[7] = greek_to_num
+            idx = findposinmd(definiendum, dictionary.popular, 1)
+            if idx != -1:
+                dictionary.popular[idx][3] = len(def_stats1.arity)
 
     return reduced_def
+
+
+
+def relation_defined(tsentences, definiendum):
+    if "," in definiendum or hprop(definiendum): return
+    if definiendum[0].islower(): return
+
+    for sent in tsentences:
+        if "b" == sent[7][-1] or "a" == sent[7][-1]:
+            if sent[13] == definiendum:
+                return
+    print (f'{definiendum} does not appear in its definition')
+
 
 
 def get_tvalue(sentence):
@@ -265,10 +390,7 @@ def get_tvalue(sentence):
 
 def get_match_type(str1):
     if len(str1) == 1:
-        if str1 in ["b", "f", "a", "x", "d"]:
-            str1 = "c"
-        else:
-            str1 = "q"
+        str1 = "c"
     elif len(str1) == 2:
         if str1[0] == "x":
             str1 = "c"
@@ -300,7 +422,7 @@ def number_embeds(def_info, reduced_def):
             osent_num = sub_set[2][i]
 
             if conn[1] in special_connectives and "a" not in sent_type and i != 0:
-                new_def_info = find_sentences(sentence, "", True)
+                new_def_info, _ = find_sentences(sentence, "", True)
                 index1 = []
                 embed_num = {}
 
@@ -322,7 +444,7 @@ def number_embeds(def_info, reduced_def):
 
                         index1.append(idx)
                         sentences[idx][48] = new_def_info[2][j]
-                        sentences[idx][50] = get_sent_type(sent_num2, new_def_info)
+                        sentences[idx][50] = get_match_type(get_sent_type(sent_num2, new_def_info))
                         embed_num.update({greek: idx})
 
                 new_def_info[8] = embed_num
@@ -361,6 +483,8 @@ def get_connection_type(result, def_stats1):
         def_stats1.connection_type = 'x'
     elif result[4][0][1] == iff:
         def_stats1.connection_type = 'e'
+    elif result[4][0][1] == "#":
+        def_stats1.connection_type = 'e'
     elif result[4][0][1] == idisj:
         def_stats1.connection_type = 'd'
     elif result[4][0][1] == conditional:
@@ -375,8 +499,8 @@ def get_sent_kind(def_info2):
     for def_info in def_info2:
         e = -1
         temp_kind = ["", "", ""]
-        dict1 = {xorr: 'x', conditional: 'c', iff: 'b'}
-        dict2 = {"&": '&', xorr: 'd', iff: 'b', conditional: 'c', '': 's'}
+        dict1 = {xorr: 'x', conditional: 'c', iff: 'b', "#": "b"}
+        dict2 = {"&": '&', xorr: 'd', iff: 'b', conditional: 'c', '': 's', "#": "b"}
         for lst, sent, esent, fam_num in zip(def_info[4], def_info[6], def_info[3], def_info[1]):
             e += 1
             if e > 1:
@@ -392,82 +516,16 @@ def get_sent_kind(def_info2):
                 elif fam_num[1] == '2' and temp_kind[2] == "":
                     temp_kind[2] = dict2.get(lst[1])
             # these are sentences of the form p <> (q & r & (s v t))
-            elif lst[0].count(".") == 2 and lst[1] in [xorr, idisj] \
-                    and parent_type == "&" and fam_num[1] == '2':
-                temp_kind[2] = 't'
+
         sent_kind.append(temp_kind)
 
     return sent_kind
 
 
-def get_sets_disjunct(lst, side, sentences, size):
-    conditions = {}
-    natural_disjuncts = []
-    loc = 0 if side == "1" else 1
-    b = 0 if is_embedded else 1
-    i = 0
-    for lst1, lst6 in zip(lst[1], lst[6]):
-        if i == 3:
-            bb = 8
-        if len(lst1) == 1:
-            pass
-        elif lst1[loc] != side:
-            pass
-        elif len(lst1) > 1 and lst1[loc] == side:
-            parent = ".".join(lst1[:size])
-            if lst[4][i][1] == "":
-                sent_index = lst[7].get(lst6)
-                if is_embedded:
-                    sent_type = sentences[sent_index][56]
-                else:
-                    sent_type = sentences[sent_index][7][:-b]
-            else:
-                sent_index = str(i)
-            if lst[4][i][1] == xorr:
-                natural_disjuncts.append([lst[3][i], lst[6][i]])
-
-            if len(lst1) == 2 and lst[4][i][1] == xorr:
-                pass
-
-            elif len(lst1) == size and lst[4][i][1] != "":
-                conditions.update({lst[2][i]: {}})
-
-            elif len(lst1) == size and lst[4][i][1] == "":
-                conditions.update({lst[2][i]: {lst[2][i]: sent_index}})
-                assert isinstance(sent_index, int)
-
-            elif len(lst1) > size and lst[4][i][1] in [conditional, iff]:
-                dict2 = conditions.get(parent)
-                dict2.update({lst[2][i]: []})
-
-            elif len(lst1) > size and lst[4][i][1] == "":
-                dict2 = conditions.get(parent)
-
-                if not re.search(r'[qabf]', sent_type):
-                    dict2.update({lst[2][i]: sent_index})
-                    assert isinstance(sent_index, int)
-                else:
-                    for k, v in dict2.items():
-
-                        if lst[2][i].startswith(k + "."):
-                            v.append(sent_index)
-                            assert isinstance(sent_index, int)
-                            break
-
-                    else:
-                        raise Exception("failed to find conditional parent in disjunct")
-
-            elif len(lst1) > size and lst[4][i][1] == "&":
-                pass
-            else:
-                raise Exception("failed to find conditional parent in disjunct")
-
-        i += 1
-
-    return conditions, natural_disjuncts
 
 
-def get_sets_of_conditions2(lst, side, sent_kind):
+
+def get_sets_of_conditions2(lst, side, sent_kind, sentences):
     conditions = {}
     dict1 = {"s": 2, "c": 2, "b": 2, "&": 3, "d": 3}
     size = dict1.get(sent_kind)
@@ -480,23 +538,39 @@ def get_sets_of_conditions2(lst, side, sent_kind):
     for lst1, lst6 in zip(lst[1], lst[6]):
         if len(lst1) > size - 1 and lst1[1] == side:
 
-            if len(lst1) == size and lst[4][i][1] != "":
-                conditions.update({lst[2][i]: []})
-            elif len(lst1) == size and lst[4][i][1] == "":
-                sent_index = lst[b].get(lst6)
-                assert sent_index != None
-                conditions.update({lst[2][i]: sent_index})
-            elif len(lst1) > size and lst[4][i][1] == "":
-                parent = ".".join(lst1[:size])
-                sent_index = lst[b].get(lst6)
-                assert sent_index != None
-                conditions.setdefault(parent, []).append(sent_index)
-            elif len(lst1) > size and lst[4][i][1] != "":
-                pass
+            if lst[4][i][1] != "":
+                if len(lst1) == size:
+                    conditions.update({lst[2][i]: []})
+                elif len(lst1) > size:
+                    pass
+
+            elif lst[4][i][1] == "":
+                if len(lst1) == size:
+                    sent_index = lst[b].get(lst6)
+                    assert sent_index != None
+                    conditions.update({lst[2][i]: sent_index})
+                elif len(lst1) > size:
+                    parent = ".".join(lst1[:size])
+                    sent_index = lst[b].get(lst6)
+                    assert sent_index != None
+                    conditions.setdefault(parent, []).append(sent_index)
 
         i += 1
 
     return conditions
+
+def fill_disjuncts(conditions3, sentences, disjuncts, cls):
+    for dict1 in conditions3:
+        for k, v in dict1.items():
+            if isinstance(v, list):
+                sent = sentences[v[0]]
+                if sent[7][:2] in ['cx', "xc"]:
+                    disjuncts.append(v)
+
+    cls.def_stats.natural_disjuncts = disjuncts
+    for lst in disjuncts:
+        for num in lst:
+            cls.def_stats.isdisjunctive.append(num)
 
 
 # sent_kinds
@@ -508,31 +582,20 @@ def get_sets_of_conditions2(lst, side, sent_kind):
 
 def get_sets_of_conditions(def_info, class_def, sent_kind):
     kind = ""
-    ex_conditions = {}
-    conditions2 = {}
-    conditions = {}
-    natural_disjuncts = []
     for def_num, lst in enumerate(def_info):
+        disjuncts = []
         sentences = class_def[def_num].sentences
-        if sent_kind[def_num][0] != 'x':
-            conditions = get_sets_of_conditions2(lst, "1", sent_kind[def_num][1])
+        conditions = get_sets_of_conditions2(lst, "1", sent_kind[def_num][1], sentences)
 
-            if sent_kind[def_num][2] == "d":
-                _ = get_sets_disjunct(lst, "2", sentences, 3)
-                ex_conditions, natural_disjuncts = _
-                kind = 'detach disjunct'
-            elif sent_kind[def_num][2] == "t":
-                ex_conditions, natural_disjuncts = distribute(lst)
-            else:
-                conditions2 = get_sets_of_conditions2(lst, "2", sent_kind[def_num][2])
+        if sent_kind[def_num][2] == "d":
+            kind = 'detach disjunct'
+        conditions2 = get_sets_of_conditions2(lst, "2", sent_kind[def_num][2], sentences)
+        conditions3 = [conditions, conditions2]
+        fill_disjuncts(conditions3, sentences, disjuncts, class_def[def_num])
 
-        else:
-            _ = get_sets_disjunct(lst, "1", sentences, 2)
-            ex_conditions, natural_disjuncts = _
-
-        for lst1 in natural_disjuncts: class_def[def_num].def_stats.natural_disjuncts.append(lst1)
         greek_conn = get_greek_hypotheticals(lst)
-        conditions3 = build_all_conditions(conditions, conditions2, ex_conditions)
+
+
         add_conj_elim_info(conditions3, greek_conn, def_num, class_def, kind, def_info)
 
     return class_def
@@ -547,15 +610,35 @@ def add_conj_elim_info(conditions3, greek_conn, def_num, class_def, kind, def_in
         else:
             disju = disjunction()
             add_conj_elim2(item_, "disjunct", greek_conn, class_def, def_num, disju, def_info[0])
-    if kind == 'detach disjunct':
-        greek = greek_conn.get("1.2")
-        prepare_embed_class(class_def, 0, [], "1.2", class_def[0].sentences, "detach disjunct", greek)
 
+    if kind == 'detach disjunct':
+        # greek = greek_conn.get("1.2")
+        # prepare_embed_class(class_def, 0, [], "1.2", class_def[0].sentences, "detach disjunct", greek)
+        class_def[def_num].def_stats.perfect_disjunct = is_perfect_disjunct(class_def[0])
+        dictionary.disjunctive.update({definiendum: is_perfect_disjunct(class_def[0])})
     return
+
+
+def is_perfect_disjunct(cls):
+    for num in cls.def_stats.flat_con_index:
+        if cls.sentences[num][7] != "xf":
+            return False
+    return True
+
+
+def get_embed_arity(def_stats1, sentences):
+    num = def_stats1.flat_ant_index[0]
+    if sentences[num][13] in ["I", "J", "V"]:
+        def_stats1.arity.append([sentences[num][10], 10])
+    else:
+        for pos in sentences[num][42]:
+            def_stats1.arity.append([sentences[num][pos], pos])
 
 
 def prepare_embed_class(class_def, def_num, hnum, k, sentences, kind, greek):
     global is_embedded
+
+
     list1 = class_def[def_num].embeds.get(k)
     sent_kind = get_sent_kind([list1[1]])
     is_embedded = True
@@ -565,12 +648,14 @@ def prepare_embed_class(class_def, def_num, hnum, k, sentences, kind, greek):
     if kind != "detach disjunct":
         list2 = get_sets_of_conditions([list1[1]], [mreduced_def], sent_kind)
         hnum.append(k)
+        get_embed_arity(def_stats1, sentences)
     else:
+        class_def[def_num].def_stats.flat_con_index = list1[0]
         list2 = [mreduced_def]
         class_def[def_num].def_stats.con_hnum = ["1.2"]
     is_embedded = False
     get_connection_type(list1[1], def_stats1)
-    list2 = unpack_definition({}, [list1[1]], [], definiendum3, list2, kind)
+    list2 = unpack_definition({}, [list1[1]], [], definiendum3, list2, kind, premise)
     list2[0].sentences = None
     list2[0].def_stats.tot_greek_sent = greek
     if kind == 'detach disjunct':
@@ -583,13 +668,16 @@ def add_conj_elim2(item_, kind, greek_conn, class_def, def_num, disju=[], def_in
 
     sentences = class_def[def_num].sentences
     index1 = []
+    flat_index = []
     comp_const = []
     comp_greek = []
     hnum = []
 
     for k, v in item_.items():
         index1.append(v)
+
         if isinstance(v, list):
+            for x in v: flat_index.append(x)
             greek = greek_conn.get(k)
             comp_greek.append(greek)
 
@@ -597,11 +685,15 @@ def add_conj_elim2(item_, kind, greek_conn, class_def, def_num, disju=[], def_in
                 bb = 8
 
             comp_const.append(get_lesser_skeleton(v, sentences))
-            if k in class_def[def_num].embeds.keys():
+            if k in class_def[def_num].embeds.keys() \
+                    and v not in class_def[def_num].def_stats.natural_disjuncts:
                 prepare_embed_class(class_def, def_num, hnum, k, sentences, "embed", greek)
+        else:
+            flat_index.append(v)
 
     if kind == "disjunct":
         disju.index1 = index1
+        disju.flat_index = flat_index
         disju.comp_const = comp_const
         disju.hnum = hnum
         disju.comp_greek = comp_greek
@@ -609,11 +701,13 @@ def add_conj_elim2(item_, kind, greek_conn, class_def, def_num, disju=[], def_in
         class_def[def_num].disjuncts.append(disju)
     elif kind == "antecedent":
         class_def[def_num].def_stats.ant_index = index1
+        class_def[def_num].def_stats.flat_ant_index = flat_index
         class_def[def_num].def_stats.ant_comp_const = comp_const
         class_def[def_num].def_stats.ant_comp_greek = comp_greek
         class_def[def_num].def_stats.ant_hnum = hnum
     else:
         class_def[def_num].def_stats.con_index = index1
+        class_def[def_num].def_stats.flat_con_index = flat_index
         class_def[def_num].def_stats.con_comp_const = comp_const
         class_def[def_num].def_stats.con_comp_greek = comp_greek
         class_def[def_num].def_stats.con_hnum = hnum
@@ -751,3 +845,25 @@ def distribute(lst):
     for x in range(g): natural_disjuncts.append(0)
 
     return conditions, natural_disjuncts
+
+
+def check_relata(definiendum, reduced_def, dictionary):
+
+    if isrelat(definiendum[0]):
+        for cls in reduced_def:
+            b = len(cls.def_stats.arity)
+
+            str1 = ""
+            if b == 2:
+                str1 = dictionary.relata.get(definiendum).object
+            elif b == 3:
+                str1 = dictionary.relata.get(definiendum).object2
+            elif b == 4:
+                str1 = dictionary.relata.get(definiendum).object3
+            elif b == 5:
+                str1 = dictionary.relata.get(definiendum).object4
+            if str1 == None:
+                print (f"{definiendum} is missing a relata in excel")
+
+
+

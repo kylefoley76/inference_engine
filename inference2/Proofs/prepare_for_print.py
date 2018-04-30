@@ -8,6 +8,10 @@ try:
 except:
     from .general_functions import *
 
+# from general_functions import *
+
+
+
 # 1 - SUBSTITUTIONS (substitute)  sub, subi, subj, not suy, IN, TR
     # 2 - NATURAL LANGUAGE PREMISES (nl_premise)  (everything else is a nl_premise,)
                 # and that includes blanks

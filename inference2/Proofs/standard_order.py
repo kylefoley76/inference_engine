@@ -1,11 +1,15 @@
 import copy
 import operator
+
 try:
     from settings import *
     from general_functions import *
 except:
     from .settings import *
     from .general_functions import *
+#
+# from settings import *
+# from general_functions import *
 
 
 premise = False
@@ -226,7 +230,7 @@ def get_conn_conjuncts(conn_conjuncts):
                     sent_type = 'conjunct'
                 elif lst[0].count(".") == 1 and lst[1] in [xorr, idisj]:
                     sent_type = 'disjunct'
-                elif lst[0].count(".") == 1 and lst[1] in [conditional, iff]:
+                elif lst[0].count(".") == 1 and lst[1] in [conditional, iff, "#"]:
                     conn_conjuncts.append([lst[0], sent, esent])
                     break
                 elif lst[0].count(".") > 1:
@@ -243,7 +247,7 @@ def get_conn_conjuncts(conn_conjuncts):
 
 
 
-def order_sentence(def_info2, definition2, reduced_def2, premise2=False):
+def order_sentence(def_info2, definition2, reduced_def2, definiendum, premise2=False):
     global sentences, def_info, definition, set1
     global families, set_sentences, mixed_dict, premise
     reduced_def = reduced_def2
@@ -258,6 +262,7 @@ def order_sentence(def_info2, definition2, reduced_def2, premise2=False):
     o = 0
     def_part = []
     for set1, tlist in zip(def_info, reduced_def):
+        econd_var = tlist.def_stats.embedded_conditionals
         sentences = tlist.sentences
         conn_conjuncts = []
         if premise:
@@ -268,14 +273,13 @@ def order_sentence(def_info2, definition2, reduced_def2, premise2=False):
         if conn_conjuncts != []:
             for z, conn_conjunct2 in enumerate(conn_conjuncts):
                 conn_conjunct = conn_conjunct2[0]
-                current_sent = conn_conjunct2[1]
                 build_main_dict(conn_conjunct, set1)
                 if is_ordered() and needs_translation():
                     translate_sentence(conn_conjunct2)
                 elif not is_ordered() or needs_translation():
                     mixed_dict = copy.deepcopy(main_dict)
                     families = get_families(set1, "get_conjunctive_families")
-                    order_sentence2()
+                    order_sentence2(definiendum)
                     if needs_translation():
                         swap_sentences(conn_conjunct2, o)
                         ordered = True
@@ -294,9 +298,6 @@ def order_sentence(def_info2, definition2, reduced_def2, premise2=False):
             definition = " & ".join(def_part)
         else:
             definition = def_part[0]
-
-
-
 
     return definition, ordered, renumber
 
@@ -324,7 +325,7 @@ def build_main_dict(conn_conjunct, set1):
                 main_dict.setdefault(tparent, []).append(e)
 
 
-def order_sentence2():
+def order_sentence2(definiendum):
     fixed_abbrev = []
     order_by_conn_type()
     if is_ordered(): return
@@ -336,7 +337,7 @@ def order_sentence2():
     if is_ordered(): return
     unfixed_children, unfixed_families = all_children_are_fixed()
     get_fixed_abbreviations(families, unfixed_children, fixed_abbrev)
-    use_alpha_abbrev_test(fixed_abbrev, unfixed_children, families, unfixed_families)
+    use_alpha_abbrev_test(fixed_abbrev, unfixed_children, families, definiendum, unfixed_families)
 
 
 def get_families(set1, str1=""):
@@ -433,7 +434,7 @@ def get_fixed_abbreviations3(list1, fixed_abbrev, families):
             get_fixed_abbreviations2(fixed_abbrev, sent)
 
 
-def use_alpha_abbrev_test(fixed_abbrev, unfixed_children, families, unfixed_families):
+def use_alpha_abbrev_test(fixed_abbrev, unfixed_children, families, definiendum, unfixed_families):
     while True:
         ordering_occurred = False
         unfixed_parent_exists = False
@@ -454,13 +455,16 @@ def use_alpha_abbrev_test(fixed_abbrev, unfixed_children, families, unfixed_fami
         if is_ordered():
             return
         elif not ordering_occurred:
-            raise Exception('you failed to order ' + definition)
+            # print (f"you failed to order {definiendum}")
+            # raise Exception('you failed to order ' + definition)
+            return
     return
 
 
 def use_alpha_abbrev_test2(fixed_abbrev, lst, families):
     dict2 = {}
     backup_dict = {}
+    temp_dict = {}
 
     for sent_num in lst:
         if set1[4][sent_num][1] != "":
@@ -605,6 +609,8 @@ def swap_sentences(conn_conjunct2, o):
     for greek in def_info[o][6]:
         if greek == old_sent:
             def_info[o][5] = def_info[o][5].replace(greek, current_sent)
+    for english, greek in def_info[o][10].items():
+        def_info[o][5] = def_info[o][5].replace(greek, english)
 
     return
 
@@ -615,6 +621,8 @@ def translate_sentence(o):
     for greek, english in zip(def_info[o][6], def_info[o][3]):
         if len(greek) == 1:
             def_info[o][5] = def_info[o][5].replace(greek, english)
+    for english, greek in def_info[o][10].items():
+        def_info[o][5] = def_info[o][5].replace(greek, english)
 
     return
 
