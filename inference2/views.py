@@ -138,69 +138,69 @@ def index(request, archive=None):
     return render(request, "inference2/index.html", template_args)
 
 
-def version1_view(request, archive=None):
-    ins_file = InstructionFile.objects.filter(file_type='0').order_by('-id').first()
-    download_dict_file = InstructionFile.objects.filter(file_type='1').order_by('-id').first()
-    rules_in_brief_file = InstructionFile.objects.filter(file_type='2').order_by('-id').first()
-    arguments = InstructionFile.objects.filter(file_type='3').order_by('-id').first()
-
-    is_pdf_file = id_file_pdf(ins_file)
-    is_dict_pdf_file = id_file_pdf(download_dict_file)
-    is_rules_in_bried_pdf_file = id_file_pdf(rules_in_brief_file)
-    is_arguments_pdf_file = id_file_pdf(arguments)
-
-    ins_file = make_file_path(ins_file)
-    download_dict_file = make_file_path(download_dict_file)
-    rules_in_brief_file = make_file_path(rules_in_brief_file)
-    arguments_file = make_file_path(arguments)
-
-    progressbar_send(request, 1, 100, 1)
-    url_path = ''
-    archive_date = ''
-    if not archive:
-        archive = current_archive()
-        url_path = '/'
-    else:
-        url_path = '/archives/{}/'.format(archive.id)
-        archive_date = archive.archives_date
-    if archive:
-        input = Input.objects.filter(archives_id=archive.id)
-    else:
-        input = None
-    result = {}
-    output = []
-    show_column = False
-    if request.method == 'POST':
-        show_column = True
-        Output.objects.all().delete()
-        post_data = request.POST.copy()
-        prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
-        prove_dictionary = importlib.import_module('.' + archive.dictionary.split('.py')[0],
-                                                   package='inference2.Proofs')
-        post_data = prove_algorithm.get_result(
-            request.POST.copy(), archive.id, request, prove_dict=prove_dictionary)
-        print(post_data)
-        if post_data:
-            post_data["type"] = "prove"
-            result = json.dumps(post_data, cls=DjangoJSONEncoder)
-
-            save_result(archive.id, post_data)
-        output = Output.objects.all()
-
-    algo = Algorithm.objects.all().order_by('id')
-
-    template_args = {'result': result, 'input': input,
-                     'url_path': url_path, 'archive_date': archive_date,
-                     'output': output, 'ins_file': ins_file, 'download_dict_file': download_dict_file,
-                     'download_dict_pdf': is_dict_pdf_file,
-                     'rules_in_brief_file': rules_in_brief_file,
-                     'argument_file': arguments_file,
-                     'is_rules_in_bried_pdf_file': is_rules_in_bried_pdf_file,
-                     'is_arguments_pdf_file': is_arguments_pdf_file,
-                     'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
-                     'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
-                     }
-    return render(request, "inference2/version1.html", template_args)
+# def version1_view(request, archive=None):
+#     ins_file = InstructionFile.objects.filter(file_type='0').order_by('-id').first()
+#     download_dict_file = InstructionFile.objects.filter(file_type='1').order_by('-id').first()
+#     rules_in_brief_file = InstructionFile.objects.filter(file_type='2').order_by('-id').first()
+#     arguments = InstructionFile.objects.filter(file_type='3').order_by('-id').first()
+#
+#     is_pdf_file = id_file_pdf(ins_file)
+#     is_dict_pdf_file = id_file_pdf(download_dict_file)
+#     is_rules_in_bried_pdf_file = id_file_pdf(rules_in_brief_file)
+#     is_arguments_pdf_file = id_file_pdf(arguments)
+#
+#     ins_file = make_file_path(ins_file)
+#     download_dict_file = make_file_path(download_dict_file)
+#     rules_in_brief_file = make_file_path(rules_in_brief_file)
+#     arguments_file = make_file_path(arguments)
+#
+#     progressbar_send(request, 1, 100, 1)
+#     url_path = ''
+#     archive_date = ''
+#     if not archive:
+#         archive = current_archive()
+#         url_path = '/'
+#     else:
+#         url_path = '/archives/{}/'.format(archive.id)
+#         archive_date = archive.archives_date
+#     if archive:
+#         input = Input.objects.filter(archives_id=archive.id)
+#     else:
+#         input = None
+#     result = {}
+#     output = []
+#     show_column = False
+#     if request.method == 'POST':
+#         show_column = True
+#         Output.objects.all().delete()
+#         post_data = request.POST.copy()
+#         prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
+#         prove_dictionary = importlib.import_module('.' + archive.dictionary.split('.py')[0],
+#                                                    package='inference2.Proofs')
+#         post_data = prove_algorithm.get_result(
+#             request.POST.copy(), archive.id, request, prove_dict=prove_dictionary)
+#         print(post_data)
+#         if post_data:
+#             post_data["type"] = "prove"
+#             result = json.dumps(post_data, cls=DjangoJSONEncoder)
+#
+#             save_result(archive.id, post_data)
+#         output = Output.objects.all()
+#
+#     algo = Algorithm.objects.all().order_by('id')
+#
+#     template_args = {'result': result, 'input': input,
+#                      'url_path': url_path, 'archive_date': archive_date,
+#                      'output': output, 'ins_file': ins_file, 'download_dict_file': download_dict_file,
+#                      'download_dict_pdf': is_dict_pdf_file,
+#                      'rules_in_brief_file': rules_in_brief_file,
+#                      'argument_file': arguments_file,
+#                      'is_rules_in_bried_pdf_file': is_rules_in_bried_pdf_file,
+#                      'is_arguments_pdf_file': is_arguments_pdf_file,
+#                      'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
+#                      'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
+#                      }
+#     return render(request, "inference2/version1.html", template_args)
 
 
 def try_input(request, archive=None):

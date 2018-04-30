@@ -21,8 +21,8 @@ from inference_engine2 import settings
 
 urlpatterns = [
 
-    url(r'^version1/$', views.version1_view, name='version1'),
-
+    # url(r'^version1/$', views.version1_view, name='version1'),
+    url(r'^$', views.index, name='index'),
     url(r'^dictionary$', views.dictionary, name='result'),
     url(r'^tested_dictionary$', views.tested_dict, name='result'),
     url(r'^prove$', views.prove, name='prove'),
@@ -40,9 +40,9 @@ urlpatterns = [
     url(r'^author', views.author, name='author'),
     url(r'^tested_dict', views.tested_dictionary, name='tested_dictionary'),
 
-    # url(r'^try_input', views.try_input, name='try_input'),
+    url(r'^try_input', views.try_input, name='try_input'),
 
-    url(r'^$', views.try_input, name='try_input'),
+    # url(r'^$', views.try_input, name='try_input'),
     url(r'^clear_output', views.clear_output, name='clear_output'),
     url(r'^clear', views.clear, name='clear-result'),
 
