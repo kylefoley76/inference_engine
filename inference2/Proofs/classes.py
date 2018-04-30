@@ -1,4 +1,8 @@
-from settings import *
+
+try:
+    from settings import *
+except:
+    from .settings import *
 
 
 class mem_reduced_def1(object):

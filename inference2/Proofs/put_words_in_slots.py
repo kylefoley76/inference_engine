@@ -3,18 +3,18 @@ import operator
 try:
     from settings import *
     from general_functions import *
-    from grammar import check_grammar
+    # from grammar import check_grammar
     from disambiguation import disambiguate_pos, eliminate_particles
 except:
     from .settings import *
     from .general_functions import *
-    from .grammar import check_grammar
+    # from .grammar import check_grammar
     from .disambiguation import disambiguate_pos, eliminate_particles
 
-from settings import *
-from general_functions import *
-from grammar import check_grammar
-from disambiguation import disambiguate_pos, eliminate_particles
+# from settings import *
+# from general_functions import *
+# from grammar import check_grammar
+# from disambiguation import disambiguate_pos, eliminate_particles
 
 category = 0
 sentence_slots = []

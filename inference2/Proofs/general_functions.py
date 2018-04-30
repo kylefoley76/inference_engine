@@ -1,13 +1,13 @@
 from openpyxl import load_workbook
 from itertools import chain, combinations
 
-#
-# try:
-#     from settings import *
-# except:
-#     from .settings import *
 
-from settings import *
+try:
+    from settings import *
+except:
+    from .settings import *
+
+# from settings import *
 
 
 
