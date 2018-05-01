@@ -20,7 +20,7 @@ def calculate_time_statistics(num_proved, total_time):
     print("average " + str("{0:.4f}".format(total_time / num_proved)))
     print("total " + str("{0:.3f}".format(total_time)))
     print("")
-    print(num_proved)
+    print (num_proved)
 
 
 def determine_words_used(words_used):
@@ -31,7 +31,7 @@ def determine_words_used(words_used):
         if j == 28:
             print(word)
         elif j == None:
-            print(word)
+            print (word)
         else:
             try:
                 w5.cell(row=j, column=2).value = 1
@@ -43,7 +43,7 @@ def determine_words_used(words_used):
     words.close()
 
 
-def get_result(one_sent, user="", print_type=4, order=[0], get_words_used=0):
+def get_result(one_sent, user = "", print_type=4, order=[0], get_words_used=0):
     total_time = time.time()
 
     if one_sent == 'a':
@@ -51,13 +51,8 @@ def get_result(one_sent, user="", print_type=4, order=[0], get_words_used=0):
         pkl_file = open(user + 'zz_claims.pkl', 'rb')
         test_sent = pickle.load(pkl_file)
         pkl_file.close()
-
-        pkl_file = open(user + 'zz_claims.pkl', 'rb')
-        dictionary = pickle.load(pkl_file)
-        pkl_file.close()
     elif one_sent != "":
         test_sent = [[one_sent]]
-        dictionary = [[one_sent]]
     else:
         pkl_file = open(user + 'zz_claims.pkl', 'rb')
         test_sent = pickle.load(pkl_file)
@@ -98,30 +93,38 @@ def get_result(one_sent, user="", print_type=4, order=[0], get_words_used=0):
                         if print_type == 3:
                             print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1) + " False"))
                         elif print_type == 0:
-                            print(str(k) + " - False")
+                            print (str(k) + " - False")
                             sys.exit()
                     elif print_type == 3:
                         print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1)))
                 elif print_type == 4 and not consistent:
-                    print(str(k) + " - False")
+                    print (str(k) + " - False")
 
 
             except ErrorWithCode:
                 if print_type != 4:
-                    print(str(k) + " - infinite loop")
+                    print (str(k) + " - infinite loop")
                 order.remove(k)
                 j -= 1
 
 
         elif print_type in [0, 4] and k % 50 == 0:
-            print(k)
+            print (k)
+
+
 
     if print_type in [0, 2, 3, 4]:
         if print_type == 0:
-            print("success")
+            print ("success")
         calculate_time_statistics(num_proved, total_time)
 
     if get_words_used == 1:
         determine_words_used(words_used)
 
     return test_sent
+
+
+
+
+
+
