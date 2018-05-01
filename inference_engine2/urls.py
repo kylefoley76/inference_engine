@@ -22,6 +22,7 @@ from inference_engine2 import settings
 urlpatterns = [
 
     url(r'^version1/$', views.version1_view, name='version1'),
+    url(r'^version1/test_machine/$', views.try_input, name='version1_try_input'),
 
     url(r'^dictionary$', views.dictionary, name='result'),
     url(r'^tested_dictionary$', views.tested_dict, name='result'),
