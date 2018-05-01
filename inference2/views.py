@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from inference2.Proofs.main_loop import get_result
+from inference2.ancient.intermed_code import get_result
 from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary
 import importlib
 from inference2.models import Input
@@ -214,7 +214,7 @@ def try_input(request, archive=None):
             # input = "It is|a contradictory that I do not have many|n points"
             user_input = request.POST.get('try_input')
             Output.objects.all().delete()
-            post_data, result_string = get_result(user_input, user='')
+            post_data, result_string = get_result(user_input)
             template_args['result'] = result_string
             print(post_data)
             if post_data:
