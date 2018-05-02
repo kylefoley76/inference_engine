@@ -423,7 +423,7 @@ def author(request):
 
 
 def clear(request):
-    return redirect(reverse('index'))
+    return redirect(reverse('version1'))
 
 
 def clear_output(request):
