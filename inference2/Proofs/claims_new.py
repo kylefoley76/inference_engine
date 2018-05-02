@@ -1,7 +1,7 @@
 def pop_sent():
     sent = [
-        # [0, "it is|a consistent that there is|e a mind which is|a a|r dog and|c"],
-        [0, "It is|a consistent that there is|e a mind which is|a mental"],
+        [0, "it is|a consistent that there is|e a mind which is|a a|r dog and|c"],
+        # [ 0,"It is|a consistent that there is|e a mind which is|a mental"],
         [1, "It is|a contradictory that there is|e a mind which is|a not mental"],
         [2, "It is|a consistent that no thought smells"],
         [3, "It is|a contradictory that there is|e a thought which smells"],

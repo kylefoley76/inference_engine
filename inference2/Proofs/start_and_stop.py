@@ -3,7 +3,7 @@ def info():
 
     order = [0, 0, 0, "#", 11, 14, 21, 71, 73, 79, 93, 178]
     get_words_used = 0
-    proof_type = 4
+    proof_type = 2
     # 0 is for testing the whole code without printing
     #get_more_variable_types2
     # 1 is for printing all sentences to excel,

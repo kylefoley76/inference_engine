@@ -40,7 +40,7 @@ urlpatterns = [
     url(r'^author', views.author, name='author'),
     url(r'^tested_dict', views.tested_dictionary, name='tested_dictionary'),
 
-    url(r'^try_input', views.try_input, name='try_input'),
+    url(r'^try_input/$', views.try_input, name='try_input'),
 
     # url(r'^$', views.try_input, name='try_input'),
     url(r'^clear_output', views.clear_output, name='clear_output'),
