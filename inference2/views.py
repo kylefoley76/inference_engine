@@ -3,14 +3,11 @@ import os
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
-from wsgiref.util import FileWrapper
-
-# from django.core.servers.basehttp import FileWrapper
+from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponse
 from django.conf import settings
 import time
 
-from inference2.ancient.intermed_code import get_result
 from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary
 import importlib
 from inference2.models import Input
@@ -25,7 +22,7 @@ DEFAULT_ROWS = 40000
 
 def save_result(archive_id, post_data):
     Output.objects.all().delete()
-    archive = Archives.objects.filter(pk=archive_id).first()
+    archive = Archives.objects.get(pk=archive_id)
     Rows = []
     data_found = False
 
@@ -57,7 +54,7 @@ def save_result(archive_id, post_data):
 
 
 def current_archive():
-    archive = Archives.objects.all().order_by('-archives_date').first()
+    archive = Archives.objects.latest('archives_date')
     return archive
 
 
@@ -98,12 +95,10 @@ def index(request, archive=None):
     else:
         url_path = '/archives/{}/'.format(archive.id)
         archive_date = archive.archives_date
-    if archive:
-        input = Input.objects.filter(archives_id=archive.id)
-    else:
-        input = None
+    input = Input.objects.filter(archives_id=archive.id)
     result = {}
     output = []
+    # output = Output.objects.all()
     show_column = False
     if request.method == 'POST':
         show_column = True
@@ -138,83 +133,22 @@ def index(request, archive=None):
     return render(request, "inference2/index.html", template_args)
 
 
-# def version1_view(request, archive=None):
-#     ins_file = InstructionFile.objects.filter(file_type='0').order_by('-id').first()
-#     download_dict_file = InstructionFile.objects.filter(file_type='1').order_by('-id').first()
-#     rules_in_brief_file = InstructionFile.objects.filter(file_type='2').order_by('-id').first()
-#     arguments = InstructionFile.objects.filter(file_type='3').order_by('-id').first()
-#
-#     is_pdf_file = id_file_pdf(ins_file)
-#     is_dict_pdf_file = id_file_pdf(download_dict_file)
-#     is_rules_in_bried_pdf_file = id_file_pdf(rules_in_brief_file)
-#     is_arguments_pdf_file = id_file_pdf(arguments)
-#
-#     ins_file = make_file_path(ins_file)
-#     download_dict_file = make_file_path(download_dict_file)
-#     rules_in_brief_file = make_file_path(rules_in_brief_file)
-#     arguments_file = make_file_path(arguments)
-#
-#     progressbar_send(request, 1, 100, 1)
-#     url_path = ''
-#     archive_date = ''
-#     if not archive:
-#         archive = current_archive()
-#         url_path = '/'
-#     else:
-#         url_path = '/archives/{}/'.format(archive.id)
-#         archive_date = archive.archives_date
-#     if archive:
-#         input = Input.objects.filter(archives_id=archive.id)
-#     else:
-#         input = None
-#     result = {}
-#     output = []
-#     show_column = False
-#     if request.method == 'POST':
-#         show_column = True
-#         Output.objects.all().delete()
-#         post_data = request.POST.copy()
-#         prove_algorithm = importlib.import_module('.' + archive.algorithm.split('.py')[0], package='inference2.Proofs')
-#         prove_dictionary = importlib.import_module('.' + archive.dictionary.split('.py')[0],
-#                                                    package='inference2.Proofs')
-#         post_data = prove_algorithm.get_result(
-#             request.POST.copy(), archive.id, request, prove_dict=prove_dictionary)
-#         print(post_data)
-#         if post_data:
-#             post_data["type"] = "prove"
-#             result = json.dumps(post_data, cls=DjangoJSONEncoder)
-#
-#             save_result(archive.id, post_data)
-#         output = Output.objects.all()
-#
-#     algo = Algorithm.objects.all().order_by('id')
-#
-#     template_args = {'result': result, 'input': input,
-#                      'url_path': url_path, 'archive_date': archive_date,
-#                      'output': output, 'ins_file': ins_file, 'download_dict_file': download_dict_file,
-#                      'download_dict_pdf': is_dict_pdf_file,
-#                      'rules_in_brief_file': rules_in_brief_file,
-#                      'argument_file': arguments_file,
-#                      'is_rules_in_bried_pdf_file': is_rules_in_bried_pdf_file,
-#                      'is_arguments_pdf_file': is_arguments_pdf_file,
-#                      'archive': archive, 'show_column': show_column, 'algo': algo[0].name if algo else archive,
-#                      'notes': algo[0].notes if algo else '', 'pdf': is_pdf_file
-#                      }
-#     return render(request, "inference2/version1.html", template_args)
-
-
 def try_input(request, archive=None):
     output = []
     template_args = {}
     template_args['success'] = 'Right'
-    url_path = '/'
+    if not archive:
+        archive = current_archive()
+        url_path = '/'
     if request.method == 'POST':
         try:
-
             # input = "It is|a contradictory that I do not have many|n points"
-            user_input = request.POST.get('try_input')
+            input = request.POST.get('try_input')
             Output.objects.all().delete()
-            post_data, result_string = get_result(user_input)
+            prove_algorithm = importlib.import_module('.' + archive.test_machine.split('.py')[0],
+                                                      package='inference2.Proofs')
+            post_data, result_string = prove_algorithm.get_result_from_views(
+                request.POST.copy(), archive.id, request, input)
             template_args['result'] = result_string
             print(post_data)
             if post_data:
@@ -228,6 +162,8 @@ def try_input(request, archive=None):
             template_args['success'] = 'Wrong'
             template_args['result'] = 'Wrong'
 
+    algo = Algorithm.objects.all().order_by('id')
+    template_args['notes'] = algo[0].try_input_notes if algo else ''
     template_args['url_path'] = url_path
     template_args['output'] = output
     template_args['archive'] = archive
@@ -324,7 +260,7 @@ def dictionary(request, archive=None):
     notes = Define3Notes.objects.all().order_by('id')
     return render(request, "inference2/dict.html",
                   {'result': large_dict, 'url_path': '/', 'output': outputs,
-                   'notes': notes[0].notes if notes else '',})
+                   'notes': notes[0].notes if notes else '', })
 
 
 def tested_dict(request, archive=None):
