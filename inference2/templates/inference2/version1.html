@@ -358,7 +358,7 @@
 
 
             <a class="btn btn-primary" href="{% url 'clear-result' %}" name="clear" id="clear">Clear Result</a>
-            <a class="btn btn-primary" href="{{ url_path }}tested_dictionary" target="_blank">Show Tested Dictionary</a>
+            <a class="btn btn-primary" href="{{ url_path }}dictionary" target="_blank">Show Dictionary</a>
             {#            <a class="btn btn-primary" target="_blank" href="/tested_dict">Show Tested Dictionary</a>#}
 
 
@@ -369,15 +369,6 @@
                     <a class="btn btn-primary" href="{{ ins_file }}">Rules In Depth</a>
                 {% endif %}
 
-            {% endif %}
-
-
-            {% if argument_file %}
-                {% if is_arguments_pdf_file %}
-                    <a class="btn btn-primary" href="{{ argument_file }}" target="_blank">Argument File</a>
-                {% else %}
-                    <a class="btn btn-primary" href="{{ argument_file }}">Argument File</a>
-                {% endif %}
             {% endif %}
 
 
