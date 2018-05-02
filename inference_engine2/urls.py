@@ -24,7 +24,7 @@ urlpatterns = [
     url(r'^version1/$', views.version1_view, name='version1'),
     url(r'^version1/test_machine/$', views.try_input, name='version1_try_input'),
 
-    url(r'^version1/dictionary$', views.dictionary, name='result'),
+    url(r'^version1/dictionary$', views.dictionary, name='dict-result'),
     url(r'^tested_dictionary$', views.tested_dict, name='result'),
     url(r'^prove$', views.prove, name='prove'),
     url(r'^export_xlsx/(?P<archives_id>[0-9]+)$',
