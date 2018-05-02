@@ -208,13 +208,17 @@ def try_input(request, archive=None):
     template_args = {}
     template_args['success'] = 'Right'
     url_path = '/'
+    if not archive:
+        archive = current_archive()
     if request.method == 'POST':
         try:
-
             # input = "It is|a contradictory that I do not have many|n points"
-            user_input = request.POST.get('try_input')
+            input = request.POST.get('try_input')
             Output.objects.all().delete()
-            post_data, result_string = get_result(user_input, user='')
+            prove_algorithm = importlib.import_module('.' + archive.test_machine.split('.py')[0],
+                                                      package='inference2.Proofs')
+            post_data, result_string = prove_algorithm.get_result_from_views(
+                request.POST.copy(), archive.id, request, input)
             template_args['result'] = result_string
             print(post_data)
             if post_data:
@@ -228,6 +232,8 @@ def try_input(request, archive=None):
             template_args['success'] = 'Wrong'
             template_args['result'] = 'Wrong'
 
+    algo = Algorithm.objects.all().order_by('id')
+    template_args['notes'] = algo[0].try_input_notes if algo else ''
     template_args['url_path'] = url_path
     template_args['output'] = output
     template_args['archive'] = archive
