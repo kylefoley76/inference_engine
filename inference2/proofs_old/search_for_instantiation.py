@@ -1,13 +1,22 @@
 import itertools
-
-from general_functions import *
-from change_abbreviations import change_abbrev
-from use_lemmas import use_basic_lemmas
-from analyze_definition import process_sentences, get_lesser_skeleton
-from put_words_in_slots import categorize_words, determine_constants
-from prepare_for_print import rearrange
-from classes import ErrorWithCode
 import copy
+try:
+    from general_functions import *
+    from change_abbreviations import change_abbrev
+    from use_lemmas import use_basic_lemmas
+    from analyze_definition import process_sentences, get_lesser_skeleton
+    from put_words_in_slots import categorize_words, determine_constants
+    from prepare_for_print import rearrange
+    from classes import ErrorWithCode
+except:
+    from .general_functions import *
+    from .change_abbreviations import change_abbrev
+    from .use_lemmas import use_basic_lemmas
+    from .analyze_definition import process_sentences, get_lesser_skeleton
+    from .put_words_in_slots import categorize_words, determine_constants
+    from .prepare_for_print import rearrange
+    from .classes import ErrorWithCode
+
 
 
 ############### THE FOLLOWING FUNCTIONS ARE RELATED TO THE USE OF IDENTITY
@@ -455,7 +464,9 @@ def definition_constant(sent):
 
 
 def is_exceptional2(output, word, m):
-    if proof_kind == 'lemmas' and word == 'point':
+    if proof_kind == 'lemmas' and word in dictionary.entailments.keys():
+        return True
+    elif proof_kind == 'lemmas' and word == 'point':
         if output.all_sent[m][10] in output.main_var:
             return False
         else:
@@ -467,19 +478,20 @@ def get_hypotheticals(start):
     if proof_kind == 'lemmas2': return
     done = []
     for m in range(start, len(output.all_sent)):
-        word = definition_constant(output.all_sent[m])
-        assert word != None
+        if output.all_sent[m][43] != 'do not define' and \
+                output.all_sent[m][0] != 'irrelevant':
+            word = definition_constant(output.all_sent[m])
+            assert word != None
+            if findposinmd("DF " + word, output.total_sent, 4) == -1 and word not in done:
+                if word in dictionary.categorized_sent.keys() and \
+                        not is_exceptional2(output, word, m):
+                    item1 = get_word_info(dictionary, word, output.user)
 
-        if findposinmd("DF " + word, output.total_sent, 4) == -1 and word not in done:
-            if word in dictionary.categorized_sent.keys() and \
-                    not is_exceptional2(output, word, m):
-                item1 = get_word_info(dictionary, word, output.user)
-
-                add_to_gsent(item1, output)
-                for j, itm in enumerate(item1):
-                    output.trans_def.update({word + str(j): itm})
-                translate_abbreviations(item1, word)
-                done.append(word)
+                    add_to_gsent(item1, output)
+                    for j, itm in enumerate(item1):
+                        output.trans_def.update({word + str(j): itm})
+                    translate_abbreviations(item1, word)
+                    done.append(word)
 
     return
 
@@ -487,7 +499,11 @@ def get_hypotheticals(start):
 def try_instantiation(output2, dictionary2, proof_kind2=""):
     global consistent, identities, proof_kind, output, reduced
     global do_not_instantiate, rel_abbrev, atomic_dict1, atomic_dict2
-    global dictionary
+    global dictionary, lemmata
+
+    pkl_file = open('lemmata.pkl', 'rb')
+    lemmata = pickle.load(pkl_file)
+    pkl_file.close()
 
     consistent = True
     reduced = False
@@ -524,18 +540,11 @@ def step_one():
 
     identity()
 
-    first_resort()
-
-    use_basic_lemmas2(0, len(output.all_sent))
+    employ_lemmas()
 
     loop_through_gsent()
 
     output = rearrange("last", output, consistent, proof_kind, rel_abbrev)
-
-
-def first_resort():
-    if output.lsent_list == [] and proof_kind == 'lemmas':
-        last_resort_axioms(0, [], True)
 
 
 def use_basic_lemmas2(begin, end):
@@ -596,7 +605,7 @@ def get_relevant_abbreviations(begin):
 
 
 def delete_irrelevant_lsent(begin):
-    if proof_kind in ['lemmas', "lemmas2"]: return
+    if proof_kind in ["lemmas2"]: return
     list1 = []
     for e in range(begin, len(output.all_sent)):
         sent = output.all_sent[e]
@@ -604,8 +613,9 @@ def delete_irrelevant_lsent(begin):
             if any(sent2[10] in rel_abbrev and sent2[13] == 'H'
                    and sent2[14] == sent[10] for sent2 in output.all_sent):
                 pass
-            else:
+            elif all(sent[x] not in rel_abbrev for x in sent[42]):
                 sent[0] = 'irrelevant'
+                list1.append(e)
 
         elif all(sent[x] not in rel_abbrev for x in sent[42]):
             sent[0] = 'irrelevant'
@@ -650,8 +660,10 @@ def is_exceptional(matrix, j):
 
 def instantiable(lconstant, gconstant):
     lst = output.lsent_dict.get(lconstant)
+
     for num in lst:
-        if [num, gconstant[0]] not in do_not_instantiate:
+        if [num, gconstant[0]] not in do_not_instantiate or \
+            gconstant[3] != lst[0]:
             return True
 
     return False
@@ -693,12 +705,13 @@ def loop_through_gsent(output2="", proof_kind2="", dictionary2=""):
         len_asent = len(output.all_sent)
         possibilities = []
         if j == 10:
+
             bb = 8
 
         if matrix[j][0] == matrix[j][1] or is_exceptional(matrix, j):
-            # print(word)
+            # print(j)
 
-            if matrix[j][3] == "INE0" or j == 22 or word == 'natural' + ur:
+            if matrix[j][3] == "INE00" or j == 61 or word == 'natural' + ur:
                 bb = 8
 
             used_possibilities = loop_through_gsent2(possibilities, matrix, prev_instant, j)
@@ -720,7 +733,6 @@ def loop_through_gsent(output2="", proof_kind2="", dictionary2=""):
 
 def reconfigure_matrix(j, len_asent, len_gsent, len_lsent, matrix, used_possibilities, definiendum=""):
     global output
-    use_basic_lemmas2(len_asent, len(output.all_sent))
     if not consistent: return
     output.lsent_list = output.lsent_list[:len_lsent] + sorted(list(set(output.lsent_list[len_lsent:])))
     # the point of the following is that if (b > c) & (b I d) = (b I e) in (b I d)
@@ -835,17 +847,6 @@ def add_to_failures(failed, ndefiniendum, cls):
             failures.append(fail)
 
 
-def flatten_list(lst):
-    list2 = []
-    for x in lst:
-        if isinstance(x, list):
-            for y in x: list2.append(y)
-        else:
-            list2.append(x)
-
-    return list2
-
-
 def get_complex_constant(cls, comp_num, detacher, disj_cls):
     if detacher == 0:
         gconstant = list(cls.def_stats.ant_comp_const)[comp_num]
@@ -954,7 +955,7 @@ def variables_match(gsent_pos, possibility, cls, dead_combinations):
 
     for e, i in enumerate(possibility):
         j = gsent_pos[e]
-        if j == 6:
+        if j == 61:
             bb = 8
         used_lesser.append(i)
         if are_identical_unique_obj(i, j, sentences):
@@ -1055,6 +1056,7 @@ def universal_instantiation(abbrev_map, possibility, cls):
 
 
 def last_resort_axioms(j, matrix, first_resort=False):
+    if proof_kind == 'lemmas': return
     global output, consistent, rel_abbrev
     len_gsent = len(output.gsent)
     len_lsent = len(output.lsent_list)
@@ -1096,3 +1098,77 @@ def last_resort_axioms(j, matrix, first_resort=False):
                 len_asent = len(output.all_sent)
 
     return
+
+
+def add_to_prop(dict1, props, var):
+    for prop in list(props):
+
+        dict1.setdefault(var, set()).add(prop)
+
+
+def employ_lemmas():
+    global consistent
+    neg_found = []
+    prop_by_var = {}
+    prop_by_neg_var = {}
+    pos_mol = {}
+
+
+    for e, sent in enumerate(output.all_sent):
+        assert "~" not in sent[0] or sent[3] == "~"
+        for num in sent[42]:
+            if sent[13] in ["I", "J", "V"] and \
+                sent[14] in output.abbreviations.keys() and num == 14:
+                pass
+            else:
+                var = sent[num]
+                constant = sent[58]
+                oconstant = constant
+                if sent[3] == "~":
+                    neg_found.append(sent[num])
+                    constant = sent[58].replace("~", "")
+                    constant = constant.strip()
+
+                pos = dictionary.pos.get(constant)
+                if pos[0] == 'r':
+                    constant = str(num) + sent[58]
+                    oconstant = constant
+
+                props = dictionary.entailments.get(constant)
+                if props != None:
+                    props = props | {constant}
+                else:
+                    props = {constant}
+
+                if sent[3] == "~":
+                    add_to_prop(prop_by_neg_var,props, var)
+                else:
+                    add_to_prop(prop_by_var, props, var)
+                    pos_mol.setdefault(var, set()).add(oconstant)
+
+
+    for var, prop in pos_mol.items():
+        if len(prop) > 1:
+            power_sets = powerset(prop)
+            for st in power_sets:
+                if len(st) == 2:
+
+                    list1 = [st[0], st[1]]
+                    list1.sort()
+                    tvalue = lemmata.get(".".join(list1))
+                    assert tvalue != None
+                    if not tvalue:
+                        consistent = False
+                        return
+
+
+    if neg_found:
+        for var in neg_found:
+            neg_prop = prop_by_neg_var.get(var)
+            prop = prop_by_var.get(var)
+            if len(neg_prop & prop) > 0:
+                consistent = False
+
+    return
+
+

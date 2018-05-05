@@ -1,7 +1,14 @@
-from settings import *
-from general_functions import *
-# from general_functions import isvariable, build_sent_pos, determine_constants
 import operator
+try:
+    from settings import *
+    from general_functions import *
+    from grammar import check_grammar
+except:
+    from .settings import *
+    from .general_functions import *
+    from .grammar import check_grammar
+
+
 
 category = 0
 sentence_slots = []
@@ -27,8 +34,6 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
     is_a_standard_sent = False if kind in ['not standard', "sub words", "recursive"] else True
     sub_words = True if kind == 'sub words' else False
     if output != []:
-        prop_name = output.prop_name
-        oprop_name = output.oprop_name
         abbreviations = output.abbreviations
 
 
@@ -55,7 +60,8 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
         word = list1[i]
         slot = 0
 
-        if word == 'TV':
+        if word == '&':
+            return
             bb = 8
 
         if not_blank(word):
@@ -68,7 +74,7 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
 
             category = dictionary.decision_procedure.get(word)
 
-            raw_pos = get_part_of_speech(word, abbreviations)
+            raw_pos, word = get_part_of_speech(word, abbreviations, output)
 
             part_of_speech = parts_of_speech_dict.get(raw_pos[0])
 
@@ -152,6 +158,12 @@ def categorize_words(abbreviations, list1, dictionary2, output=[], kind=""):
     sentence_slots[42] = noun_pos
     sentence_slots[54] = places_used
     sentence_slots[47] = subclauses
+
+    if output != []:
+        str1 = check_grammar(sentence_slots)
+        if str1 != "":
+            return str1
+
     if kind != "recursive":
         sentence_slots[58] = determine_constants(abbreviations, sentence_slots)
 
@@ -442,19 +454,71 @@ def place_in_decision_procedure(category, slot, word, raw_pos):
 
     return category
 
+def rename_sentences(old_word, new_word, output):
+    for e, sent in enumerate(output.all_sent):
+        if old_word in sent[0]:
+            output.all_sent[e][0] = output.all_sent[e][0].replace(old_word, new_word)
+            for j, slot in enumerate(sent):
+                if slot == old_word:
+                    sent[j] = new_word
+                    break
 
-def get_part_of_speech(word, abbreviations):
-    pos = dictionary.pos.get(word)
-    if isvariable(word):
-        reference = abbreviations.get(word)
-        pos = dictionary.pos.get(reference)
-        pos = 'ny' if pos == None or pos[0] != 'a' else 'ay'
-    elif word[-2:] == "'s":
-        pos = 's' if dictionary.kind.get(word[:-2]) == 'i' else 'o'
-    elif pos == None:
-        raise Exception('you misspelled ' + word)
+    for var, prop in output.oprop_name.items():
+        if old_word in prop:
+            prop = prop.replace(old_word, new_word)
+            output.oprop_name[var] = prop
+    for prop, var in output.prop_name.items():
+        if old_word in prop:
+            new_prop = prop
+            del output.prop_name[prop]
+            new_prop = new_prop.replace(old_word, new_word)
+            output.prop_name.update({new_prop: var})
+            break
+    for sent in output.total_sent:
+        if old_word in sent[1]:
+            sent[1] = sent[1].replace(old_word, new_word)
 
-    return pos
+    output.words_used.remove(old_word)
+    output.words_used.add(new_word)
+    return
+
+
+
+def get_part_of_speech(word, abbreviations, output=[]):
+    while True:
+        pos = dictionary.pos.get(word)
+        if isvariable(word):
+            reference = abbreviations.get(word)
+            pos = dictionary.pos.get(reference)
+            pos = 'ny' if pos == None or pos[0] != 'a' else 'ay'
+            break
+        elif word[-2:] == "'s":
+            pos = 's' if dictionary.kind.get(word[:-2]) == 'i' else 'o'
+            break
+        elif pos == None:
+            if output == []:
+                print ('you mispelled ' + word)
+                raise Exception ('you mispelled ' + word)
+            else:
+                old_word = word
+                print ('you mispelled ' + old_word)
+                new_word = input("new word: ")
+                while True:
+                    if new_word in dictionary.pos.keys():
+                        pos = dictionary.pos.get(new_word)
+                        break
+                    else:
+                        print (f'{new_word} is also a mispelling')
+                        new_word = input("new word: ")
+
+                rename_sentences(old_word, new_word, output)
+                word = new_word
+                break
+        else:
+            break
+
+
+    return pos, word
 
 
 def determine_if_compound_word(word3, i, list1):

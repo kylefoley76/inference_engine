@@ -1,10 +1,29 @@
-from general_functions import *
+
 from collections import defaultdict
-from uninstantiable_definitions import define_irregular_terms
-from search_for_instantiation import try_instantiation
 import operator
-from put_words_in_slots import categorize_words, place_in_decision_procedure
-from classes import get_output
+
+# from put_words_in_slots import categorize_words, place_in_decision_procedure
+# from classes import get_output
+# from general_functions import *
+# from uninstantiable_definitions import define_irregular_terms
+# from search_for_instantiation2 import try_instantiation
+# from disambiguation import disambiguate_sentence
+
+
+try:
+    from put_words_in_slots import categorize_words, place_in_decision_procedure
+    from classes import get_output
+    from general_functions import *
+    from uninstantiable_definitions import define_irregular_terms
+    from search_for_instantiation2 import try_instantiation
+    from disambiguation import disambiguate_sentence
+except:
+    from .put_words_in_slots import categorize_words, place_in_decision_procedure
+    from .classes import get_output
+    from .general_functions import *
+    from .uninstantiable_definitions import define_irregular_terms
+    from .search_for_instantiation import try_instantiation
+    from .disambiguation import disambiguate_sentence
 
 
 
@@ -91,34 +110,39 @@ def tran_str(str1, has_sentence_connectives=False):
 
 def obtain_truth_value():
     sent = output.all_sent[0]
+    sent = sent.strip()
+    if sent[-1] == ".":
+        sent = sent[:-1]
+    sent = sent.lower()
     sent = sent.replace("!", "|")
     sentence = tran_str(sent)
     add_to_tsent(output, "CLAIM " + str(sent[0]) + ": " + sentence, "", "", "", "natural")
 
     if len(sentence) < 22:
         raise Exception(
-            "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+            "Each sentence must begin with either 'it is consistent that' or 'it is contradictory that")
 
     else:
-        if sentence[7:12] == 'consi':
-            return True, sentence[len("It isa consistent that "):]
-        elif sentence[7:12] == 'contr':
-            return False, sentence[len("It isa contradictory that "):]
+        if sentence.startswith("it is consistent"):
+            return True, sentence[len("It is consistent that "):]
+        elif sentence.startswith("it is contradictory"):
+            return False, sentence[len("It is contradictory that "):]
         else:
             raise Exception(
-                "Each sentence must begin with either 'it is|a consistent that' or 'it is|a contradictory that")
+                "Each sentence must begin with either 'it is consistent that' or 'it is contradictory that")
 
 
 def eliminate_logical_connectives():
     list1 = output.all_sent[0].split(" and ")
     return list1
 
-def step_one(dictionary2, user, sent):
+def step_one(dictionary2, user, sent, lemmata, cat_num):
     global definite_assignments, inferences
     global prop_var2, dictionary
     global consistent, output
 
     proof_kind = ""
+    sent = sent[cat_num]
     consistent = True
     dictionary = dictionary2
     inferences = []
@@ -127,6 +151,7 @@ def step_one(dictionary2, user, sent):
     output.prop_var = get_prop_var()
     output.prop_name = defaultdict(lambda: output.prop_var.pop(), {})
     output.user = user
+    output.catalogue_num = cat_num
 
     if "(" in sent[0]:
 
@@ -150,11 +175,15 @@ def step_one(dictionary2, user, sent):
 
         categorize_words2()
 
+        if not consistent: return False, output.total_sent, output.words_used
+
         replace_synonyms()
 
         replace_special_synonyms()
 
         word_sub()
+
+        disambiguate_sentence(output, inferences, dictionary)
 
         output.all_sent = remove_duplicates(output.all_sent, 0)
 
@@ -165,14 +194,13 @@ def step_one(dictionary2, user, sent):
         shorten_sent()
 
     if consistent:
-        output, consistent, _ = try_instantiation(output, dictionary, proof_kind)
+        output, consistent, _ = try_instantiation(output, dictionary, lemmata, proof_kind)
 
     return truth_value == consistent, output.total_sent, output.words_used
 
 
 def divide_sent():
     for i, sent in enumerate(output.all_sent):
-        sent = sent.lower()
         sent = sent.strip()
         if "'s" not in sent: sent = sent.replace("'", "")
         if "," in sent: sent = sent.replace(",", " ,")
@@ -275,6 +303,7 @@ def replace_determinative_nouns():
 
 
 def categorize_words2():
+    global consistent
     for i, sent in enumerate(output.all_sent):
         comma_elimination = False
         if "," in sent[0]:
@@ -285,7 +314,14 @@ def categorize_words2():
             comma_elimination = True
         b = sent[4:].index(None) + 4
         sent_num = sent[44]
-        output.all_sent[i] = categorize_words({}, sent[4:b], dictionary, output, "sub words")
+        categorized = categorize_words({}, sent[4:b], dictionary, output, "sub words")
+        if isinstance(categorized, str):
+            print (categorized)
+            consistent = False
+            return
+        else:
+            output.all_sent[i] = categorized
+
         output.all_sent[i][44] = sent_num
         if comma_elimination:
             direct_equivalence(output, ant_sent, ant_sentp, output.all_sent[i], rule)
@@ -399,8 +435,10 @@ def word_sub():
                 word = output.all_sent[m][k]
                 if word == 'which':
                     bb = 8
+                if isvariable(word):
+                    pass
 
-                if word == "not":
+                elif word == "not":
                     output.all_sent[m][k] = "~"
                     output.all_sent[m][3] = "~"
                     replacement_made = True

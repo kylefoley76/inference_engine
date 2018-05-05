@@ -1,5 +1,26 @@
-from settings import *
 from openpyxl import load_workbook
+from itertools import chain, combinations
+
+from settings import *
+#
+# try:
+#     from settings import *
+# except:
+#     from .settings import *
+
+
+def powerset(list1):
+    return chain.from_iterable(combinations(list1, r) for r in range(len(list1) + 1))
+
+
+def get_last_row(worksheet, col_num):
+    row_num = 15000
+    str3 = worksheet.cell(row=row_num, column=col_num).value
+    while str3 == None:
+        str3 = worksheet.cell(row=row_num, column=col_num).value
+        row_num -= 1
+
+    return row_num + 1
 
 
 ################ group: naming sentences
@@ -17,7 +38,7 @@ def name_and_build(output, list1):
     list1[0] = list1[3] + list1[1]
 
 
-def direct_equivalence(output, ant_sent, ant_sentp, sent, rule, anc1 = ""):
+def direct_equivalence(output, ant_sent, ant_sentp, sent, rule, anc1=""):
     name_and_build(output, sent)
     sent1 = build_connection(ant_sent, iff, sent[0])
     sent1p = build_connection(ant_sentp, iff, sent[3] + sent[2])
@@ -31,6 +52,20 @@ def svo_sent(output, subject, relation, object, tvalue=""):
     sent1[10], sent1[13], sent1[14] = subject, relation, object
     sent1[54] = [10, 13, 14]
     sent1[42] = [10, 14]
+    sent1[45] = []
+    name_and_build(output, sent1)
+    sent1[46] = "do not rename"
+
+    return sent1
+
+
+def svop_sent(output, prop, subject, relation, object, tvalue=""):
+    sent1 = [None] * 60
+    sent1[3] = tvalue
+    _ = prop, mini_e, subject, relation, object
+    sent1[8], sent1[9], sent1[10], sent1[13], sent1[14] = _
+    sent1[54] = [8, 9, 10, 13, 14]
+    sent1[42] = [8, 10, 14]
     sent1[45] = []
     name_and_build(output, sent1)
     sent1[46] = "do not rename"
@@ -358,12 +393,21 @@ def get_prop_var():
     return prop_var2
 
 
-def get_word_info(dictionary, word, user = ""):
+def get_word_info(dictionary, word, user=""):
+    if word not in dictionary.categorized_sent.keys():
+        return []
     with open(user + "json_dict/" + word + ".json", "r") as fp:
         lst_sent = json.load(fp)
     item1 = dictionary.categorized_sent.get(word)
     for x, y in zip(lst_sent, item1):
         y.sentences = x
+        for cls in item1:
+            try:
+                for k, v in cls.embeds.items():
+                    v.sentences = x
+            except:
+                pass
+
     return item1
 
 
@@ -372,13 +416,13 @@ def make_groups_definite(sentences, output):
         if sentence[13] == 'W':
             try:
                 if sentence[7][0] in ["b", "a"] or \
-                    sentence[7][:2] in ['cb', 'ca']:
+                        sentence[7][:2] in ['cb', 'ca']:
                     output.constants.add(sentence[10])
             except:
                 pass
 
 
-def add_to_gsent(item1, output, proof_kind=""):
+def add_to_gsent(item1, output, proof_kind="", asent_idx=[]):
     for e, cls in enumerate(item1):
         def_stats = cls.def_stats
         if proof_kind == "":
@@ -397,14 +441,14 @@ def add_to_gsent(item1, output, proof_kind=""):
                 del def_stats.ant_index[0]
                 def_stats.ant_index.append(idx)
                 sent_constant = sentences[first_ant][58]
-            output.gsent.append([sent_constant, 0, definiendum])
+            output.gsent.append([sent_constant, 0, definiendum, asent_idx])
             if kind == 'e' and cls.disjuncts == []:
                 first_con = def_stats.con_index[0]
                 if isinstance(first_con, int):
                     sent_constant = sentences[first_con][58]
                 else:
                     sent_constant = cls.def_stats.con_comp_const[0]
-                output.gsent.append([sent_constant, 1, definiendum])
+                output.gsent.append([sent_constant, 1, definiendum, asent_idx])
 
             elif kind == 'e':
                 add_disjunct_to_gsent(cls, sentences, definiendum, output)
@@ -422,43 +466,31 @@ def add_disjunct_to_gsent(cls, sentences, definiendum, output):
         first_con = disjunction.index1[0]
         if isinstance(first_con, int):
             sent_constant = sentences[first_con][58]
-            output.gsent.append([sent_constant, j + 2, definiendum])
+            output.gsent.append([sent_constant, j + 2, definiendum, []])
         else:
             raise Exception
 
 
+def rebuild_hconstant(sentences, abbreviations, word=""):
+    for sentence in sentences:
+        if sentence[13] == "H":
+            var = sentence[14]
+            for sentence2 in sentences:
+                if sentence2[13] == "I" and sentence2[10] == var:
+                    str1 = abbreviations.get(sentence2[14])
+                    if str1 != None:
+                        sentence[58] = "H" + str1
+                        break
+
+
 def determine_constants(dict1, sentence):
-    c_constants = []  # connected constants
-    if sentence[13] == 'A':
-        bb = 8
-
-    for num in sentence[54]:
-
-        if num in relational_positions:
-            if sentence[num] == "Q":
-                pass
-
-            elif sentence[num] in ["I", "J", "V"]:
-                word = dict1.get(sentence[14])
-                if word != None:
-                    c_constants.append(word)
-                else:
-                    c_constants.append(sentence[num])
-
-            elif sentence[13] == '=' and sentence[14] in dict1.values():
-                c_constants.append(sentence[14])
-            else:
-                c_constants.append(sentence[num])
-
-        elif num in negative_positions:
-            c_constants.append(sentence[num])
-
-    neg = " ".join(c_constants)
-    if sentence[3] == '~' and "~" not in neg:
-        neg = neg.strip()
-        neg = "~ " + neg
-
-    return neg
+    if sentence[13] == "=" and sentence[14] in dict1.values():
+        return sentence[14]
+    else:
+        str1 = is_concept(sentence[13], sentence[14], dict1)
+        if str1 == None:
+            return sentence[13]
+        return str1
 
 
 def universal_negations(cls, output):
@@ -495,7 +527,7 @@ def universal_negations(cls, output):
                             sent_constant = sent_constant.replace("~ ", "")
                             tvalue = ""
                         sentence[58] = tvalue + sent_constant
-                        output.gsent.append([tvalue + sent_constant, 2 + e, "thing0"])
+                        output.gsent.append([tvalue + sent_constant, 2 + e, "thing0", []])
 
     return definiendum, done
 
@@ -559,6 +591,17 @@ def remove_extra_paren(sentence, embed=False):
     return sentence
 
 
+def flatten_list(lst):
+    list2 = []
+    for x in lst:
+        if isinstance(x, list):
+            for y in x: list2.append(y)
+        else:
+            list2.append(x)
+
+    return list2
+
+
 ############################
 ######## group: print sent
 ##############
@@ -593,7 +636,6 @@ def space_sentences(num_str, word_str, largest_rule, space1, rule, name_sent, se
     if name_sent:
         print (word_str)
     else:
-
         third_column = largest_rule + 4
         max_size = 75 - third_column
         j = 0
@@ -632,7 +674,8 @@ def space_sentences(num_str, word_str, largest_rule, space1, rule, name_sent, se
 
 
 def print_sent(test_sent, order, print_type):
-    if print_type == 1:
+    if print_type[0] not in ["1", "2"]: return
+    if print_type[0] == "1":
         wb4 = load_workbook('/Users/kylefoley/Desktop/inference_engine/temp_proof.xlsx')
         w4 = wb4.worksheets[0]
     row_number = 1
@@ -666,7 +709,7 @@ def print_sent(test_sent, order, print_type):
                     elif test_sent[i][j][1] == 'name sent end':
                         name_sent_now = False
 
-                elif print_type == 2:
+                elif print_type[0] == "2":
 
                     size_num = 5 - len(str(test_sent[i][j][0]))
                     space1 = " " * size_num
@@ -683,7 +726,7 @@ def print_sent(test_sent, order, print_type):
                                     name_sent_now, sent_type)
 
 
-                elif print_type == 1:
+                elif print_type[0] == "1":
                     w4.cell(row=row_number, column=2).value = test_sent[i][j][0]
                     w4.cell(row=row_number, column=3).value = test_sent[i][j][3] + test_sent[i][j][1]
                     w4.cell(row=row_number, column=4).value = test_sent[i][j][4]
@@ -696,9 +739,14 @@ def print_sent(test_sent, order, print_type):
                             xls_cell.font = xls_cell.font.copy(color='FFFF0000')
 
                 row_number += 1
-        row_number += 2
 
-    if print_type == 1:
+        row_number += 2
+        if print_type[0] == '2':
+            print ("")
+            print ("")
+
+
+    if print_type[0] == "1":
         wb4.save('/Users/kylefoley/Desktop/inference_engine/temp_proof.xlsx')
 
     return

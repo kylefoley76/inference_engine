@@ -1,6 +1,10 @@
-from settings import *
-from general_functions import add_to_tsent, \
-    build_contradiction2, get_key, name_and_build
+try:
+    from settings import *
+    from general_functions import add_to_tsent, \
+        build_contradiction2, get_key, name_and_build
+except:
+    from .settings import *
+    from .general_functions import *
 
 import copy
 
@@ -29,8 +33,8 @@ def use_basic_lemmas(output2, pos, sent, atomic_dict3, atomic_dict4):
 
 def add_to_class(pos, sent, atomic_dict1, atomic_dict2):
     global first_sent
-    group = get_class(sent, pos)
     abbrev = sent[pos]
+    group = ""
     if group in exclusive_class:
         if abbrev in atomic_dict1.keys() and group != atomic_dict1.get(abbrev):
             first_sent = atomic_dict2.get(abbrev)
@@ -215,61 +219,3 @@ def build_sentences(cond1, cond2, thing_sent, rule):
     add_to_tsent(output, implication, implicationp, "", rule)
 
 
-def get_class(sent, pos, property="", from_lemmas = False):
-    # this determines what class or category an object belongs to
-    relat_pos = 13 if pos < 21 else pos - 1
-
-    relat = sent[relat_pos]
-    pos = 10 if pos == 11 else pos
-    if property == "relationship":
-        return "relationship"
-    kind = ""
-    if sent[3] == "~":
-        kind = ''
-    elif relat in ["/", "+", "ID", "-"]:
-        kind = 'number'
-    elif relat == "A" or (relat == 'T' and pos == 14):
-        kind = 'moment'
-    elif relat == "T" and pos == 10:
-        kind = 'non-moment'
-    elif relat == 'AB' or relat == "L" or relat == 'AB' or (relat == 'S' and pos == 14):
-        kind = 'point'
-    elif relat == "G" or (relat == 'N' and pos == 14):
-        kind = 'number'
-    elif relat == "M" and pos == 10 or (relat == 'B' and pos == 14):
-        kind = 'relationship'
-    elif relat == "M" and pos == 14:
-        kind = 'imagination'
-    elif relat == "I" and pos == 10:
-        group = sent[14]
-        if not from_lemmas:
-            kind = output.abbreviations.get(group)
-            if kind == 'thing':
-                kind = ""
-            elif kind == None and not from_lemmas:
-                kind = sent[14] + "-object"
-    elif relat == "I" and pos == 14:
-        kind = "concept" + un
-    elif relat == "J" and pos == 14:
-        kind = "property"
-    elif relat == "W" and pos == 10:
-        kind = "whole"
-
-    elif relat == 'P' and pos == 14:
-        kind = 'possible world'
-    elif relat == "D" and pos == 14:
-        kind = 'relationship'
-    elif relat == 'AL':
-        kind = 'letter'
-    elif (relat == 'B' or relat == "D") and pos == 10:
-        kind = 'mind'
-    elif relat == "S" and pos == 10:
-        kind = 'matter'
-    elif relat == "O" and pos == 14:
-        kind = 'sensorium'
-    else:
-        kind = ""
-    kind = "thing" if kind == "" else kind
-    kind = "" if from_lemmas and kind in ['thing', ""] else kind
-
-    return kind

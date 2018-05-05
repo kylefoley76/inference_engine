@@ -1,6 +1,11 @@
-from general_functions import *
-from put_words_in_slots import categorize_words
+
 import copy
+try:
+    from general_functions import *
+    from put_words_in_slots import categorize_words
+except:
+    from .general_functions import *
+    from .put_words_in_slots import categorize_words
 
 first_person_pronoun = lambda x: x != 'i' or not i_defined
 
@@ -130,8 +135,8 @@ def determine_which_function_to_use(antecedent, list1, m, slot, category, kind, 
 
 def final_step(list1, antecedent, consequent2, rule, category, anc1, kind):
     assert anc1 != None
-    conn = conditional if category in [.5, 13] else iff
-    irule = "IF" if category in [.5, 13] else "EF"
+    conn = conditional if category in [.5] else iff
+    irule = "IF" if category in [.5] else "EF"
     consequent = copy.deepcopy(consequent2)
     conjunction = []
     conjunctionp = []
@@ -416,16 +421,19 @@ def eliminate_as(list1, slot):
 
 def divide_relations(list1, slot):
     # b R c S d > b S d
+    # b R c S d > e = b R c & e S d
     subject = 10 if slot == 20 else slot - 1
     tvalue, rule = axiom_of_prepositional_non_existence(list1, slot, "RDA")
-    cons = svo_sent(output, list1[subject], list1[20], list1[slot + 1], tvalue)
+    cons = svo_sent(output, list1[subject], list1[13], list1[14], tvalue)
+    cvar = get_key(output.oprop_name, cons[1])
+    cons = svop_sent(output, cvar, list1[subject], list1[13], list1[14], tvalue)
+    cons2 = svo_sent(output, cvar, list1[20], list1[slot + 1], tvalue)
 
-    return [cons], rule
+    return [cons, cons2], rule
 
 
 def divide_relations2(list1, slot):
     # (b R c S d T e) = (b R c & b S d T e)
-
     tvalue, rule = axiom_of_prepositional_non_existence(list1, slot, "RDB")
     cons1 = svo_sent(output, list1[10], list1[13], list1[14])
     cons2 = svo_sent(output, list1[10], list1[20], list1[21], tvalue)
@@ -492,7 +500,7 @@ def lies_wi_scope_of_univ_quant(list1, slot):
 
 def lies_wi_scope_of_univ2(list1, current_universal, slot, univ_pos, pos_position):
     determiner = pos_counterpart(determinative_positions, pos_position, slot)
-    if list1[determiner] in ['a' + uh, 'every', 'no']:
+    if list1[determiner] in ['a' + up, 'every', 'no']:
         return True
     else:
         return False
@@ -580,7 +588,7 @@ def backwards_conditional(list1, slot, noun_c, new_var):
 
 def put_in_main_loop(list2, class_sent, kind, word):
     for i, obj in enumerate(list2):
-        obj = 'a' if obj == 'a' + uh else obj
+        obj = 'a' if obj == 'a' + up else obj
         list2[i] = obj
 
     list2 = categorize_words(output.abbreviations, list2, dictionary, output, "recursive")
