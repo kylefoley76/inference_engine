@@ -3,23 +3,21 @@ import sys
 from openpyxl import load_workbook
 
 
-try:
-    from natural_language import step_one
-    from general_functions import parameters
-    from classes import ErrorWithCode
-    from settings import *
-except:
-    from .natural_language import step_one
-    from .general_functions import parameters
-    from .classes import ErrorWithCode
-    from .settings import *
-
-
+from natural_language import step_one
+from general_functions import parameters
+from classes import ErrorWithCode
+from settings import *
 #
-# from natural_language import step_one
-# from general_functions import parameters
-# from classes import ErrorWithCode
-# from settings import *
+# try:
+#     from natural_language import step_one
+#     from general_functions import parameters
+#     from classes import ErrorWithCode
+#     from settings import *
+# except:
+#     from .natural_language import step_one
+#     from .general_functions import parameters
+#     from .classes import ErrorWithCode
+#     from .settings import *
 
 
 def calculate_time_statistics(num_proved, total_time):
@@ -55,6 +53,8 @@ def print_on_error(order, dictionary, test_sent, print_type, lemmata, user):
     global words_used
     j = -1
     num_proved = 0
+    correct = 0
+    accurracy = []
     while j < len(order) - 1:
         j += 1
         k = order[j]
@@ -80,10 +80,11 @@ def print_on_error(order, dictionary, test_sent, print_type, lemmata, user):
                         order.remove(k)
                         j -= 1
 
-                reaction(consistent, k, print_type, st1)
+                correct = reaction(consistent, k, print_type, st1, accurracy, correct)
 
             except:
                 print ("bug")
+                accurracy.append("WRONG - bug")
 
                 if k in order:
                     order.remove(k)
@@ -93,14 +94,26 @@ def print_on_error(order, dictionary, test_sent, print_type, lemmata, user):
         elif print_type[0] in ["0", "4"] and k % 50 == 0:
             print (k)
 
-    return num_proved
+    if len(test_sent) > 1:
+        b = correct / len(test_sent)
+        b = b * 100
+        b = int(b)
+        accurracy.append(str(b) + "% accuracy")
+        print (accurracy[-1])
 
-def reaction(consistent, k, print_type, st1):
+
+    return num_proved, accurracy
+
+def reaction(consistent, k, print_type, st1, accurracy, correct):
     if print_type[0] in ['1', "2"]:
         if consistent:
-            print (f'{k} RIGHT')
+            print ('RIGHT')
+            accurracy.append("RIGHT")
+            correct += 1
         else:
-            print (f'{k} WRONG')
+            print ('WRONG')
+            accurracy.append("WRONG")
+
 
     elif print_type[0] != "4":
         if not consistent:
@@ -117,6 +130,8 @@ def reaction(consistent, k, print_type, st1):
             print (str(k) + " - True")
     elif print_type[0] == "4" and not consistent:
         print (str(k) + " - False")
+
+    return correct
 
 
 def stop_if_error(order, dictionary, test_sent, print_type, lemmata, user):
@@ -156,7 +171,11 @@ def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0
     global words_used
     total_time = time.time()
 
-    if one_sent == 'a':
+    if user == 'gs':
+        user = ""
+        test_sent = one_sent
+
+    elif one_sent == 'a':
         proof_type, print_type, get_words_used, order = parameters()
         pkl_file = open(user + 'zz_claims.pkl', 'rb')
         test_sent = pickle.load(pkl_file)
@@ -175,9 +194,11 @@ def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0
     pkl_file.close()
 
     words_used = set()
+    # print_type = "31"
 
     if print_type[1] == "1":
-        num_proved = print_on_error(order, dictionary, test_sent, print_type, lemmata, user)
+        num_proved, accurracy = print_on_error(order, dictionary, test_sent, print_type, lemmata, user)
+        test_sent.append(accurracy)
     else:
         num_proved = stop_if_error(order, dictionary, test_sent, print_type, lemmata, user)
 
@@ -186,6 +207,8 @@ def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0
 
     if get_words_used == 1:
         determine_words_used(words_used)
+
+
 
     return test_sent
 

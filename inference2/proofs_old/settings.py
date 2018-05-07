@@ -278,7 +278,6 @@ pos_counterpart = lambda x, y, z: x[y.index(z)]
 
 decimal_numbers2 = lambda x: str("{0:.2f}".format(x))
 
-
 decimal_numbers5 = lambda x: str("{0:.5f}".format(x))
 
 decimal_numbers3 = lambda x: str("{0:.3f}".format(x))

@@ -145,28 +145,29 @@ def get_arity(self, rw, dictionary):
 def ambiguous_words(rw, relata, dictionary):
     if relata.subject == None:
         print(f"you forgot to state what {rw.word} is ambiguous between")
-    list1 = relata.subject.split(";")
-    list1 = [x.strip() for x in list1]
-    dictionary.ambiguous2.update({rw.word: list1})
-    if rw.pos[0] == 'y':
-        correct_superscripts(list1, [un, uv])
-    if rw.pos[0] == 'w' and len(rw.pos) > 2 and rw.pos[2] == 'p':
-        list2 = rw.pronounce.split(",")
-        list4 = relata.object4.split(",")
-        am_dict = {}
-        for k in list4:
-            list5 = k.split(":")
-            word1 = list5[0].strip()
-            word2 = list5[1].strip()
-            am_dict.update({word1: word2})
-        if "," in relata.object:
-            list3 = relata.object.split(",")
-        else:
-            list3 = [relata.object]
-        for word in list2:
-            word = word.strip()
-            dictionary.particles.update({word:list3})
-            dictionary.ambiguous3.update({word: am_dict})
+    else:
+        list1 = relata.subject.split(";")
+        list1 = [x.strip() for x in list1]
+        dictionary.ambiguous2.update({rw.word: list1})
+        if rw.pos[0] == 'y':
+            correct_superscripts(list1, [un, uv])
+        if rw.pos[0] == 'w' and len(rw.pos) > 2 and rw.pos[2] == 'p':
+            list2 = rw.pronounce.split(",")
+            list4 = relata.object4.split(",")
+            am_dict = {}
+            for k in list4:
+                list5 = k.split(":")
+                word1 = list5[0].strip()
+                word2 = list5[1].strip()
+                am_dict.update({word1: word2})
+            if "," in relata.object:
+                list3 = relata.object.split(",")
+            else:
+                list3 = [relata.object]
+            for word in list2:
+                word = word.strip()
+                dictionary.particles.update({word:list3})
+                dictionary.ambiguous3.update({word: am_dict})
 
 
 
@@ -181,7 +182,7 @@ class relata:
 
         if rw.abbrev_relat == None and rw.pos[0] == "r" and rw.pos[1] != "s":
             print(f"you forgot to give the abbreviation for {rw.word}")
-            raise Exception
+            # raise Exception
 
         if rw.pos.startswith("r") and rw.pos[1] != "s":
             fill_group(rw.abbrev_relat + "s", dictionary, rw, self.subject)
@@ -351,9 +352,11 @@ class get_dictionary:
         self.prepositional_relations = []
         self.past_participles = []
         self.quadruples = set()
+        self.quintuples = set()
         self.relata = {}
         self.rel_abbrev = {}
         self.read_entail = {}
+        self.sextuples = set()
         self.synonyms = {}
         self.spatio_temporal_relations = []
         self.triples = set()

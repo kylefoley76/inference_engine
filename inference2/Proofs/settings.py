@@ -14,7 +14,7 @@ mini_c = chr(8658)
 mini_e = chr(8703)
 implies = chr(8866)
 conditional = chr(8594)
-conditional = implies
+cond_conn = [conditional, implies]
 refers = chr(8701)
 nonseq = chr(8876)
 xorr = chr(8891)
@@ -22,7 +22,7 @@ idisj = chr(8744)
 cj = chr(8896)
 aid = chr(8776)
 jiff = chr(10231) # justified biconditional
-iff = jiff
+cond_conn = [iff, jiff]
 disj = chr(8855)
 equi = chr(8660)
 ne = "\u2260"  # not equal
@@ -263,7 +263,8 @@ strip_sent = lambda x: re.sub(r'[()~ ]', "", x)
 
 name_sent = lambda x, y: y[strip_sent(x)]
 
-one_sentence = lambda x: not re.search(xorr + "|" + implies + "|" + iff + "|" + idisj + "|" +
+one_sentence = lambda x: not re.search(xorr + "|" + implies + "|" + iff + "|" + idisj
+                                       + "|" + jiff +
                                        conditional + "|&|#", x)
 
 # x and y are the same in the following:

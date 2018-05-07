@@ -4,6 +4,8 @@ import pickle
 # from main_loop import get_result
 # from lemmas import *
 
+#hey man
+
 
 from main_loop import get_result
 from lemmas import determine_class, print_some_lemmas
@@ -149,26 +151,6 @@ elif kind == "os":
     print_sent(output, order, print_type)
 
 
-elif kind == "gs":
-    sent = open('sentences.txt', 'rb+')
-    list1 = []
-    for ln in sent:
-        ln.decode("utf-8")
-        ln = str(ln)
-        if "0" in ln:
-            ln = ln[ln.find("0"):ln.find("\\n")]
-        elif "1" in ln:
-            ln = ln[ln.find("1"):ln.find("\\n")]
-        ln = replace_one_zero(ln)
-
-        # ln = ln.replace("\\n", "")
-        list1.append([ln])
-    order = [x for x in range(len(list1))]
-    output = get_result(list1, "gs", "21", order, get_words_used)
-    print_sent(output[:-1], order, print_type)
-    for str1 in output[-1]:
-        print (str1)
-    bb = 8
 
 
     # print type

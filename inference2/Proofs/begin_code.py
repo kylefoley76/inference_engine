@@ -147,6 +147,26 @@ elif kind == "pg":
         arg1 = arg1.replace(".", "|")
     print_geneology(arg1)
 
+elif kind == "gs":
+    sent = open('sentences.txt', 'rb+')
+    list1 = []
+    for ln in sent:
+        ln.decode("utf-8")
+        ln = str(ln)
+        if "0" in ln:
+            ln = ln[ln.find("0"):ln.find("\\n")]
+        elif "1" in ln:
+            ln = ln[ln.find("1"):ln.find("\\n")]
+        ln = replace_one_zero(ln)
+
+        # ln = ln.replace("\\n", "")
+        list1.append([ln])
+    order = [x for x in range(len(list1))]
+    output = get_result(list1, "gs", "21", order, get_words_used)
+    print_sent(output[:-1], order, print_type)
+    for str1 in output[-1]:
+        print(str1)
+
 
 
 

@@ -124,6 +124,15 @@ def build_ontology(i, worksheet):
     branched_ontology = []
     while True:
         i += 1
+        rw = row_class(worksheet, i)
+        if "universal" in rw.defin and 'thing' in rw.defin:
+            i -= 1
+            break
+        if i > 900:
+            break
+
+    while True:
+        i += 1
         if i > j + 35: raise Exception
         rw = row_class(worksheet, i)
         branch = False
@@ -133,29 +142,33 @@ def build_ontology(i, worksheet):
             if disj in rw.defin:
                 rw.defin = rw.defin.replace(disj, xorr)
             if conditional in rw.defin:
-                list2 = rw.defin.split(conditional)
-            elif implies in rw.defin:
-                list2 = rw.defin.split(implies)
+                list4 = rw.defin.split(conditional)
                 branch = True
+                list2 = [list4[1], list4[0]]
             else:
                 list2 = rw.defin.split(iff)
-            if "," in list2[1]:
-                list3 = list2[1].split(",")
-            else:
+
+            if xorr in list2[1]:
                 list3 = list2[1].split(xorr)
-            list3 = [x.strip() for x in list3]
-            if list3[0] == 'male':
-                bb = 8
-            if branch or list2[0].strip() in branched_concepts:
-                for str1 in list3:
-                    if str1 not in reverse_dict.keys():
-                        branched_concepts.append(str1)
-                    cond_properties.update({str1: list2[0].strip()})
-                branched_ontology.append([list2[0].strip(), set(list3)])
+                list3 = [x.strip() for x in list3]
+
+                if branch or list2[0].strip() in branched_concepts:
+                    for str1 in list3:
+                        if str1 not in reverse_dict.keys():
+                            branched_concepts.append(str1)
+                        cond_properties.update({str1: list2[0].strip()})
+                    branched_ontology.append([list2[0].strip(), set(list3)])
+
+                else:
+                    for str1 in list3: reverse_dict.update({str1: list2[0].strip()})
+                    forward_onto.append([list2[0].strip(), set(list3)])
 
             else:
-                for str1 in list3: reverse_dict.update({str1: list2[0].strip()})
-                forward_onto.append([list2[0].strip(), set(list3)])
+                pass
+                # list2 = [x.strip() for x in list2]
+                # reverse_dict.update({list2[1]: list2[0]})
+                # forward_onto.append([list2[0], {list2[1]}])
+
 
     reverse_dict2 = {}
     for k, v in reverse_dict.items():
@@ -341,7 +354,7 @@ def build_dictionary(kind2):
     for_superscript_check = set()
     last_word = ""
     if kind2 == "":
-        get_prepositional_relations()
+        # get_prepositional_relations()
         worksheet = ws
         last_row = get_last_row(worksheet, 4)
         print("last row " + str(last_row))
@@ -546,7 +559,7 @@ def adjust_pos(rw):
 
 def update_relations(rw):
     if rw.pos[0] == 'r' and rw.pos[1] not in ['s', 'a'] and not not_blank(rw.abbrev_relat):
-        print(f"you forgot to give {word} an abbreviation or youre calling a noun a relation")
+        print(f"you forgot to give {rw.word} an abbreviation or youre calling a noun a relation")
 
     if not_blank(rw.abbrev_relat):
         if rw.pos[0] == 'r' and rw.abbrev_relat in dictionary.definitions.keys():
@@ -556,7 +569,9 @@ def update_relations(rw):
         if rw.abbrev_relat not in dictionary.words_to_row.keys():
             dictionary.words_to_row.update({rw.abbrev_relat: rw.row_num})
         words_to_relation(rw)
-        if len(rw.abbrev_relat) == 4 and rw.abbrev_relat[-1] == "P": dictionary.past_participles.append(rw.abbrev_relat)
+        if len(rw.abbrev_relat) == 4 and \
+                rw.abbrev_relat[-1] == "P":
+            dictionary.past_participles.append(rw.abbrev_relat)
 
 
 def ambiguous_plural(for_superscript_check, rw):
@@ -593,8 +608,8 @@ def fix_hrelation(rw, word):
 def assign_part_of_speech(rw):
     word = rw.word
     pos = rw.pos
-    if word == 'experience':
-        bb = 8
+    if word == 'energy':
+          bb = 8
 
     if "(for calculation)" in word:
         list1 = []
@@ -617,12 +632,15 @@ def assign_part_of_speech(rw):
     else:
         list1 = [word]
 
-    for word1 in list1:
-        hey = dictionary.pos.get(word1)
-        if hey != None:
+    # for word1 in list1:
+    hey = dictionary.pos.get(rw.word)
+    if hey != None:
+        if rw.word == 'belief':
+            bb = 8
+        if rw.word != rw.pronounce:
             print(f"{rw.word} is defined twice")
 
-        dictionary.pos.update({word1: pos})
+    dictionary.pos.update({rw.word: pos})
 
     if pos[0] == 'r' and pos[1] != 's' and \
             rw.word != rw.abbrev_relat:
@@ -673,9 +691,11 @@ def make_doubles(rw):
                 elif m == 3:
                     dictionary.quadruples.add(tword)
                 elif m == 4:
-                    raise Exception(f'{tword} is a quintuple')
+                    dictionary.quintuples.add(tword)
+                elif m == 5:
+                    dictionary.sextuples.add(tword)
                 else:
-                    raise Exception(f'{tword} is a sextuple')
+                    raise Exception(f'{tword} is a septuple')
 
 
 def place_in_decision_procedure2(word, rw):
