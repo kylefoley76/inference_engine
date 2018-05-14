@@ -2,12 +2,18 @@ import time
 import sys
 from openpyxl import load_workbook
 
+try:
+    from natural_language import step_one
+    from general_functions import parameters
+    from classes import ErrorWithCode
+    from settings import *
+except:
+    from .natural_language import step_one
+    from .general_functions import parameters
+    from .classes import ErrorWithCode
+    from .settings import *
 
-from natural_language import step_one
-from general_functions import parameters
-from classes import ErrorWithCode
-from settings import *
-#
+
 # try:
 #     from natural_language import step_one
 #     from general_functions import parameters
@@ -26,7 +32,7 @@ def calculate_time_statistics(num_proved, total_time):
     print("average " + str("{0:.4f}".format(total_time / num_proved)))
     print("total " + str("{0:.3f}".format(total_time)))
     print("")
-    print (num_proved)
+    print(num_proved)
 
 
 def determine_words_used(words_used):
@@ -37,7 +43,7 @@ def determine_words_used(words_used):
         if j == 28:
             print(word)
         elif j == None:
-            print (word)
+            print(word)
         else:
             try:
                 w5.cell(row=j, column=2).value = 1
@@ -83,7 +89,7 @@ def print_on_error(order, dictionary, test_sent, print_type, lemmata, user):
                 correct = reaction(consistent, k, print_type, st1, accurracy, correct)
 
             except:
-                print ("bug")
+                print("bug")
                 accurracy.append("WRONG - bug")
 
                 if k in order:
@@ -92,26 +98,26 @@ def print_on_error(order, dictionary, test_sent, print_type, lemmata, user):
 
 
         elif print_type[0] in ["0", "4"] and k % 50 == 0:
-            print (k)
+            print(k)
 
     if len(test_sent) > 1:
         b = correct / len(test_sent)
         b = b * 100
         b = int(b)
         accurracy.append(str(b) + "% accuracy")
-        print (accurracy[-1])
-
+        print(accurracy[-1])
 
     return num_proved, accurracy
+
 
 def reaction(consistent, k, print_type, st1, accurracy, correct):
     if print_type[0] in ['1', "2"]:
         if consistent:
-            print ('RIGHT')
+            print('RIGHT')
             accurracy.append("RIGHT")
             correct += 1
         else:
-            print ('WRONG')
+            print('WRONG')
             accurracy.append("WRONG")
 
 
@@ -120,16 +126,16 @@ def reaction(consistent, k, print_type, st1, accurracy, correct):
             if print_type[0] == "3":
                 print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1) + " False"))
             elif print_type[0] == "0":
-                print (str(k) + " - False")
+                print(str(k) + " - False")
                 sys.exit()
 
 
         elif print_type[0] == "3":
             print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1)))
         elif print_type[0] == "1":
-            print (str(k) + " - True")
+            print(str(k) + " - True")
     elif print_type[0] == "4" and not consistent:
-        print (str(k) + " - False")
+        print(str(k) + " - False")
 
     return correct
 
@@ -157,17 +163,16 @@ def stop_if_error(order, dictionary, test_sent, print_type, lemmata, user):
                 test_sent[k] = json.loads(json.dumps(total_sent))
                 words_used = words_used | twords_used
 
-
             reaction(consistent, k, print_type, st1)
 
 
         elif print_type[0] in ["0", "4"] and k % 50 == 0:
-            print (k)
+            print(k)
 
     return num_proved
 
 
-def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0):
+def get_result(one_sent, user="", print_type="40", order=[0], get_words_used=0):
     global words_used
     total_time = time.time()
 
@@ -208,12 +213,4 @@ def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0
     if get_words_used == 1:
         determine_words_used(words_used)
 
-
-
     return test_sent
-
-
-
-
-
-
