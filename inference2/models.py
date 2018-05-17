@@ -184,6 +184,7 @@ class VersionItem(models.Model):
 class Version(models.Model):
     title = models.CharField(max_length=50)
     version_items = models.ManyToManyField(VersionItem)
+    active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
