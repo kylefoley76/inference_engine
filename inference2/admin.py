@@ -3,7 +3,7 @@ from django import forms
 import os.path
 import pkgutil
 from inference2 import Proofs
-from inference2.models import Define3, Archives, Profile, Define3Notes, Settings, TestedDictionary
+from inference2.models import Define3, Archives, Profile, Define3Notes, Settings, TestedDictionary, Version, VersionItem
 from django.contrib.auth.models import User
 from django.forms import ModelForm
 
@@ -208,6 +208,12 @@ class ProfileAdmin(admin.ModelAdmin):
     list_per_page = 50
 
 
+class VersionItemAdmin(admin.ModelAdmin):
+    list_display = ('title', 'item_category')
+    ordering = ("id",)
+    list_per_page = 50
+
+
 class Define3NotesAdmin(admin.ModelAdmin):
     list_display = ('notes',)
     ordering = ("id",)
@@ -225,3 +231,6 @@ admin.site.register(Settings)
 
 admin.site.register(Archives, MyArchive)
 admin.site.register(Algorithm, AlgorithmAdmin)
+
+admin.site.register(Version)
+admin.site.register(VersionItem, VersionItemAdmin)

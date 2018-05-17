@@ -161,7 +161,21 @@ class Settings(models.Model):
 
 
 class VersionItem(models.Model):
+    DOWNLOADABLE_DICT = 'downloadable_dictionary'
+    EXPLANATION = 'explanation'
+    ALPHABETIC_WORD_LIST = 'alphabetic'
+    CATEGORIZED_WORD_LIST = 'categorize'
+    DICTIONARY = 'dictionary'
+
+    ITEM_CHOICES = ((DOWNLOADABLE_DICT, 'Download Dict'),
+                    (EXPLANATION, 'Explanation'),
+                    (ALPHABETIC_WORD_LIST, 'Alphabetical Word List'),
+                    (CATEGORIZED_WORD_LIST, 'Categorized Word List'),
+                    (DICTIONARY, 'Dictionary'),
+                    )
+
     title = models.CharField(max_length=50)
+    item_category = models.CharField(max_length=50, choices=ITEM_CHOICES, default=DICTIONARY)
 
     def __str__(self):
         return self.title
