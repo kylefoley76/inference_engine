@@ -158,3 +158,18 @@ class Settings(models.Model):
 
     class Meta:
         verbose_name_plural = "Settings"
+
+
+class VersionItem(models.Model):
+    title = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.title
+
+
+class Version(models.Model):
+    title = models.CharField(max_length=50)
+    version_items = models.ManyToManyField(VersionItem)
+
+    def __str__(self):
+        return self.title
