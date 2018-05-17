@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load extra_tags %}
+
+{% block base_head %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+        });
+    </script>
+{% endblock base_head %}
+
+{% block content %}
+
+    {% for version in versions %}
+        <a class="btn btn-primary" href="{% url 'version_details' version.id %}">{{ version.title }}</a>
+    {% endfor %}
+{% endblock content %}

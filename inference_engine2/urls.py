@@ -23,6 +23,8 @@ urlpatterns = [
 
     url(r'^version1/$', views.version1_view, name='version1'),
     url(r'^version1/test_machine/$', views.try_input, name='version1_try_input'),
+    url(r'^versions/$', views.version_view, name='versions'),
+    url(r'^versions/(?P<version>[0-9]+)/details/$', views.version_details, name='version_details'),
 
     url(r'^version1/dictionary$', views.dictionary, name='dict-result'),
     url(r'^tested_dictionary$', views.tested_dict, name='result'),

@@ -11,7 +11,7 @@ from django.conf import settings
 import time
 
 from inference2.Proofs.main_loop import get_result
-from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary
+from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary, Version
 import importlib
 from inference2.models import Input
 
@@ -435,3 +435,13 @@ def clear(request):
 def clear_output(request):
     Output.objects.all().delete()
     return redirect(reverse('try_input'))
+
+
+def version_view(request):
+    versions = Version.objects.filter(active=True)
+    return render(request, "inference2/versions_page.html", {'versions': versions})
+
+
+def version_details(request, version):
+    version = Version.objects.filter(id=version, active=True).first()
+    return render(request, "inference2/version_details.html", {'version': version})

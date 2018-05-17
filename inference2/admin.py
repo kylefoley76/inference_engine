@@ -214,6 +214,12 @@ class VersionItemAdmin(admin.ModelAdmin):
     list_per_page = 50
 
 
+class VersionAdmin(admin.ModelAdmin):
+    list_display = ('title', 'active')
+    ordering = ("id",)
+    list_per_page = 50
+
+
 class Define3NotesAdmin(admin.ModelAdmin):
     list_display = ('notes',)
     ordering = ("id",)
@@ -232,5 +238,5 @@ admin.site.register(Settings)
 admin.site.register(Archives, MyArchive)
 admin.site.register(Algorithm, AlgorithmAdmin)
 
-admin.site.register(Version)
+admin.site.register(Version, VersionAdmin)
 admin.site.register(VersionItem, VersionItemAdmin)

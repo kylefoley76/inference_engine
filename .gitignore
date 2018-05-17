@@ -33,3 +33,4 @@ monopoly-master/
 ## File-based project format:
 *.ipr
 *.iws
+yourdatabasename.db
