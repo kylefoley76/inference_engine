@@ -182,7 +182,7 @@ class VersionItem(models.Model):
 
 
 class Version(models.Model):
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=50, unique=True)
     version_items = models.ManyToManyField(VersionItem)
     active = models.BooleanField(default=False)
 
