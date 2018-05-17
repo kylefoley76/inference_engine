@@ -1,10 +1,7 @@
-from django.contrib import admin
 from django import forms
-import os.path
-import pkgutil
-from inference2 import Proofs
-from inference2.models import Define3, Archives, Profile, Define3Notes, Settings, TestedDictionary, Version, VersionItem
-from django.contrib.auth.models import User
+
+from inference2.models import Archives, Profile, Define3Notes, Settings, TestedDictionary, Version, VersionItem
+
 from django.forms import ModelForm
 
 from django.contrib import admin
@@ -20,9 +17,6 @@ from django.contrib import admin
 from .actions import export_as_csv_action
 from .actions import change_text_to_symbol_action
 from .actions import change_symbol_to_text_action
-from .actions import export_as_json_action
-from .actions import export_as_xml_action
-from .actions import export_as_yaml_action
 
 from .admincsv import ImportCSVModelAdmin
 
