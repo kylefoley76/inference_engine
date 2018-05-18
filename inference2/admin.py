@@ -203,7 +203,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
 
 class VersionItemAdmin(admin.ModelAdmin):
-    list_display = ('title', 'item_category')
+    list_display = ('title', 'item_category','version','code_file_name')
     ordering = ("id",)
     list_per_page = 50
 

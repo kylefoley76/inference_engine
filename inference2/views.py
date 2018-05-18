@@ -11,7 +11,8 @@ from django.conf import settings
 import time
 
 from inference2.Proofs.main_loop import get_result
-from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary, Version
+from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary, Version, \
+    VersionItem
 import importlib
 from inference2.models import Input
 
@@ -445,3 +446,12 @@ def version_view(request):
 def version_details(request, version):
     version = Version.objects.filter(id=version, active=True).first()
     return render(request, "inference2/version_details.html", {'version': version})
+
+
+def version_dictionary(request, version_item):
+    version_item = VersionItem.objects.filter(id=version_item).first()
+    large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
+                                         package='inference2.Proofs')
+    outputs = Define3.objects.all()
+    return render(request, "inference2/version_dict.html",
+                  {'result': large_dict, 'output': outputs, 'version_item': version_item})

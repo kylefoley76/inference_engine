@@ -10,7 +10,18 @@
 {% endblock base_head %}
 
 {% block content %}
-    {% for version_item in version.version_items.all %}
-        <a class="btn btn-primary" href="{% url 'version1' %}">{{ version_item.title }}</a>
+    {% for version_item in version.versionitem_set.all %}
+        {% if version_item.item_category ==  'dictionary' %}
+            <a class="btn btn-primary"
+               href="{% url 'version_dictionary' version_item.id %}">{{ version_item.title }}</a>
+        {% endif %}
+
+        {% if version_item.item_category ==  'explanation' %}
+            <a class="btn btn-primary" href="{{ version_item.explanation_file.url }}"
+               target="_blank">{{ version_item.title }}</a>
+        {% endif %}
+
+
+
     {% endfor %}
 {% endblock content %}

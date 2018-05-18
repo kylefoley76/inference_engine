@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load extra_tags %}
+
+{% block content %}
+
+
+    <h1>
+        Dictionary
+    </h1>
+    <br>
+    {% if version_item.notes %}
+        <textarea rows="4" cols="100" readonly>{{ version_item.notes }}</textarea>
+    {% endif %}
+
+
+    <br>
+
+    <table class="table table-bordered">
+        <thead class="thead-inverse">
+        <tr>
+            <th style="width:5%">Type</th>
+            <th style="width:5%">Word</th>
+            <th style="width:10%">Relation</th>
+            <th style="width:65%">Definition</th>
+            <th style="width:5%">superscript</th>
+            <th style="width:5%">subject</th>
+            <th style="width:5%">object</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        {% for sentense in output %}
+            <tr>
+                <td>{{ sentense.extra }}</td>
+                <td>{{ sentense.type }}</td>
+                <td>{{ sentense.word }}</td>
+                <td>{{ sentense.rel }}</td>
+                <td>{{ sentense.definition }}</td>
+                <td>{{ sentense.subject }}</td>
+                <td>{{ sentense.def_object }}</td>
+
+            </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

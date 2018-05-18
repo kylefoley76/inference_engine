@@ -176,6 +176,10 @@ class VersionItem(models.Model):
 
     title = models.CharField(max_length=50)
     item_category = models.CharField(max_length=50, choices=ITEM_CHOICES, default=DICTIONARY)
+    version = models.ForeignKey('Version', null=True, blank=True)
+    code_file_name = models.CharField(max_length=50, null=True, blank=True)
+    notes = models.TextField(default='')
+    explanation_file = models.FileField(upload_to='./static/inference2/', null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -183,7 +187,6 @@ class VersionItem(models.Model):
 
 class Version(models.Model):
     title = models.CharField(max_length=50, unique=True)
-    version_items = models.ManyToManyField(VersionItem)
     active = models.BooleanField(default=False)
 
     def __str__(self):

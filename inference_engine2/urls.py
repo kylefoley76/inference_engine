@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^version1/test_machine/$', views.try_input, name='version1_try_input'),
     url(r'^versions/$', views.version_view, name='versions'),
     url(r'^versions/(?P<version>[0-9]+)/details/$', views.version_details, name='version_details'),
+    url(r'^version/(?P<version_item>[0-9]+)/dictionary/$', views.version_dictionary, name='version_dictionary'),
 
     url(r'^version1/dictionary$', views.dictionary, name='dict-result'),
     url(r'^tested_dictionary$', views.tested_dict, name='result'),
@@ -43,7 +44,6 @@ urlpatterns = [
     url(r'^author', views.author, name='author'),
     url(r'^tested_dict', views.tested_dictionary, name='tested_dictionary'),
 
-    # url(r'^try_input', views.try_input, name='try_input'),
 
     url(r'^$', views.try_input, name='try_input'),
     url(r'^clear_output', views.clear_output, name='clear_output'),
