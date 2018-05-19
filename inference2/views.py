@@ -455,3 +455,21 @@ def version_dictionary(request, version_item):
     outputs = Define3.objects.all()
     return render(request, "inference2/version_dict.html",
                   {'result': large_dict, 'output': outputs, 'version_item': version_item})
+
+
+def version_alphabetical(request, version_item):
+    version_item = VersionItem.objects.filter(id=version_item).first()
+    large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
+                                         package='inference2.Proofs')
+    outputs = Define3.objects.all()
+    return render(request, "inference2/version_alphabetical.html",
+                  {'result': large_dict, 'output': outputs, 'version_item': version_item})
+
+
+def version_categorical(request, version_item):
+    version_item = VersionItem.objects.filter(id=version_item).first()
+    large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
+                                         package='inference2.Proofs')
+    outputs = Define3.objects.all()
+    return render(request, "inference2/version_categorical.html",
+                  {'result': large_dict, 'output': outputs, 'version_item': version_item})

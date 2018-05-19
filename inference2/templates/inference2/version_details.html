@@ -14,14 +14,19 @@
         {% if version_item.item_category ==  'dictionary' %}
             <a class="btn btn-primary"
                href="{% url 'version_dictionary' version_item.id %}">{{ version_item.title }}</a>
-        {% endif %}
 
-        {% if version_item.item_category ==  'explanation' %}
+        {% elif version_item.item_category ==  'explanation' or version_item.item_category == 'downloadable_dictionary' %}
             <a class="btn btn-primary" href="{{ version_item.explanation_file.url }}"
                target="_blank">{{ version_item.title }}</a>
+
+        {% elif version_item.item_category ==  'alphabetic' %}
+            <a class="btn btn-primary"
+               href="{% url 'version_alphabetical' version_item.id %}">{{ version_item.title }}</a>
+        {% elif version_item.item_category ==  'categorize' %}
+            <a class="btn btn-primary"
+               href="{% url 'version_categorical' version_item.id %}">{{ version_item.title }}</a>
+        {% else %}
+            <a class="btn btn-primary" href="#">{{ version_item.title }}</a>
         {% endif %}
-
-
-
     {% endfor %}
 {% endblock content %}

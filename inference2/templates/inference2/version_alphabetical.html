@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load extra_tags %}
+
+{% block content %}
+
+
+    <h1>
+        Dictionary
+    </h1>
+    <br>
+    {% if version_item.notes %}
+        <textarea rows="4" cols="100" readonly>{{ version_item.notes }}</textarea>
+    {% endif %}
+
+
+    <br>
+
+    <table class="table table-bordered">
+        <thead class="thead-inverse">
+        <tr>
+            <th style="width:5%">Word</th>
+            <th style="width:5%">Notes</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sentense in output %}
+            <tr>
+                <td>{{ sentense.type }}</td>
+                <td>{{ sentense.rel }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}

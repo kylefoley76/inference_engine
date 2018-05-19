@@ -26,6 +26,8 @@ urlpatterns = [
     url(r'^versions/$', views.version_view, name='versions'),
     url(r'^versions/(?P<version>[0-9]+)/details/$', views.version_details, name='version_details'),
     url(r'^version/(?P<version_item>[0-9]+)/dictionary/$', views.version_dictionary, name='version_dictionary'),
+    url(r'^version/(?P<version_item>[0-9]+)/alphabetical/list/$', views.version_alphabetical, name='version_alphabetical'),
+    url(r'^version/(?P<version_item>[0-9]+)/categorical/list/$', views.version_categorical, name='version_categorical'),
 
     url(r'^version1/dictionary$', views.dictionary, name='dict-result'),
     url(r'^tested_dictionary$', views.tested_dict, name='result'),
