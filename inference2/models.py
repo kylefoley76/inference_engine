@@ -181,6 +181,9 @@ class VersionItem(models.Model):
     notes = models.TextField(default='')
     explanation_file = models.FileField(upload_to='./static/inference2/', null=True, blank=True)
 
+    class Meta:
+        unique_together = ('version', 'item_category')
+
     def __str__(self):
         return self.title
 

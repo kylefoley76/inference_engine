@@ -3,6 +3,12 @@
 
 {% block content %}
 
+    <a class="btn btn-primary"
+       href="{% url 'versions' %}">Home</a>
+    {% if version_cat_item %}
+        <a class="btn btn-primary"
+           href="{% url 'version_categorical' version_cat_item.id %}">{{ version_cat_item.title }}</a>
+    {% endif %}
 
     <h1>
         Dictionary

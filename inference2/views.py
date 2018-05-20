@@ -459,17 +459,30 @@ def version_dictionary(request, version_item):
 
 def version_alphabetical(request, version_item):
     version_item = VersionItem.objects.filter(id=version_item).first()
+
+    version_cat_item = ''
+    if version_item:
+        version_cat_item = VersionItem.objects.filter(version=version_item.version,
+                                                      item_category=VersionItem.CATEGORIZED_WORD_LIST).first()
+
     large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
                                          package='inference2.Proofs')
     outputs = Define3.objects.all()
     return render(request, "inference2/version_alphabetical.html",
-                  {'result': large_dict, 'output': outputs, 'version_item': version_item})
+                  {'result': large_dict, 'output': outputs, 'version_item': version_item,
+                   'version_cat_item': version_cat_item})
 
 
 def version_categorical(request, version_item):
     version_item = VersionItem.objects.filter(id=version_item).first()
+
+    version_alp_item = ''
+    if version_item:
+        version_alp_item = VersionItem.objects.filter(version=version_item.version,
+                                                      item_category=VersionItem.ALPHABETIC_WORD_LIST).first()
     large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
                                          package='inference2.Proofs')
     outputs = Define3.objects.all()
     return render(request, "inference2/version_categorical.html",
-                  {'result': large_dict, 'output': outputs, 'version_item': version_item})
+                  {'result': large_dict, 'output': outputs, 'version_item': version_item,
+                   'version_alp_item': version_alp_item})
