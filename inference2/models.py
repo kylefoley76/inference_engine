@@ -191,6 +191,7 @@ class VersionItem(models.Model):
 class Version(models.Model):
     title = models.CharField(max_length=50, unique=True)
     active = models.BooleanField(default=False)
+    version_directory = models.CharField(max_length=50, default='version1')
 
     def __str__(self):
         return self.title
