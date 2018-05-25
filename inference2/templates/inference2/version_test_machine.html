@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load extra_tags %}
+
+{% block base_head %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+        });
+    </script>
+{% endblock base_head %}
+
+{% block content %}
+
+    <a class="btn btn-primary"
+       href="{% url 'versions' %}">Home</a>
+    <h1>Test Machine</h1>
+    <div class="row">
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="comment">Input:</label>
+                <input id="try_input" type="text" name="try_input" size="100">
+                <button type="submit" class="btn btn-info" id="btn_try">Calculate</button>
+            </div>
+
+        </form>
+        <a class="btn btn-primary" href="{{ clear_output }}">Clear</a>
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+    <div class="row">
+        {% if notes %}
+            <br>
+            <button class="show_button btn btn-success">Show Instructions</button>
+            <br><br>
+            <script>$(".show_button").click(function () {
+                $("#text_id").toggle()
+                if ($('#text_id').css('display') == 'none') {
+                    $('.show_button').text("Show Instructions");
+
+                } else {
+                    $('.show_button').text("Hide Instructions");
+                    $("textarea").height($("textarea")[0].scrollHeight);
+                }
+            })</script>
+            <p>
+                <textarea id='text_id' rows="4" cols="100" readonly style="display: none">{{ notes }}</textarea>
+            </p>
+        {% endif %}
+
+
+        {% if result %}
+            {% if result == 'Wrong' %}
+                <h3>Result : <span class="label label-danger">{{ result }}</span></h3>
+            {% else %}
+                <h3>Result : <span class="label label-success">{{ result }}</span></h3>
+            {% endif %}
+
+
+        {% endif %}
+        <table class="table table-bordered">
+            <thead class="thead-inverse"></thead>
+            <tbody>
+            {% for i in output %}
+                <tr class="output_row">
+                    <td id="table_output_{{ i }}_1 text-align: center;">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                             name="table_output_{{ i }}_1" id="table_output_{{ i }}_1">{{ i.col1 }}</div>
+                    </td>
+                    <td id="table_output_{{ i }}_2">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text"
+                             name="table_output_{{ i }}_2" id="table_output_{{ i }}_2">{{ i.col2 }}</div>
+                    </td>
+                    <td id="table_output_{{ i }}_3">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                             name="table_output_{{ i }}_3" id="table_output_{{ i.col3 }}_3">{{ i.col3 }}</div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+{% endblock content %}

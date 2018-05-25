@@ -25,6 +25,10 @@
         {% elif version_item.item_category ==  'categorize' %}
             <a class="btn btn-primary"
                href="{% url 'version_categorical' version_item.id %}">{{ version_item.title }}</a>
+
+        {% elif version_item.item_category ==  'test_machine' %}
+            <a class="btn btn-primary"
+               href="{% url 'version_try_input' version_item.id %}">{{ version_item.title }}</a>
         {% else %}
             <a class="btn btn-primary" href="#">{{ version_item.title }}</a>
         {% endif %}

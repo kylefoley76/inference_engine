@@ -166,12 +166,14 @@ class VersionItem(models.Model):
     ALPHABETIC_WORD_LIST = 'alphabetic'
     CATEGORIZED_WORD_LIST = 'categorize'
     DICTIONARY = 'dictionary'
+    TEST_MACHINE = 'test_machine'
 
     ITEM_CHOICES = ((DOWNLOADABLE_DICT, 'Download Dict'),
                     (EXPLANATION, 'Explanation'),
                     (ALPHABETIC_WORD_LIST, 'Alphabetical Word List'),
                     (CATEGORIZED_WORD_LIST, 'Categorized Word List'),
                     (DICTIONARY, 'Dictionary'),
+                    (TEST_MACHINE, 'Test Machine'),
                     )
 
     title = models.CharField(max_length=50)

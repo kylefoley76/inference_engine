@@ -450,8 +450,8 @@ def version_details(request, version):
 
 def version_dictionary(request, version_item):
     version_item = VersionItem.objects.filter(id=version_item).first()
-    large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
-                                         package='inference2.Proofs')
+    large_dict = importlib.import_module('.' + 'dictionary_new',
+                                         package='inference2.' + version_item.version.version_directory)
     outputs = Define3.objects.all()
     return render(request, "inference2/version_dict.html",
                   {'result': large_dict, 'output': outputs, 'version_item': version_item})
@@ -464,9 +464,8 @@ def version_alphabetical(request, version_item):
     if version_item:
         version_cat_item = VersionItem.objects.filter(version=version_item.version,
                                                       item_category=VersionItem.CATEGORIZED_WORD_LIST).first()
-
-    large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
-                                         package='inference2.Proofs')
+    large_dict = importlib.import_module('.' + 'dictionary_new',
+                                         package='inference2.' + version_item.version.version_directory)
     outputs = Define3.objects.all()
     return render(request, "inference2/version_alphabetical.html",
                   {'result': large_dict, 'output': outputs, 'version_item': version_item,
@@ -480,9 +479,46 @@ def version_categorical(request, version_item):
     if version_item:
         version_alp_item = VersionItem.objects.filter(version=version_item.version,
                                                       item_category=VersionItem.ALPHABETIC_WORD_LIST).first()
-    large_dict = importlib.import_module('.' + version_item.code_file_name.split('.py')[0],
-                                         package='inference2.Proofs')
+    large_dict = importlib.import_module('.' + 'dictionary_new',
+                                         package='inference2.' + version_item.version.version_directory)
     outputs = Define3.objects.all()
     return render(request, "inference2/version_categorical.html",
                   {'result': large_dict, 'output': outputs, 'version_item': version_item,
                    'version_alp_item': version_alp_item})
+
+
+def version_try_input(request, version_item):
+    output = []
+    template_args = {}
+    template_args['success'] = 'Right'
+    url_path = '/'
+    version_item = VersionItem.objects.filter(id=version_item).first()
+    if request.method == 'POST':
+        try:
+            # input = "It is|a contradictory that I do not have many|n points"
+            input = request.POST.get('try_input')
+            Output.objects.all().delete()
+            prove_algorithm = importlib.import_module('.' + 'z_intermed_code',
+                                                      package='inference2.' + version_item.version.version_directory)
+            post_data, result_string = prove_algorithm.get_result_from_views(
+                request.POST.copy(), None, request, input)
+            template_args['result'] = result_string
+            print(post_data)
+            if post_data:
+                post_data["type"] = "prove"
+                result = json.dumps(post_data, cls=DjangoJSONEncoder)
+
+                save_result(None, post_data)
+            output = Output.objects.all()
+        except Exception as e:
+            messages.error(request, str(e))
+            template_args['success'] = 'Wrong'
+            template_args['result'] = 'Wrong'
+
+    algo = Algorithm.objects.all().order_by('id')
+    template_args['notes'] = algo[0].try_input_notes if algo else ''
+    template_args['url_path'] = url_path
+    template_args['output'] = output
+    template_args['archive'] = None
+
+    return render(request, "inference2/version_test_machine.html", template_args)
