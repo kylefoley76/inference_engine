@@ -1,12 +1,21 @@
+from __future__ import absolute_import, division
+
 import time
 import sys
 from openpyxl import load_workbook
 
+try:
+    from natural_language import step_one
+    from general_functions import parameters
+    from classes import ErrorWithCode
+    from settings import *
+except:
+    from .natural_language import step_one
+    from .general_functions import parameters
+    from .classes import ErrorWithCode
+    from .settings import *
 
-from natural_language import step_one
-from general_functions import parameters
-from classes import ErrorWithCode
-from settings import *
+
 #
 # try:
 #     from natural_language import step_one
@@ -26,7 +35,7 @@ def calculate_time_statistics(num_proved, total_time):
     print("average " + str("{0:.4f}".format(total_time / num_proved)))
     print("total " + str("{0:.3f}".format(total_time)))
     print("")
-    print (num_proved)
+    print(num_proved)
 
 
 def determine_words_used(words_used):
@@ -37,7 +46,7 @@ def determine_words_used(words_used):
         if j == 28:
             print(word)
         elif j == None:
-            print (word)
+            print(word)
         else:
             try:
                 w5.cell(row=j, column=2).value = 1
@@ -81,7 +90,7 @@ def print_on_error(order, dictionary, test_sent, print_type, lemmata, user):
                 reaction(consistent, k, print_type, st1)
 
             except:
-                print ("bug")
+                print("bug")
 
                 if k in order:
                     order.remove(k)
@@ -89,32 +98,33 @@ def print_on_error(order, dictionary, test_sent, print_type, lemmata, user):
 
 
         elif print_type[0] in ["0", "4"] and k % 50 == 0:
-            print (k)
+            print(k)
 
     return num_proved
+
 
 def reaction(consistent, k, print_type, st1):
     if print_type[0] in ['1', "2"]:
         if consistent:
-            print ('RIGHT')
+            print('RIGHT')
         else:
-            print ('WRONG')
+            print('WRONG')
 
     elif print_type[0] != "4":
         if not consistent:
             if print_type[0] == "3":
                 print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1) + " False"))
             elif print_type[0] == "0":
-                print (str(k) + " - False")
+                print(str(k) + " - False")
                 sys.exit()
 
 
         elif print_type[0] == "3":
             print(str(k) + " - " + str("{0:.3f}".format(time.time() - st1)))
         elif print_type[0] == "1":
-            print (str(k) + " - True")
+            print(str(k) + " - True")
     elif print_type[0] == "4" and not consistent:
-        print (str(k) + " - False")
+        print(str(k) + " - False")
 
 
 def stop_if_error(order, dictionary, test_sent, print_type, lemmata, user):
@@ -140,20 +150,22 @@ def stop_if_error(order, dictionary, test_sent, print_type, lemmata, user):
                 test_sent[k] = json.loads(json.dumps(total_sent))
                 words_used = words_used | twords_used
 
-
             reaction(consistent, k, print_type, st1)
 
 
         elif print_type[0] in ["0", "4"] and k % 50 == 0:
-            print (k)
+            print(k)
 
     return num_proved
 
 
-def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0):
+def get_result(one_sent, user="", print_type="40", order=[0], get_words_used=0):
+    import os
+    from django.conf import settings
     global words_used
+    import pdb;
+    pdb.set_trace()
     total_time = time.time()
-
     if one_sent == 'a':
         proof_type, print_type, get_words_used, order = parameters()
         pkl_file = open(user + 'zz_claims.pkl', 'rb')
@@ -162,13 +174,18 @@ def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0
     elif one_sent != "":
         test_sent = one_sent
     else:
-        pkl_file = open(user + 'zz_claims.pkl', 'rb')
+        file = os.path.join(settings.BASE_DIR, 'inference2/proofs_old/' + user + 'zz_claims.pkl')
+        pkl_file = open(file, 'rb')
         test_sent = pickle.load(pkl_file)
         pkl_file.close()
-    pkl_file = open(user + 'z_dict_words.pkl', 'rb')
+
+    file = os.path.join(settings.BASE_DIR, 'inference2/proofs_old/' + user + 'z_dict_words.pkl')
+    pkl_file = open(file, 'rb')
     dictionary = pickle.load(pkl_file)
     pkl_file.close()
-    pkl_file = open('lemmata.pkl', 'rb')
+
+    file = os.path.join(settings.BASE_DIR, 'inference2/proofs_old/' + user + 'lemmata.pkl')
+    pkl_file = open(file, 'rb')
     lemmata = pickle.load(pkl_file)
     pkl_file.close()
 
@@ -187,9 +204,4 @@ def get_result(one_sent, user = "", print_type="40", order=[0], get_words_used=0
         determine_words_used(words_used)
 
     return test_sent
-
-
-
-
-
-
+    # pickle.unpack()

@@ -68,6 +68,7 @@ class Define3(models.Model):
     subject = models.CharField(max_length=1000, blank=True, null=True)
     def_object = models.CharField(max_length=1000, blank=True, null=True)
     archives = models.ForeignKey(Archives, on_delete=models.CASCADE)
+    version = models.ForeignKey('Version', null=True, blank=True)
 
     class Meta:
         managed = True

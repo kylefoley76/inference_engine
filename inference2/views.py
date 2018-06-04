@@ -494,26 +494,30 @@ def version_try_input(request, version_item):
     url_path = '/'
     version_item = VersionItem.objects.filter(id=version_item).first()
     if request.method == 'POST':
-        try:
-            # input = "It is|a contradictory that I do not have many|n points"
-            input = request.POST.get('try_input')
-            Output.objects.all().delete()
-            prove_algorithm = importlib.import_module('.' + 'z_intermed_code',
-                                                      package='inference2.' + version_item.version.version_directory)
-            post_data, result_string = prove_algorithm.get_result_from_views(
-                request.POST.copy(), None, request, input)
-            template_args['result'] = result_string
-            print(post_data)
-            if post_data:
-                post_data["type"] = "prove"
-                result = json.dumps(post_data, cls=DjangoJSONEncoder)
-
-                save_result(None, post_data)
-            output = Output.objects.all()
-        except Exception as e:
-            messages.error(request, str(e))
-            template_args['success'] = 'Wrong'
-            template_args['result'] = 'Wrong'
+        # try:
+        #     # input = "It is|a contradictory that I do not have many|n points"
+        #     input = request.POST.get('try_input')
+        #     Output.objects.all().delete()
+        #     prove_algorithm = importlib.import_module('.' + 'z_intermed_code',
+        #                                               package='inference2.' + version_item.version.version_directory)
+        #     post_data, result_string = prove_algorithm.get_result_from_views(
+        #         request.POST.copy(), None, request, input)
+        #
+        #     template_args['result'] = result_string
+        #     print(post_data)
+        #     if post_data:
+        #         post_data["type"] = "prove"
+        #         result = json.dumps(post_data, cls=DjangoJSONEncoder)
+        #
+        #         save_result(None, post_data)
+        #     output = Output.objects.all()
+        # except Exception as e:
+        #     messages.error(request, str(e))
+        #     template_args['success'] = 'Wrong'
+        #     template_args['result'] = 'Wrong'
+        from .proofs_old_copy.main_loop import get_result as test_machine
+        import pdb;pdb.set_trace()
+        output = test_machine(request.POST.get('try_input'))
 
     algo = Algorithm.objects.all().order_by('id')
     template_args['notes'] = algo[0].try_input_notes if algo else ''

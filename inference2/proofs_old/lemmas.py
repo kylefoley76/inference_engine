@@ -1,17 +1,18 @@
 
-from collections import defaultdict
+
 import itertools
 from itertools import combinations
-import copy
-import json, operator, collections
+
+import  operator, collections
 from openpyxl import load_workbook
-from classes import implications
+
 import time
 import random
 # from random import *
 
 try:
     from settings import *
+    from classes import implications
     from general_functions import *
     from classes import get_output
     from search_for_instantiation import loop_through_gsent, try_instantiation
@@ -22,7 +23,7 @@ except:
     from .classes import get_output
     from .search_for_instantiation import loop_through_gsent, try_instantiation
     from .prepare_for_print import rearrange
-
+    from .classes import implications
 
 
 def determine_class(user, dictionary2=""):

@@ -3,7 +3,6 @@ import pickle
 import copy
 import json, operator
 import sys, time
-from lemmas import determine_class
 from itertools import combinations
 import itertools
 

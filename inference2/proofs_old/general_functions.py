@@ -1,12 +1,12 @@
 from openpyxl import load_workbook
 from itertools import chain, combinations
 
-from settings import *
-#
-# try:
-#     from settings import *
-# except:
-#     from .settings import *
+# from settings import *
+
+try:
+    from settings import *
+except:
+    from .settings import *
 
 
 def powerset(list1):

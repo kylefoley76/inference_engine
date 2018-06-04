@@ -23,7 +23,7 @@ except:
     from .general_functions import *
     from .uninstantiable_definitions import define_irregular_terms
     from .search_for_instantiation import try_instantiation
-    from .disambiguation import disambiguate_sentence
+    # from .disambiguation import disambiguate_sentence
 
 
 
