@@ -13,9 +13,6 @@ from wsgiref.util import FileWrapper
 from django.http import HttpResponse
 from django.conf import settings
 import time
-
-from inference2.Proofs.main_loop import get_result
-from inference2.proofs_old_copy.test_file import score
 from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary, Version, \
     VersionItem
 import importlib
