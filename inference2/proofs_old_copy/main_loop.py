@@ -201,8 +201,6 @@ def get_result(one_sent, user="", print_type="40", order=[0], get_words_used=0):
     dictionary = pickle.load(pkl_file)
     pkl_file.close()
 
-    import pdb;
-    pdb.set_trace()
     words_used = set()
     print_type = "31"
 
@@ -217,4 +215,8 @@ def get_result(one_sent, user="", print_type="40", order=[0], get_words_used=0):
     if get_words_used == 1:
         determine_words_used(words_used)
 
-    return test_sent
+    with open("test3.txt", "wb") as fp:  # Pickling
+        pickle.dump(test_sent, fp)
+
+    # with open('test_file.txt', 'w') as f:
+    #     f.write('score = %s' % test_sent)

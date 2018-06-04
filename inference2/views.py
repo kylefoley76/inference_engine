@@ -1,5 +1,9 @@
 import json
 import os
+
+import subprocess
+
+import pickle
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
@@ -11,6 +15,7 @@ from django.conf import settings
 import time
 
 from inference2.Proofs.main_loop import get_result
+from inference2.proofs_old_copy.test_file import score
 from .models import Output, InstructionFile, Algorithm, Profile, Define3Notes, Settings, TestedDictionary, Version, \
     VersionItem
 import importlib
@@ -488,41 +493,35 @@ def version_categorical(request, version_item):
 
 
 def version_try_input(request, version_item):
-    output = []
     template_args = {}
     template_args['success'] = 'Right'
     url_path = '/'
     version_item = VersionItem.objects.filter(id=version_item).first()
+    return_data = []
+    result = ''
     if request.method == 'POST':
-        # try:
-        #     # input = "It is|a contradictory that I do not have many|n points"
-        #     input = request.POST.get('try_input')
-        #     Output.objects.all().delete()
-        #     prove_algorithm = importlib.import_module('.' + 'z_intermed_code',
-        #                                               package='inference2.' + version_item.version.version_directory)
-        #     post_data, result_string = prove_algorithm.get_result_from_views(
-        #         request.POST.copy(), None, request, input)
-        #
-        #     template_args['result'] = result_string
-        #     print(post_data)
-        #     if post_data:
-        #         post_data["type"] = "prove"
-        #         result = json.dumps(post_data, cls=DjangoJSONEncoder)
-        #
-        #         save_result(None, post_data)
-        #     output = Output.objects.all()
-        # except Exception as e:
-        #     messages.error(request, str(e))
-        #     template_args['success'] = 'Wrong'
-        #     template_args['result'] = 'Wrong'
-        from .proofs_old_copy.main_loop import get_result as test_machine
-        import pdb;pdb.set_trace()
-        output = test_machine(request.POST.get('try_input'))
+        file_path = os.path.join(settings.BASE_DIR, 'inference2/' + version_item.version.version_directory)
+        pipe = subprocess.Popen(['python', 'begin_code.py', 'os', '25', request.POST.get('try_input')],
+                                cwd=file_path,
+                                stdout=subprocess.PIPE, close_fds=True)
+        pipe.communicate()
+
+        time.sleep(1)
+        import pickle
+        with open(file_path + '/test3.txt', 'rb') as fp:
+            data = pickle.load(fp)
+            if data[0][0] == request.POST.get('try_input'):
+                result = 'Wrong'
+                return_data = []
+            else:
+                result = data[0][len(data[0]) - 1][1]
+                return_data = data[0]
 
     algo = Algorithm.objects.all().order_by('id')
     template_args['notes'] = algo[0].try_input_notes if algo else ''
     template_args['url_path'] = url_path
-    template_args['output'] = output
     template_args['archive'] = None
+    template_args['data'] = return_data
+    template_args['result'] = result
 
     return render(request, "inference2/version_test_machine.html", template_args)

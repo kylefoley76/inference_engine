@@ -7,21 +7,14 @@ import pickle
 #hey man
 
 
-from main_loop import get_result
-from lemmas import determine_class, print_some_lemmas
-from general_functions import print_sent
-
-
-
-#
-# try:
-#     from main_loop import get_result
-#     from lemmas import determine_class, print_some_lemmas
-#     from general_functions import print_sent
-# except:
-#     from .main_loop import get_result
-#     from .lemmas import determine_class, print_some_lemmas
-#     from .general_functions import print_sent
+try:
+    from main_loop import get_result
+    from lemmas import determine_class, print_some_lemmas
+    from general_functions import print_sent
+except:
+    from .main_loop import get_result
+    from .lemmas import determine_class, print_some_lemmas
+    from .general_functions import print_sent
 
 
 
@@ -47,6 +40,7 @@ def replace_one_zero(single_sent):
         return single_sent
 
 def get_single_sent(arguments):
+    print(arguments)
     order = [0]
     if len(arguments) > 2:
         print_type = arguments[2]
@@ -54,7 +48,7 @@ def get_single_sent(arguments):
             print_type = print_type + "0"
     else:
         print_type = "20"
-    single_sent = "it is consistent that a man is a dog"
+    single_sent = arguments[3]
     # single_sent = input("input sentence: ")
     if single_sent[-1] == ".":
         single_sent = single_sent[:-1]
@@ -97,13 +91,13 @@ elif len(arguments) == 5:
     arg3 = arguments[4]
 
 try:
-    if isinstance(int(arg1), int):
-        kind = 'default'
-    else:
-        kind = arg1
+    if not kind == 'os':
+        if isinstance(int(arg1), int):
+            kind = 'default'
+        else:
+            kind = arg1
 except:
     pass
-
 
 
 if kind == 'default':

@@ -64,6 +64,33 @@
 
 
         {% endif %}
+
+
+
+
+        <table class="table table-bordered">
+            <thead class="thead-inverse"></thead>
+            <tbody>
+
+            {% for i in data %}
+                <tr class="output_row">
+                    <td id="table_output_{{ i.0 }}_1 text-align: center;">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                             name="table_output_{{ i.0 }}_1" id="table_output_{{ i.0 }}_1">{{ i.0 }}</div>
+                    </td>
+                    <td id="table_output_{{ i.1 }}_2">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden;min-height: 20px;" class="text"
+                             name="table_output_{{ i.0 }}_2" id="table_output_{{ i.1 }}_2">{{ i.1 }}</div>
+                    </td>
+                    <td id="table_output_{{ i.2 }}_3">
+                        <div onchange="textAreaAdjust(this)" style="overflow:hidden" class="text"
+                             name="table_output_{{ i.0 }}_3" id="table_output_{{ i.2 }}_3">{{ i.2 }}</div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
         <table class="table table-bordered">
             <thead class="thead-inverse"></thead>
             <tbody>
