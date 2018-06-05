@@ -498,7 +498,7 @@ def version_try_input(request, version_item):
     result = ''
     if request.method == 'POST':
         file_path = os.path.join(settings.BASE_DIR, 'inference2/' + version_item.version.version_directory)
-        pipe = subprocess.Popen(['python', 'begin_code.py', 'os', '25', request.POST.get('try_input')],
+        pipe = subprocess.Popen(['python3', 'begin_code.py', 'os', '25', request.POST.get('try_input')],
                                 cwd=file_path,
                                 stdout=subprocess.PIPE, close_fds=True)
         pipe.communicate()
