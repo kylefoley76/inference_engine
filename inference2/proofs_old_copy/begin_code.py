@@ -7,14 +7,14 @@ import pickle
 #hey man
 
 
-try:
-    from main_loop import get_result
-    from lemmas import determine_class, print_some_lemmas
-    from general_functions import print_sent
-except:
-    from .main_loop import get_result
-    from .lemmas import determine_class, print_some_lemmas
-    from .general_functions import print_sent
+# try:
+from main_loop import get_result
+from lemmas import determine_class, print_some_lemmas
+from general_functions import print_sent
+# except:
+#     from .main_loop import get_result
+#     from .lemmas import determine_class, print_some_lemmas
+#     from .general_functions import print_sent
 
 
 
