@@ -1,8 +1,8 @@
 
-try:
-    from general_functions import *
-except:
-    from .general_functions import *
+# try:
+from general_functions import *
+# except:
+#     from .general_functions import *
 
 
 

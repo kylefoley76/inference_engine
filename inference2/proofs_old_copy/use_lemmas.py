@@ -1,10 +1,10 @@
-try:
-    from settings import *
-    from general_functions import add_to_tsent, \
-        build_contradiction2, get_key, name_and_build
-except:
-    from .settings import *
-    from .general_functions import *
+# try:
+from settings import *
+from general_functions import add_to_tsent, \
+    build_contradiction2, get_key, name_and_build
+# except:
+#     from .settings import *
+#     from .general_functions import *
 
 import copy
 

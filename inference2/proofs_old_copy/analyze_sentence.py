@@ -1,13 +1,13 @@
 import copy
 
-try:
-    from settings import *
-    from general_functions import *
-    from classes import *
-except:
-    from .settings import *
-    from .general_functions import *
-    from .classes import *
+# try:
+from settings import *
+from general_functions import *
+from classes import *
+# except:
+#     from .settings import *
+#     from .general_functions import *
+#     from .classes import *
 
 
 def replace_w_greek(sentence, result):

@@ -1,7 +1,7 @@
-try:
-    from settings import *
-except:
-    from .settings import *
+# try:
+from settings import *
+# except:
+#     from .settings import *
 
 
 def check_grammar(list1):

@@ -1,19 +1,19 @@
-try:
-    from settings import *
-    from general_functions import *
-    from put_words_in_slots import categorize_words
-    from analyze_sentence import period_elimination, find_sentences
-    from standard_order import order_sentence
-    import copy
-    from classes import *
-except:
-    from .settings import *
-    from .general_functions import *
-    from .put_words_in_slots import categorize_words
-    from .analyze_sentence import period_elimination, find_sentences
-    from .standard_order import order_sentence
-    import copy
-    from .classes import *
+# try:
+from settings import *
+from general_functions import *
+from put_words_in_slots import categorize_words
+from analyze_sentence import period_elimination, find_sentences
+from standard_order import order_sentence
+import copy
+from classes import *
+# except:
+#     from .settings import *
+#     from .general_functions import *
+#     from .put_words_in_slots import categorize_words
+#     from .analyze_sentence import period_elimination, find_sentences
+#     from .standard_order import order_sentence
+#     import copy
+#     from .classes import *
 
 
 def is_a_concept(sentences):

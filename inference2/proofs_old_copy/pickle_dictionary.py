@@ -7,16 +7,16 @@ from lemmas import determine_class
 from itertools import combinations
 import itertools
 
-try:
-    from settings import *
-    from analyze_definition import process_sentences
-    from classes import get_dictionary, row_class, relata
-    from general_functions import get_last_row
-except:
-    from .settings import *
-    from .analyze_definition import process_sentences
-    from .classes import get_dictionary, row_class, relata
-    from .general_functions import get_last_row
+# try:
+from settings import *
+from analyze_definition import process_sentences
+from classes import get_dictionary, row_class, relata
+from general_functions import get_last_row
+# except:
+#     from .settings import *
+#     from .analyze_definition import process_sentences
+#     from .classes import get_dictionary, row_class, relata
+#     from .general_functions import get_last_row
 
 
 def update_synonyms(definition, pos):

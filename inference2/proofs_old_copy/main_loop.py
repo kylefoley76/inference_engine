@@ -8,16 +8,16 @@ from openpyxl import load_workbook
 # from classes import ErrorWithCode
 # from settings import *
 #
-try:
-    from natural_language import step_one
-    from general_functions import parameters
-    from classes import ErrorWithCode
-    from settings import *
-except:
-    from .natural_language import step_one
-    from .general_functions import parameters
-    from .classes import ErrorWithCode
-    from .settings import *
+# try:
+from natural_language import step_one
+from general_functions import parameters
+from classes import ErrorWithCode
+from settings import *
+# except:
+#     from .natural_language import step_one
+#     from .general_functions import parameters
+#     from .classes import ErrorWithCode
+#     from .settings import *
 
 
 def calculate_time_statistics(num_proved, total_time):

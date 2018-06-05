@@ -10,18 +10,18 @@ import time
 import random
 # from random import *
 
-try:
-    from settings import *
-    from general_functions import *
-    from classes import get_output
-    from search_for_instantiation import loop_through_gsent, try_instantiation
-    from prepare_for_print import rearrange
-except:
-    from .settings import *
-    from .general_functions import *
-    from .classes import get_output
-    from .search_for_instantiation import loop_through_gsent, try_instantiation
-    from .prepare_for_print import rearrange
+# try:
+from settings import *
+from general_functions import *
+from classes import get_output
+from search_for_instantiation import loop_through_gsent, try_instantiation
+from prepare_for_print import rearrange
+# except:
+#     from .settings import *
+#     from .general_functions import *
+#     from .classes import get_output
+#     from .search_for_instantiation import loop_through_gsent, try_instantiation
+#     from .prepare_for_print import rearrange
 
 
 

@@ -1,11 +1,11 @@
 import copy
 import operator
-try:
-    from settings import *
-    from general_functions import *
-except:
-    from .settings import *
-    from .general_functions import *
+# try:
+from settings import *
+from general_functions import *
+# except:
+#     from .settings import *
+#     from .general_functions import *
 
 
 premise = False

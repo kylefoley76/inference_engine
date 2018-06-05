@@ -1,12 +1,12 @@
 import operator
-try:
-    from settings import *
-    from general_functions import *
-    from grammar import check_grammar
-except:
-    from .settings import *
-    from .general_functions import *
-    from .grammar import check_grammar
+# try:
+from settings import *
+from general_functions import *
+from grammar import check_grammar
+# except:
+#     from .settings import *
+#     from .general_functions import *
+#     from .grammar import check_grammar
 
 
 
